@@ -7,7 +7,7 @@ export class Player {
    velocity = new THREE.Vector3();
    mesh: THREE.Mesh;
 
-   constructor(public speed: number) {
+   constructor(public name: string, public speed: number) {
       // const geometry = new THREE.CapsuleGeometry(0.5, 1);
       const geometry = new THREE.BoxGeometry(1, 1, 1);
       geometry.translate(0, 0.5, 0);

@@ -1,5 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import {
+   FontLoader,
+   type Font,
+} from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 import { setKeyBindings } from './input';
 import { Player } from './player';
@@ -13,6 +18,7 @@ export class Game {
    private scene: THREE.Scene;
 
    private player: Player;
+   private name: THREE.Mesh | null = null;
 
    constructor() {
       const { renderer, camera, controls, scene } = this.setup();
@@ -32,9 +38,32 @@ export class Game {
       const gridHelper = new THREE.GridHelper(10, 10);
       scene.add(gridHelper);
 
-      const player = new Player(6);
+      const player = new Player('Balthazar', 6);
       scene.add(player.mesh);
       this.player = player;
+
+      new FontLoader().load(
+         '../assets/fonts/helvetiker_regular.typeface.json',
+         (font: Font) => {
+            const geometry = new TextGeometry(player.name, {
+               font: font,
+               size: 0.2,
+               depth: 0,
+               curveSegments: 12,
+            });
+            geometry.computeBoundingBox();
+            const offset =
+               -0.5 *
+               (geometry.boundingBox!.max.x - geometry.boundingBox!.min.x);
+            geometry.translate(offset, 0, 0);
+            const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const name = new THREE.Mesh(geometry, material);
+            name.position.y = 1.5;
+            this.name = name;
+
+            player.mesh.add(name);
+         },
+      );
    }
 
    setup() {
@@ -84,6 +113,10 @@ export class Game {
          target.z + diff.z,
       );
       this.controls.update();
+
+      if (this.name) {
+         this.name.lookAt(this.camera.position);
+      }
 
       this.renderer.render(this.scene, this.camera);
    }
