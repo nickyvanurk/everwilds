@@ -42,9 +42,7 @@ export class Game {
 
       this.hud = new HUD(this);
 
-      gAssetManager.load(assets, () => {
-         this.hud.init();
-      });
+      gAssetManager.load(assets);
    }
 
    setup() {

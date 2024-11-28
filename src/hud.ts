@@ -5,14 +5,17 @@ import type { Game } from './game';
 import type { Player } from './player';
 
 export class HUD {
-   private names: THREE.Mesh[] = [];
+   private names = new Map<Player, THREE.Mesh>();
 
    constructor(private game: Game) {}
 
-   init() {
-      const font = gAssetManager.getFont('helvetiker')!;
-
+   update(_dt: number) {
       for (const character of this.game.characters) {
+         if (this.names.has(character)) continue;
+
+         const font = gAssetManager.getFont('helvetiker');
+         if (!font) continue;
+
          const geometry = new TextGeometry(character.name, {
             font: font,
             size: 0.2,
@@ -27,15 +30,11 @@ export class HUD {
             color: 0xffffff,
          });
          const name = new THREE.Mesh(geometry, material);
-         name.userData.character = character;
          this.game.scene.add(name);
-         this.names.push(name);
+         this.names.set(character, name);
       }
-   }
 
-   update(_dt: number) {
-      for (const name of this.names) {
-         const character = name.userData.character as Player;
+      for (const [character, name] of this.names) {
          name.position.copy(character.position);
          name.position.y += character.getHeight() + 0.5;
          name.lookAt(this.game.camera.position);
