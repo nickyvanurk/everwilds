@@ -3,15 +3,18 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 import { setKeyBindings } from './input';
 import { Player } from './player';
+import { HUD } from './hud';
+import { assets } from './config';
 
 export class Game {
+   renderer: THREE.WebGLRenderer;
+   controls: OrbitControls;
+   camera: THREE.PerspectiveCamera;
+   scene: THREE.Scene;
+   characters: Player[] = [];
+
    private prevTime = 0;
-
-   private renderer: THREE.WebGLRenderer;
-   private camera: THREE.PerspectiveCamera;
-   private controls: OrbitControls;
-   private scene: THREE.Scene;
-
+   private hud: HUD;
    private player: Player;
 
    constructor() {
@@ -32,9 +35,14 @@ export class Game {
       const gridHelper = new THREE.GridHelper(10, 10);
       scene.add(gridHelper);
 
-      const player = new Player(6);
+      const player = new Player('Balthazar', 6);
       scene.add(player.mesh);
       this.player = player;
+      this.characters.push(player);
+
+      this.hud = new HUD(this);
+
+      gAssetManager.load(assets);
    }
 
    setup() {
@@ -84,6 +92,8 @@ export class Game {
          target.z + diff.z,
       );
       this.controls.update();
+
+      this.hud?.update(dt);
 
       this.renderer.render(this.scene, this.camera);
    }
