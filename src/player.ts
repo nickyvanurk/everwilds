@@ -7,10 +7,13 @@ export class Player {
    velocity = new THREE.Vector3();
    mesh: THREE.Mesh;
 
-   constructor(public name: string, public speed: number) {
-      // const geometry = new THREE.CapsuleGeometry(0.5, 1);
+   constructor(
+      public name: string,
+      public speed: number,
+   ) {
       const geometry = new THREE.BoxGeometry(1, 1, 1);
       geometry.translate(0, 0.5, 0);
+      geometry.computeBoundingBox();
       const material = new THREE.MeshNormalMaterial();
       const cube = new THREE.Mesh(geometry, material);
       this.mesh = cube;
@@ -44,5 +47,9 @@ export class Player {
       }
 
       this.mesh.position.copy(this.position);
+   }
+
+   getHeight() {
+      return this.mesh.geometry.boundingBox!.max.y;
    }
 }

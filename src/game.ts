@@ -1,24 +1,20 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import {
-   FontLoader,
-   type Font,
-} from 'three/examples/jsm/loaders/FontLoader.js';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 import { setKeyBindings } from './input';
 import { Player } from './player';
+import { HUD } from './hud';
 
 export class Game {
+   renderer: THREE.WebGLRenderer;
+   controls: OrbitControls;
+   camera: THREE.PerspectiveCamera;
+   scene: THREE.Scene;
+   characters: Player[] = [];
+
    private prevTime = 0;
-
-   private renderer: THREE.WebGLRenderer;
-   private camera: THREE.PerspectiveCamera;
-   private controls: OrbitControls;
-   private scene: THREE.Scene;
-
+   private hud: HUD;
    private player: Player;
-   private name: THREE.Mesh | null = null;
 
    constructor() {
       const { renderer, camera, controls, scene } = this.setup();
@@ -41,29 +37,9 @@ export class Game {
       const player = new Player('Balthazar', 6);
       scene.add(player.mesh);
       this.player = player;
+      this.characters.push(player);
 
-      new FontLoader().load(
-         '../assets/fonts/helvetiker_regular.typeface.json',
-         (font: Font) => {
-            const geometry = new TextGeometry(player.name, {
-               font: font,
-               size: 0.2,
-               depth: 0,
-               curveSegments: 12,
-            });
-            geometry.computeBoundingBox();
-            const offset =
-               -0.5 *
-               (geometry.boundingBox!.max.x - geometry.boundingBox!.min.x);
-            geometry.translate(offset, 0, 0);
-            const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            const name = new THREE.Mesh(geometry, material);
-            name.position.y = 1.5;
-            this.name = name;
-
-            player.mesh.add(name);
-         },
-      );
+      this.hud = new HUD(this);
    }
 
    setup() {
@@ -114,9 +90,7 @@ export class Game {
       );
       this.controls.update();
 
-      if (this.name) {
-         this.name.lookAt(this.camera.position);
-      }
+      this.hud.update(dt);
 
       this.renderer.render(this.scene, this.camera);
    }
