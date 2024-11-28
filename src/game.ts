@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { setKeyBindings } from './input';
 import { Player } from './player';
 import { HUD } from './hud';
+import { assets } from './config';
 
 export class Game {
    renderer: THREE.WebGLRenderer;
@@ -40,6 +41,10 @@ export class Game {
       this.characters.push(player);
 
       this.hud = new HUD(this);
+
+      gAssetManager.load(assets, () => {
+         this.hud.init();
+      });
    }
 
    setup() {
@@ -90,7 +95,7 @@ export class Game {
       );
       this.controls.update();
 
-      this.hud.update(dt);
+      this.hud?.update(dt);
 
       this.renderer.render(this.scene, this.camera);
    }
