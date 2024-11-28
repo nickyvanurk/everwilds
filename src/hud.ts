@@ -37,7 +37,7 @@ export class HUD {
       for (const [character, name] of this.names) {
          name.position.copy(character.position);
          name.position.y += character.getHeight() + 0.5;
-         name.lookAt(this.game.camera.position);
+         name.rotation.setFromRotationMatrix(this.game.camera.matrix);
       }
    }
 }
