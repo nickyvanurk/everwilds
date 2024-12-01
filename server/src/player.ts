@@ -1,17 +1,17 @@
-import type { WebSocket } from 'ws';
 import { MessageType } from '../../shared/src/gametypes';
 import { Entity } from './entity';
 import type { World } from './world';
 import * as Message from './message';
+import type { WorldSocket } from './world-socket';
 
 export class Player extends Entity {
    constructor(
-      public connection: WebSocket,
+      public socket: WorldSocket,
       private world: World,
    ) {
       super(Number.parseInt(`5${Math.floor(Math.random() * 1000)}`)); // TODO: ws wrapper + use connection id
 
-      connection.on('message', (message: (string | number)[]) => {
+      socket.ws.on('message', (message: (string | number)[]) => {
          message = JSON.parse(message.toString());
          const action = +message[0];
 
@@ -22,7 +22,7 @@ export class Player extends Entity {
             const y = this.y;
             const z = this.z;
 
-            connection.send(
+            socket.ws.send(
                JSON.stringify([MessageType.Welcome, id, name, x, y, z]),
             );
 
@@ -41,10 +41,10 @@ export class Player extends Entity {
          }
       });
 
-      connection.on('close', () => {
+      socket.ws.on('close', () => {
          this.world.removePlayer(this);
       });
 
-      connection.send('go'); // Notify client that the HELLO/WELCOME handshake can start
+      socket.ws.send('go'); // Notify client that the HELLO/WELCOME handshake can start
    }
 }
