@@ -1,7 +1,7 @@
 import { MessageType } from '../../shared/src/gametypes';
 import type { Entity } from './entity';
 
-export type Message = {
+export type Packet = {
    serialize(): (string | number)[];
 };
 

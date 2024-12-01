@@ -1,6 +1,6 @@
 import type { Player } from './player';
 import type { Entity } from './entity';
-import * as Message from './message';
+import * as Packet from './packets';
 import type { WorldSession } from './world-session';
 
 export class World {
@@ -47,7 +47,7 @@ export class World {
    }
 
    removePlayer(player: Player) {
-      this.broadcast(new Message.Despawn(player.id));
+      this.broadcast(new Packet.Despawn(player.id));
 
       delete this.entities[player.id];
       delete this.players[player.id];
@@ -56,9 +56,9 @@ export class World {
       console.log(`Removed player: ${player.id}`);
    }
 
-   pushToPlayer(player: Player, message: Message.Message) {
+   pushToPlayer(player: Player, packet: Packet.Packet) {
       if (player && player.id in this.outgoingQueues) {
-         this.outgoingQueues[player.id].push(message.serialize());
+         this.outgoingQueues[player.id].push(packet.serialize());
       } else {
          console.log('pushToPlayer: player was undefined');
       }
@@ -70,7 +70,7 @@ export class World {
             .filter(id => Number.parseInt(id) !== player.id)
             .map(id => Number.parseInt(id));
          if (ids) {
-            this.pushToPlayer(player, new Message.List(ids));
+            this.pushToPlayer(player, new Packet.List(ids));
          }
       }
    }
@@ -79,20 +79,20 @@ export class World {
       for (const id of ids) {
          const entity = this.getEntityById(id);
          if (entity) {
-            this.pushToPlayer(player, new Message.Spawn(entity));
+            this.pushToPlayer(player, new Packet.Spawn(entity));
          }
       }
 
       console.log(`Pushed ${ids.length} new spawns to ${player.id}`);
    }
 
-   broadcast(message: Message.Message, ignoredPlayerId?: number) {
+   broadcast(packet: Packet.Packet, ignoredPlayerId?: number) {
       for (const playerId in this.players) {
          if (+playerId === ignoredPlayerId) {
             continue;
          }
 
-         this.pushToPlayer(this.players[playerId], message);
+         this.pushToPlayer(this.players[playerId], packet);
       }
    }
 

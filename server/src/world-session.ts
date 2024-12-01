@@ -2,7 +2,7 @@ import { MessageType } from '../../shared/src/gametypes';
 import { Player } from './player';
 import type { World } from './world';
 import type { WorldSocket } from './world-socket';
-import * as Message from './message';
+import * as Packet from './packets';
 
 export class WorldSession {
    private player: Player | null = null;
@@ -56,7 +56,7 @@ export class WorldSession {
          this.player.z,
       ]);
 
-      this.world.broadcast(new Message.Spawn(this.player), this.player.id);
+      this.world.broadcast(new Packet.Spawn(this.player), this.player.id);
    }
 
    // TODO: Pass parsed Who packet as the argument
@@ -74,6 +74,6 @@ export class WorldSession {
       this.player.y = data[1] as number;
       this.player.z = data[2] as number;
 
-      this.world.broadcast(new Message.Move(this.player), this.player.id);
+      this.world.broadcast(new Packet.Move(this.player), this.player.id);
    }
 }
