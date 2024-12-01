@@ -1,11 +1,12 @@
-import type { WebSocketServer } from 'ws';
 import type { Player } from './player';
 import type { Entity } from './entity';
 import * as Message from './message';
+import type { WorldSession } from './world-session';
 
 export class World {
    private ups = 50;
 
+   private sessions: { [key: number]: WorldSession } = {};
    private entities: { [key: number]: Entity } = {};
    private players: { [key: number]: Player } = {};
 
@@ -15,7 +16,6 @@ export class World {
    constructor(
       private id: string,
       private maxPlayers: number,
-      private server: WebSocketServer,
    ) {}
 
    run() {
@@ -32,6 +32,10 @@ export class World {
       }
 
       console.log(`Unknown entity : ${id}`);
+   }
+
+   addSession(session: WorldSession) {
+      this.sessions[session.id] = session;
    }
 
    addPlayer(player: Player) {
@@ -92,13 +96,14 @@ export class World {
       }
    }
 
+   // TODO: Doesn't belong in this class. Move the queues to WorldSession.
    processQueues() {
       for (const playerId in this.outgoingQueues) {
          const player = this.players[playerId];
          const queue = this.outgoingQueues[playerId];
 
          if (queue.length > 0) {
-            player.connection.send(JSON.stringify(queue));
+            player.session.socket.sendPacket(queue);
             this.outgoingQueues[playerId] = [];
          }
       }

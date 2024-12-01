@@ -1,20 +1,19 @@
 import { WebSocketServer } from 'ws';
 import { World } from './world';
-import { Player } from './player';
 import { WorldSocket } from './world-socket';
-
-const server = new WebSocketServer({ port: 8080 });
+import { WorldSession } from './world-session';
 
 console.log('Starting Spellforge game server...');
+const server = new WebSocketServer({ port: 8080 });
 
-const world = new World('world0', 2, server);
+const world = new World('world0', 2);
 world.run();
 
 server.on('connection', ws => {
    const socket = new WorldSocket(ws);
-   new Player(socket, world);
-
-   ws.on('error', error => {
-      console.log(`Error: ${error}`);
-   });
+   const session = new WorldSession(
+      Number.parseInt(`4${Math.floor(Math.random() * 1000)}`),
+      socket,
+      world,
+   );
 });
