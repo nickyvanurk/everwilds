@@ -63,7 +63,16 @@ export class WorldSession {
    handleWhoOpcode(data: (string | number)[]) {
       if (!this.player) return;
 
-      this.world.pushSpawnsToPlayer(this.player, data.map(Number));
+      const ids = data.map(Number);
+
+      for (const id of ids) {
+         const entity = this.world.getEntityById(id);
+         if (entity) {
+            this.world.pushToPlayer(this.player, new Packet.Spawn(entity));
+         }
+      }
+
+      console.log(`Pushed ${ids.length} new spawns to ${this.player.id}`);
    }
 
    // TODO: Pass parsed Move packet as the argument

@@ -75,17 +75,6 @@ export class World {
       }
    }
 
-   pushSpawnsToPlayer(player: Player, ids: number[]) {
-      for (const id of ids) {
-         const entity = this.getEntityById(id);
-         if (entity) {
-            this.pushToPlayer(player, new Packet.Spawn(entity));
-         }
-      }
-
-      console.log(`Pushed ${ids.length} new spawns to ${player.id}`);
-   }
-
    broadcast(packet: Packet.Packet, ignoredPlayerId?: number) {
       for (const playerId in this.players) {
          if (+playerId === ignoredPlayerId) {
