@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 import type { Game } from './game';
-import type { Player } from './player';
+import type { Character } from './character';
 
 export class HUD {
-   private names = new Map<Player, THREE.Mesh>();
+   private names = new Map<Character, THREE.Mesh>();
 
    constructor(private game: Game) {}
 
@@ -32,6 +32,13 @@ export class HUD {
          const name = new THREE.Mesh(geometry, material);
          this.game.scene.add(name);
          this.names.set(character, name);
+      }
+
+      for (const [character, name] of this.names) {
+         if (!this.game.characters.includes(character)) {
+            this.game.scene.remove(name);
+            this.names.delete(character);
+         }
       }
 
       for (const [character, name] of this.names) {

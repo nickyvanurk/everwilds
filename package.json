@@ -5,14 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "tsx server/src/main.ts",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "cpd": "jscpd --min-tokens 50 --min-lines 5 --min-tokens 100 ./src"
+    "cpd": "jscpd --min-tokens 50 --min-lines 5 --min-tokens 100 ./*/src"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@tweakpane/core": "^2.0.5",
     "@types/three": "^0.170.0",
+    "@types/ws": "^8.5.13",
     "jscpd": "^4.0.5",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
@@ -20,6 +22,7 @@
   },
   "dependencies": {
     "three": "^0.170.0",
-    "tweakpane": "^4.0.5"
+    "tweakpane": "^4.0.5",
+    "ws": "^8.18.0"
   }
 }

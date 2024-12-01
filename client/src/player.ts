@@ -1,22 +1,15 @@
-import * as THREE from 'three';
-
 import { actions } from './input';
+import { Character } from './character';
+import type { Client } from './client';
 
-export class Player {
-   position = new THREE.Vector3();
-   velocity = new THREE.Vector3();
-   mesh: THREE.Mesh;
+export class Player extends Character {
+   client: Client | null = null;
 
    constructor(
       public name: string,
       public speed: number,
    ) {
-      const geometry = new THREE.BoxGeometry(1, 1, 1);
-      geometry.translate(0, 0.5, 0);
-      geometry.computeBoundingBox();
-      const material = new THREE.MeshNormalMaterial();
-      const cube = new THREE.Mesh(geometry, material);
-      this.mesh = cube;
+      super(name, speed);
    }
 
    update(dt: number) {
@@ -46,10 +39,14 @@ export class Player {
          this.position.y = 0;
       }
 
-      this.mesh.position.copy(this.position);
-   }
+      if (this.client) {
+         this.client.sendMove(
+            this.position.x,
+            this.position.y,
+            this.position.z,
+         );
+      }
 
-   getHeight() {
-      return this.mesh.geometry.boundingBox!.max.y;
+      super.update(dt);
    }
 }
