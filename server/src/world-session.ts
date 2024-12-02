@@ -99,12 +99,14 @@ export class WorldSession {
    handleMoveOpcode(data: (string | number)[]) {
       if (!this.player) return;
 
-      const timestamp = data[0] as number;
+      const clientTime = data[0] as number;
       this.player.x = data[1] as number;
       this.player.y = data[2] as number;
       this.player.z = data[3] as number;
 
-      this.world.broadcast(new Packet.Move(this.player, timestamp), this.player.id);
+      const serverTime = this.adjustClientMovementTime(clientTime);
+
+      this.world.broadcast(new Packet.Move(this.player, serverTime), this.player.id);
    }
 
    resetTimeSync() {
@@ -120,6 +122,17 @@ export class WorldSession {
       // Schedule next sync in 10 sec (except for the 5 first packets, which are spaced by 2s)
       this.timeSyncTimer = this.timeSyncNextCounter < 4 ? 2000 : 10000;
       this.timeSyncNextCounter++;
+   }
+
+   adjustClientMovementTime(timeOfMovementInClientTime: number) {
+      const timeOfMovementInServerTime = Math.floor(timeOfMovementInClientTime + this.timeSyncClockDelta);
+      if (this.timeSyncClockDelta === 0 || timeOfMovementInServerTime < 0 || timeOfMovementInServerTime > 0xFFFFFFFF) {
+         console.error('The computed movement time using clockDelta is erronous. Using fallback instead');
+         return getMSTime();
+      }
+      else {
+         return timeOfMovementInServerTime;
+      }
    }
 
    handleTimeSyncResponseOpcode(data: (string | number)[]) {

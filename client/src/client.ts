@@ -138,7 +138,7 @@ export class Client {
    }
 
    receiveMove(data: (string | number)[]) {
-      const timestamp = +data[1];
+      const serverTime = +data[1];
       const id = +data[2];
       const x = +data[3];
       const y = +data[4];
