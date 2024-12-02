@@ -1,4 +1,5 @@
 import { MessageType } from '../../shared/src/gametypes';
+import { getMSTime } from '../../shared/src/time';
 
 export class Client {
    private connection: WebSocket | null = null;
@@ -33,6 +34,7 @@ export class Client {
       this.handlers[MessageType.Spawn] = this.receiveSpawn.bind(this);
       this.handlers[MessageType.Despawn] = this.receiveDespawn.bind(this);
       this.handlers[MessageType.Move] = this.receiveMove.bind(this);
+      this.handlers[MessageType.TimeSync] = this.receiveTimeSync.bind(this);
    }
 
    connect() {
@@ -74,8 +76,6 @@ export class Client {
 
    receiveMessage(message: string) {
       const data = JSON.parse(message);
-
-      // console.log(`Received: ${data}`);
 
       if (Array.isArray(data)) {
          if (Array.isArray(data[0])) {
@@ -144,6 +144,10 @@ export class Client {
       const z = +data[4];
 
       this.moveCallback(id, x, y, z);
+   }
+
+   receiveTimeSync(data: (string | number)[]) {
+      this.sendMessage([MessageType.TimeSyncResponse, data[1], getMSTime()]);
    }
 
    onConnected(callback: () => void) {

@@ -6,4 +6,6 @@ export enum MessageType {
    List = 4,
    Who = 5,
    Move = 6,
+   TimeSync = 7,
+   TimeSyncResponse = 8,
 }

@@ -20,6 +20,9 @@ export class World {
 
    run() {
       setInterval(() => {
+         for (const [_, session] of Object.entries(this.sessions)) {
+            session.update(1000 / this.ups);
+         }
          this.processQueues();
       }, 1000 / this.ups);
 
