@@ -138,10 +138,11 @@ export class Client {
    }
 
    receiveMove(data: (string | number)[]) {
-      const id = +data[1];
-      const x = +data[2];
-      const y = +data[3];
-      const z = +data[4];
+      const timestamp = +data[1];
+      const id = +data[2];
+      const x = +data[3];
+      const y = +data[4];
+      const z = +data[5];
 
       this.moveCallback(id, x, y, z);
    }
@@ -199,6 +200,6 @@ export class Client {
    }
 
    sendMove(x: number, y: number, z: number) {
-      this.sendMessage([MessageType.Move, x, y, z]);
+      this.sendMessage([MessageType.Move, getMSTime(), x, y, z]);
    }
 }

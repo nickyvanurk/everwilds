@@ -99,11 +99,12 @@ export class WorldSession {
    handleMoveOpcode(data: (string | number)[]) {
       if (!this.player) return;
 
-      this.player.x = data[0] as number;
-      this.player.y = data[1] as number;
-      this.player.z = data[2] as number;
+      const timestamp = data[0] as number;
+      this.player.x = data[1] as number;
+      this.player.y = data[2] as number;
+      this.player.z = data[3] as number;
 
-      this.world.broadcast(new Packet.Move(this.player), this.player.id);
+      this.world.broadcast(new Packet.Move(this.player, timestamp), this.player.id);
    }
 
    resetTimeSync() {

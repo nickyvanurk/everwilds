@@ -30,11 +30,12 @@ export class List {
 }
 
 export class Move {
-   constructor(private entity: Entity) {}
+   constructor(private entity: Entity, private timestamp: number) {}
 
    serialize() {
       return [
          MessageType.Move,
+         this.timestamp,
          this.entity.id,
          this.entity.x,
          this.entity.y,
