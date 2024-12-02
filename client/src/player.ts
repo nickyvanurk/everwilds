@@ -1,4 +1,4 @@
-import { actions } from './input';
+import { actions, input } from './input';
 import { Character } from './character';
 import type { Client } from './client';
 
@@ -10,6 +10,20 @@ export class Player extends Character {
       public speed: number,
    ) {
       super(name, speed);
+
+      const sendMovementPacket = () => {
+         this.client?.sendMove(
+            this.position.x,
+            this.position.y,
+            this.position.z,
+         );
+      };
+
+      input.on('forward', () => sendMovementPacket());
+      input.on('backward', () => sendMovementPacket());
+      input.on('left', () => sendMovementPacket());
+      input.on('right', () => sendMovementPacket());
+      input.on('jump', () => sendMovementPacket());
    }
 
    update(dt: number) {
@@ -37,14 +51,6 @@ export class Player extends Character {
 
       if (this.position.y < 0) {
          this.position.y = 0;
-      }
-
-      if (this.client) {
-         this.client.sendMove(
-            this.position.x,
-            this.position.y,
-            this.position.z,
-         );
       }
 
       super.update(dt);

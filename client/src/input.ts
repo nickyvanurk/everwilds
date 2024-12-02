@@ -1,3 +1,7 @@
+import EventEmitter from "eventemitter3";
+
+export const input = new EventEmitter();
+
 export const actions: { [action: string]: boolean } = {};
 
 export function setKeyBindings (bindings: KeyBinding[]) {
@@ -15,7 +19,12 @@ window.addEventListener('keyup', handleKeyEvent);
 function handleKeyEvent(ev: KeyboardEvent) {
   const action = keyBindings[ev.code];
   if (action) {
+    const previousAction = actions[action];
     actions[action] = ev.type === 'keydown';
+
+    if (previousAction !== actions[action]) {
+      input.emit(action, actions[action]);
+    }
   }
 }
 
