@@ -1,8 +1,7 @@
-import { MessageType } from '../../shared/src/gametypes';
 import { Player } from './player';
 import type { World } from './world';
 import type { WorldSocket } from './world-socket';
-import * as Packet from './packets';
+import * as Packet from '../../shared/src/packets';
 import { getMSTime } from '../../shared/src/time';
 
 export class WorldSession {
@@ -19,21 +18,8 @@ export class WorldSession {
       public socket: WorldSocket,
       private world: World,
    ) {
-      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-      const handlers: any[] = [];
-      handlers[MessageType.Hello] = this.handleHelloOpcode.bind(this);
-      handlers[MessageType.Who] = this.handleWhoOpcode.bind(this);
-      handlers[MessageType.Move] = this.handleMoveOpcode.bind(this);
-      handlers[MessageType.TimeSyncResponse] = this.handleTimeSyncResponseOpcode.bind(this);
-
       socket.onPacket((opcode, data) => {
-         const handler = handlers[opcode];
-         if (!handler) {
-            console.log(`Unknown opcode: ${opcode}`);
-            return;
-         }
-
-         handler(data);
+         Packet.handlePacket(this, opcode, data);
       });
 
       socket.onClose(() => {
@@ -56,17 +42,14 @@ export class WorldSession {
       }
    }
 
-   // TODO: Pass parsed Hello packet as the argument
-   handleHelloOpcode(data: (string | number)[]) {
-      const name = data[0]; // TODO: Sanitize
-
-      this.player = new Player(this);
+   handleHelloOpcode(name: string) {
+      this.player = new Player(this, name);
       this.world.addSession(this);
       this.world.addPlayer(this.player);
       this.world.pushRelevantEntityListToPlayer(this.player);
 
       this.socket.sendPacket([
-         MessageType.Welcome,
+         Packet.Type.Welcome,
          this.player.id,
          name,
          this.player.x,
@@ -79,11 +62,8 @@ export class WorldSession {
       this.sendTimeSync();
    }
 
-   // TODO: Pass parsed Who packet as the argument
-   handleWhoOpcode(data: (string | number)[]) {
+   handleWhoOpcode(ids: number[]) {
       if (!this.player) return;
-
-      const ids = data.map(Number);
 
       for (const id of ids) {
          const entity = this.world.getEntityById(id);
@@ -95,18 +75,16 @@ export class WorldSession {
       console.log(`Pushed ${ids.length} new spawns to ${this.player.id}`);
    }
 
-   // TODO: Pass parsed Move packet as the argument
-   handleMoveOpcode(data: (string | number)[]) {
+   handleMoveOpcode(clientTime: number, flag: number, x: number, y: number, z: number, orientation: number) {
       if (!this.player) return;
 
-      const clientTime = data[0] as number;
-      this.player.x = data[1] as number;
-      this.player.y = data[2] as number;
-      this.player.z = data[3] as number;
+      this.player.x = x;
+      this.player.y = y;
+      this.player.z = z;
 
       const serverTime = this.adjustClientMovementTime(clientTime);
 
-      this.world.broadcast(new Packet.Move(this.player, serverTime), this.player.id);
+      this.world.broadcast(new Packet.MoveUpdate(this.player, flag, serverTime, orientation), this.player.id);
    }
 
    resetTimeSync() {
@@ -115,7 +93,7 @@ export class WorldSession {
    }
 
    sendTimeSync() {
-      this.socket.sendPacket([MessageType.TimeSync, this.timeSyncNextCounter]);
+      this.socket.sendPacket([Packet.Type.TimeSync, this.timeSyncNextCounter]);
 
       this.pendingTimeSyncRequests.set(this.timeSyncNextCounter, getMSTime());
 
@@ -129,16 +107,12 @@ export class WorldSession {
       if (this.timeSyncClockDelta === 0 || timeOfMovementInServerTime < 0 || timeOfMovementInServerTime > 0xFFFFFFFF) {
          console.error('The computed movement time using clockDelta is erronous. Using fallback instead');
          return getMSTime();
-      }
-      else {
+      } else {
          return timeOfMovementInServerTime;
       }
    }
 
-   handleTimeSyncResponseOpcode(data: (string | number)[]) {
-      const sequenceIndex = data[0] as number;
-      const clientTime = data[1] as number;
-
+   handleTimeSyncResponseOpcode(sequenceIndex: number, clientTime: number) {
       if (!this.pendingTimeSyncRequests.has(sequenceIndex))
          return;
 
@@ -152,10 +126,6 @@ export class WorldSession {
       const clockDelta = serverTimeAtSent + lagDelay - clientTime;
       this.timeSyncClockDeltaQueue[(this.timeSyncNextCounter - 1) % 6] = ({ clockDelta, roundTripDuration });
 
-      this.computeNewClockDelta();
-   }
-
-   computeNewClockDelta() {
       // Implementation of the technique described here: https://web.archive.org/web/20180430214420/http://www.mine-control.com/zack/timesync/timesync.html
       // to reduce the skew induced by dropped TCP packets that get resent.
 

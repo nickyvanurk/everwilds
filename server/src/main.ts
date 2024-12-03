@@ -11,7 +11,7 @@ world.run();
 
 server.on('connection', ws => {
    const socket = new WorldSocket(ws);
-   const session = new WorldSession(
+   new WorldSession(
       Number.parseInt(`4${Math.floor(Math.random() * 1000)}`),
       socket,
       world,

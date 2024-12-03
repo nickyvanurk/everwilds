@@ -12,25 +12,34 @@ export class Player extends Character {
       super(name, speed);
 
       const sendMovementPacket = () => {
+         const input = {
+            x: actions.left ? -1 : actions.right ? 1 : 0,
+            z: actions.forward ? -1 : actions.backward ? 1 : 0,
+         };
+         const orientation = Math.atan2(input.x, input.z);
+
+         let movementFlag = 0;
+         if (actions.forward) movementFlag |= 1;
+         if (actions.backward) movementFlag |= 2;
+         if (actions.left) movementFlag |= 4;
+         if (actions.right) movementFlag |= 8;
+
          this.client?.sendMove(
+            movementFlag,
             this.position.x,
             this.position.y,
             this.position.z,
+            orientation,
          );
       };
 
-      input.on('forward', () => sendMovementPacket());
-      input.on('backward', () => sendMovementPacket());
-      input.on('left', () => sendMovementPacket());
-      input.on('right', () => sendMovementPacket());
-      input.on('jump', () => sendMovementPacket());
+      input.on('forward', sendMovementPacket);
+      input.on('backward', sendMovementPacket);
+      input.on('left', sendMovementPacket);
+      input.on('right', sendMovementPacket);
    }
 
    update(dt: number) {
-      if (actions.jump) {
-         this.velocity.y = 15;
-      }
-
       const input = {
          x: actions.left ? -1 : actions.right ? 1 : 0,
          z: actions.forward ? -1 : actions.backward ? 1 : 0,
@@ -53,6 +62,6 @@ export class Player extends Character {
          this.position.y = 0;
       }
 
-      super.update(dt);
+      this.mesh.position.copy(this.position);
    }
 }

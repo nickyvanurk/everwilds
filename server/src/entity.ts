@@ -6,7 +6,7 @@ export class Entity {
       public z = 0,
    ) {}
 
-   getState() {
+   getState(): (string | number)[] {
       return [this.id, this.x, this.y, this.z];
    }
 }

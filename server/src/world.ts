@@ -1,6 +1,6 @@
 import type { Player } from './player';
 import type { Entity } from './entity';
-import * as Packet from './packets';
+import * as Packet from '../../shared/src/packets';
 import type { WorldSession } from './world-session';
 
 export class World {
@@ -61,7 +61,7 @@ export class World {
 
    pushToPlayer(player: Player, packet: Packet.Packet) {
       if (player && player.id in this.outgoingQueues) {
-         this.outgoingQueues[player.id].push(packet.serialize());
+         this.outgoingQueues[player.id].push(packet.write());
       } else {
          console.log('pushToPlayer: player was undefined');
       }

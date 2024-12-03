@@ -1,5 +1,5 @@
-import { MessageType } from '../../shared/src/gametypes';
 import { getMSTime } from '../../shared/src/time';
+import * as Packet from '../../shared/src/packets';
 
 export class Client {
    private connection: WebSocket | null = null;
@@ -15,27 +15,18 @@ export class Client {
    listCallback = (ids: number[]) => {};
    spawnEntityCallback = (
       _id: number,
+      _name: string,
       _x: number,
       _y: number,
       _z: number,
    ) => {};
    despawnCallback = (_id: number) => {};
-   moveCallback = (_id: number, _x: number, _y: number, _z: number) => {};
-
-   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-   private handlers: any[] = [];
+   moveCallback = (_serverTime: number, flag: number, _id: number, _x: number, _y: number, _z: number, orientation: number) => {};
 
    constructor(
       private host: string,
       private port: number,
-   ) {
-      this.handlers[MessageType.Welcome] = this.receiveWelcome.bind(this);
-      this.handlers[MessageType.List] = this.receiveList.bind(this);
-      this.handlers[MessageType.Spawn] = this.receiveSpawn.bind(this);
-      this.handlers[MessageType.Despawn] = this.receiveDespawn.bind(this);
-      this.handlers[MessageType.Move] = this.receiveMove.bind(this);
-      this.handlers[MessageType.TimeSync] = this.receiveTimeSync.bind(this);
-   }
+   ) {}
 
    connect() {
       const url = `ws://${this.host}:${this.port}`;
@@ -88,67 +79,41 @@ export class Client {
       }
    }
 
-   receiveAction(data: (string | number)[]) {
-      const action = +data[0];
-
-      if (this.handlers[action]) {
-         this.handlers[action](data);
-      } else {
-         console.log(`Unknown action: ${action}`);
-      }
-   }
-
    receiveActionBatch(data: (string | number)[][]) {
       for (const action of data) {
          this.receiveAction(action);
       }
    }
 
-   receiveWelcome(data: (string | number)[]) {
-      const id = +data[1];
-      const name = data[2] as string;
-      const x = +data[3];
-      const y = +data[4];
-      const z = +data[5];
+   receiveAction(data: (string | number)[]) {
+      Packet.handlePacket(this, +data[0], data.slice(1));
+   }
 
+   handleWelcomeOpcode(id: number, name: string, x: number, y: number, z: number) {
       this.welcomeCallback(id, name, x, y, z);
    }
 
-   receiveList(data: (string | number)[]) {
-      this.listCallback(data.slice(1) as number[]);
+   handleListOpcode(ids: number[]) {
+      console.log(ids);
+      this.listCallback(ids);
    }
 
-   receiveSpawn(data: (string | number)[]) {
-      const id = +data[1];
-      const x = +data[2];
-      const y = +data[3];
-      const z = +data[4];
-
-      this.spawnEntityCallback(id, x, y, z);
-
-      console.log('Spawn:', data);
+   handleSpawnOpcode(id: number, name: string, x: number, y: number, z: number) {
+      this.spawnEntityCallback(id, name, x, y, z);
+      console.log('Spawn:', id, name, x, y, z);
    }
 
-   receiveDespawn(data: (string | number)[]) {
-      const id = +data[1];
-
+   handleDespawnOpcode(id: number) {
       this.despawnCallback(id);
-
-      console.log('Despawn:', data);
+      console.log('Despawn:', id);
    }
 
-   receiveMove(data: (string | number)[]) {
-      const serverTime = +data[1];
-      const id = +data[2];
-      const x = +data[3];
-      const y = +data[4];
-      const z = +data[5];
-
-      this.moveCallback(id, x, y, z);
+   handleMoveUpdateOpcode(serverTime: number, flag: number, id: number, x: number, y: number, z: number, orientation: number) {
+      this.moveCallback(serverTime, flag, id, x, y, z, orientation);
    }
 
-   receiveTimeSync(data: (string | number)[]) {
-      this.sendMessage([MessageType.TimeSyncResponse, data[1], getMSTime()]);
+   handleTimeSyncOpcode(sequenceIndex: number) {
+      this.sendMessage([Packet.Type.TimeSyncResponse, sequenceIndex, getMSTime()]);
    }
 
    onConnected(callback: () => void) {
@@ -176,13 +141,13 @@ export class Client {
    }
 
    onSpawnEntity(
-      callback: (id: number, x: number, y: number, z: number) => void,
+      callback: (id: number, name: string, x: number, y: number, z: number) => void,
    ) {
       this.spawnEntityCallback = callback;
    }
 
    onEntityMove(
-      callback: (id: number, x: number, y: number, z: number) => void,
+      callback: (serverTime: number, start: number, id: number, x: number, y: number, z: number, orientation: number) => void,
    ) {
       this.moveCallback = callback;
    }
@@ -192,14 +157,17 @@ export class Client {
    }
 
    sendHello(playername: string) {
-      this.sendMessage([MessageType.Hello, playername]);
+      // TODO: Replace with packet class
+      this.sendMessage([Packet.Type.Hello, playername]);
    }
 
    sendWho(ids: number[]) {
-      this.sendMessage([MessageType.Who, ...ids]);
+      // TODO: Replace with packet class
+      this.sendMessage([Packet.Type.Who, ...ids]);
    }
 
-   sendMove(x: number, y: number, z: number) {
-      this.sendMessage([MessageType.Move, getMSTime(), x, y, z]);
+   sendMove(flag: number, x: number, y: number, z: number, orientation: number) {
+      // TODO: Replace with packet class
+      this.sendMessage([Packet.Type.Move, getMSTime(), flag, x, y, z, orientation]);
    }
 }

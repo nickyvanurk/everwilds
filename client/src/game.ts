@@ -36,8 +36,7 @@ export class Game {
          { action: 'forward', key: 'KeyW' },
          { action: 'backward', key: 'KeyS' },
          { action: 'left', key: 'KeyA' },
-         { action: 'right', key: 'KeyD' },
-         { action: 'jump', key: 'Space' },
+         { action: 'right', key: 'KeyD' }
       ]);
 
       const gridHelper = new THREE.GridHelper(10, 10);
@@ -127,10 +126,10 @@ export class Game {
          }
       });
 
-      client.onSpawnEntity((id, x, y, z) => {
+      client.onSpawnEntity((id, name, x, y, z) => {
          console.log('Received spawn entity:', id, x, y, z);
 
-         const character = new Character('character', 6);
+         const character = new Character(name);
          character.id = id;
          character.position.set(x, y, z);
          this.addEntity(character);
@@ -147,7 +146,7 @@ export class Game {
          this.characters.splice(this.characters.indexOf(entity), 1);
       });
 
-      client.onEntityMove((id, x, y, z) => {
+      client.onEntityMove((serverTime, flag, id, x, y, z, orientation) => {
          //@ts-ignore
          const entity = this.entities[id] as Character;
          if (!entity) {
@@ -155,7 +154,11 @@ export class Game {
             return;
          }
 
-         entity.position.set(x, y, z);
+         entity.time = 0;
+         entity.setPosition(x, y, z);
+         entity.orientation = orientation;
+         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
+         entity.speed = isMoving ? 6 : 0;
       });
    }
 
