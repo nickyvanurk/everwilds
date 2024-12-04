@@ -6,6 +6,7 @@ export class Client {
    private connectedCallback = () => {};
    private disconnectedCallback = () => {};
    private welcomeCallback = (
+      _timestamp: number,
       _id: number,
       _flag: number,
       _name: string,
@@ -15,6 +16,7 @@ export class Client {
       _orientation: number,
    ) => {};
    spawnEntityCallback = (
+      _timestamp: number,
       _id: number,
       _flag: number,
       _name: string,
@@ -24,7 +26,7 @@ export class Client {
       _orientation: number,
    ) => {};
    despawnCallback = (_id: number) => {};
-   moveCallback = (_serverTime: number, flag: number, _id: number, _x: number, _y: number, _z: number, orientation: number) => {};
+   moveCallback = (_timestamp: number, _id: number, _flag: number, _x: number, _y: number, _z: number, orientation: number) => {};
 
    constructor(
       private host: string,
@@ -92,20 +94,20 @@ export class Client {
       Packet.handlePacket(this, +data[0], data.slice(1));
    }
 
-   handleWelcomeOpcode(id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
-      this.welcomeCallback(id, flag, name, x, y, z, orientation);
+   handleWelcomeOpcode(timestamp: number, id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
+      this.welcomeCallback(timestamp, id, flag, name, x, y, z, orientation);
    }
 
-   handleSpawnOpcode(id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
-      this.spawnEntityCallback(id, flag, name, x, y, z, orientation);
+   handleSpawnOpcode(timestamp: number, id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
+      this.spawnEntityCallback(timestamp, id, flag, name, x, y, z, orientation);
    }
 
    handleDespawnOpcode(id: number) {
       this.despawnCallback(id);
    }
 
-   handleMoveUpdateOpcode(serverTime: number, flag: number, id: number, x: number, y: number, z: number, orientation: number) {
-      this.moveCallback(serverTime, flag, id, x, y, z, orientation);
+   handleMoveUpdateOpcode(timestamp: number, id: number, flag: number, x: number, y: number, z: number, orientation: number) {
+      this.moveCallback(timestamp, id, flag, x, y, z, orientation);
    }
 
    handleTimeSyncOpcode(sequenceIndex: number) {
@@ -122,6 +124,7 @@ export class Client {
 
    onWelcome(
       callback: (
+         timestamp: number,
          id: number,
          flag: number,
          name: string,
@@ -135,7 +138,7 @@ export class Client {
    }
 
    onSpawnEntity(
-      callback: (id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) => void,
+      callback: (timestamp: number, id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) => void,
    ) {
       this.spawnEntityCallback = callback;
    }
@@ -152,7 +155,7 @@ export class Client {
 
    sendHello(playername: string) {
       // TODO: Replace with packet class
-      this.sendMessage([Packet.Type.Hello, playername]);
+      this.sendMessage([Packet.Type.Hello, getMSTime(), playername]);
    }
 
    sendMove(flag: number, x: number, y: number, z: number, orientation: number) {

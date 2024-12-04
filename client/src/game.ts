@@ -7,6 +7,7 @@ import { HUD } from './hud';
 import { assets } from './config';
 import { Client } from './client';
 import { Character } from './character';
+import { getMSTime } from '../../shared/src/time';
 
 export class Game {
    renderer: THREE.WebGLRenderer;
@@ -104,8 +105,12 @@ export class Game {
          console.log('Disconnected from server');
       });
 
-      client.onWelcome((id, flag, name, x, y, z, orientation) => {
+      client.onWelcome((timestamp, id, flag, name, x, y, z, orientation) => {
          console.log('Received player ID from server:', id);
+
+         const delta = (getMSTime() - timestamp) / 1000;
+         x = x + Math.sin(orientation) * delta;
+         z = z + Math.cos(orientation) * delta;
 
          this.player.flag = flag;
          this.player.id = id;
@@ -116,12 +121,24 @@ export class Game {
          this.addEntity(this.player);
 
          this.player.time = 0;
-         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
-         this.player.speed = isMoving ? 6 : 0;
       });
 
-      client.onSpawnEntity((id, flag, name, x, y, z, orientation) => {
+      client.onSpawnEntity((timestamp, id, flag, name, x, y, z, orientation) => {
          console.log('Received spawn entity:', id, x, y, z);
+
+         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
+
+         // Currently this only works after server/client time sync. Spawned
+         // entities on join will be interpolated with a wrong delta. We can
+         // probably mitigate this by using the server timestamp instead of the
+         // client timestamp. The server sends his time in the welcome packet.
+         // After that the client needs to keep the server time known to the
+         // client in sync with the actual server time.
+         if (isMoving) {
+            const delta = (getMSTime() - timestamp) / 1000;
+            x = x + Math.sin(orientation) * delta;
+            z = z + Math.cos(orientation) * delta;
+         }
 
          const character = new Character(name);
          character.flag = flag;
@@ -130,7 +147,6 @@ export class Game {
          character.orientation = orientation;
 
          character.time = 0;
-         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
          character.speed = isMoving ? 6 : 0;
 
          this.addEntity(character);
@@ -147,7 +163,7 @@ export class Game {
          this.characters.splice(this.characters.indexOf(entity), 1);
       });
 
-      client.onEntityMove((serverTime, flag, id, x, y, z, orientation) => {
+      client.onEntityMove((timestamp, id, flag, x, y, z, orientation) => {
          //@ts-ignore
          const entity = this.entities[id] as Character;
          if (!entity) {
@@ -155,10 +171,17 @@ export class Game {
             return;
          }
 
+         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
+
+         if (isMoving) {
+            const delta = (getMSTime() - timestamp) / 1000;
+            x = x + Math.sin(orientation) * delta;
+            z = z + Math.cos(orientation) * delta;
+         }
+
          entity.time = 0;
          entity.setPosition(x, y, z);
          entity.orientation = orientation;
-         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
          entity.speed = isMoving ? 6 : 0;
       });
    }

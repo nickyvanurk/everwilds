@@ -11,7 +11,7 @@ export class Session {
    private timeSyncTimer = 0;
    private timeSyncNextCounter = 0;
    private timeSyncClockDeltaQueue: { clockDelta: number, roundTripDuration: number }[] = [];
-   private timeSyncClockDelta = 0;
+   timeSyncClockDelta = 0;
 
    private helloCallback = (_name: string) => {};
 
@@ -46,14 +46,15 @@ export class Session {
       this.player = null;
    }
 
-   handleHelloOpcode(name: string) {
+   handleHelloOpcode(clientTime: number, name: string) {
       this.player = new Player(this, name);
       this.world.addPlayer(this.player);
 
       this.socket.sendPacket([
          Packet.Type.Welcome,
-         this.player.flag,
+         getMSTime(),
          this.player.id,
+         this.player.flag,
          name,
          this.player.x,
          this.player.y,
@@ -61,8 +62,11 @@ export class Session {
          this.player.orientation
       ]);
 
-      this.world.pushEntitiesToPlayer(this.player);
-      this.world.broadcast(new Packet.Spawn(this.player), this.player.id);
+      const serverTime = this.adjustClientMovementTime(clientTime);
+      this.player.serverTime = serverTime;
+
+      this.world.pushEntitiesToPlayer(this.player!);
+      this.world.broadcast(new Packet.Spawn(this.player!, this.player!.serverTime), this.player!.id);
 
       this.sendTimeSync();
 
@@ -83,6 +87,7 @@ export class Session {
       this.player.orientation = orientation;
 
       const serverTime = this.adjustClientMovementTime(clientTime);
+      this.player.serverTime = serverTime;
 
       this.world.broadcast(new Packet.MoveUpdate(this.player, flag, serverTime, orientation), this.player.id);
    }
@@ -103,7 +108,7 @@ export class Session {
    }
 
    adjustClientMovementTime(timeOfMovementInClientTime: number) {
-      const timeOfMovementInServerTime = Math.floor(timeOfMovementInClientTime + this.timeSyncClockDelta);
+      const timeOfMovementInServerTime = timeOfMovementInClientTime + this.timeSyncClockDelta;
       if (this.timeSyncClockDelta === 0 || timeOfMovementInServerTime < 0 || timeOfMovementInServerTime > 0xFFFFFFFF) {
          console.error('The computed movement time using clockDelta is erronous. Using fallback instead');
          return getMSTime();

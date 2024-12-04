@@ -19,27 +19,31 @@ export type Packet = {
 };
 
 export class Welcome {
-   constructor(private id: number, private name: string, private x: number, private y: number, private z: number) {}
+   constructor(public timestamp: number, private id: number, private flag: number, private name: string, private x: number, private y: number, private z: number, private orientation: number) {}
 
    read(data: (string | number)[]) {
-      const id = data[0] as number;
-      const name = data[1] as string;
-      const x = data[2] as number;
-      const y = data[3] as number;
-      const z = data[4] as number;
-      return [id, name, x, y, z];
+      const timestamp = data[0] as number;
+      const id = data[1] as number;
+      const flag = data[2] as number;
+      const name = data[3] as string;
+      const x = data[4] as number;
+      const y = data[5] as number;
+      const z = data[6] as number;
+      const orientation = data[7] as number;
+      return [timestamp, id, flag, name, x, y, z, orientation];
    }
 
    write() {
-      return [Type.Welcome, this.id, this.name, this.x, this.y, this.z];
+      return [Type.Welcome, this.timestamp, this.id, this.flag, this.name, this.x, this.y, this.z, this.orientation];
    }
 }
 
 export class Spawn {
-   constructor(private entity: Entity) {}
+   constructor(private entity: Entity, public timestamp: number) {}
 
    read(data: (string | number)[]) {
       let idx = 0;
+      const timestamp = data[idx++] as number;
       const id = data[idx++] as number;
       const flag = data[idx++] as number;
       const name = data[idx++] as string;
@@ -47,11 +51,11 @@ export class Spawn {
       const y = data[idx++] as number;
       const z = data[idx++] as number;
       const orientation = data[idx++] as number;
-      return [id, flag, name, x, y, z, orientation];
+      return [timestamp, id, flag, name, x, y, z, orientation];
    }
 
    write() {
-      return [Type.Spawn, ...this.entity.getState()];
+      return [Type.Spawn, this.timestamp, ...this.entity.getState()];
    }
 }
 
@@ -68,25 +72,25 @@ export class Despawn {
 }
 
 export class MoveUpdate {
-   constructor(private entity: Entity, private startMove: number, private timestamp: number, private orientation: number) {}
+   constructor(private entity: Entity, private startMove: number, public timestamp: number, private orientation: number) {}
 
    read(data: (string | number)[]) {
       const timestamp = data[0] as number;
-      const flag = data[1] as number;
-      const id = data[2] as number;
+      const id = data[1] as number;
+      const flag = data[2] as number;
       const x = data[3] as number;
       const y = data[4] as number;
       const z = data[5] as number;
       const orientation = data[6] as number;
-      return [timestamp, flag, id, x, y, z, orientation];
+      return [timestamp, id, flag, x, y, z, orientation];
    }
 
    write() {
       return [
          Type.MoveUpdate,
          this.timestamp,
-         this.startMove,
          this.entity.id,
+         this.startMove,
          this.entity.x,
          this.entity.y,
          this.entity.z,
@@ -113,7 +117,6 @@ export class Move {
          Type.Move,
          this.timestamp,
          this.startMove,
-         this.entity.id,
          this.entity.x,
          this.entity.y,
          this.entity.z,
@@ -129,12 +132,14 @@ export class Null {
 }
 
 export class Hello implements Packet {
+   constructor(public timestamp: number) {}
+
    read(data: (string | number)[]) {
-      return [data[0]];
+      return [data[0], data[1]];
    }
 
    write() {
-      return [Type.Hello];
+      return [Type.Hello, this.timestamp];
    }
 }
 

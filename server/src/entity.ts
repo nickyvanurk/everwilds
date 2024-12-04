@@ -1,4 +1,6 @@
 export class Entity {
+   serverTime = 0;
+
    constructor(
       public id: number,
       public x = 0,
