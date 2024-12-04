@@ -7,17 +7,21 @@ export class Client {
    private disconnectedCallback = () => {};
    private welcomeCallback = (
       _id: number,
+      _flag: number,
       _name: string,
       _x: number,
       _y: number,
       _z: number,
+      _orientation: number,
    ) => {};
    spawnEntityCallback = (
       _id: number,
+      _flag: number,
       _name: string,
       _x: number,
       _y: number,
       _z: number,
+      _orientation: number,
    ) => {};
    despawnCallback = (_id: number) => {};
    moveCallback = (_serverTime: number, flag: number, _id: number, _x: number, _y: number, _z: number, orientation: number) => {};
@@ -88,12 +92,12 @@ export class Client {
       Packet.handlePacket(this, +data[0], data.slice(1));
    }
 
-   handleWelcomeOpcode(id: number, name: string, x: number, y: number, z: number) {
-      this.welcomeCallback(id, name, x, y, z);
+   handleWelcomeOpcode(id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
+      this.welcomeCallback(id, flag, name, x, y, z, orientation);
    }
 
-   handleSpawnOpcode(id: number, name: string, x: number, y: number, z: number) {
-      this.spawnEntityCallback(id, name, x, y, z);
+   handleSpawnOpcode(id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
+      this.spawnEntityCallback(id, flag, name, x, y, z, orientation);
    }
 
    handleDespawnOpcode(id: number) {
@@ -119,17 +123,19 @@ export class Client {
    onWelcome(
       callback: (
          id: number,
+         flag: number,
          name: string,
          x: number,
          y: number,
          z: number,
+         orientation: number,
       ) => void,
    ) {
       this.welcomeCallback = callback;
    }
 
    onSpawnEntity(
-      callback: (id: number, name: string, x: number, y: number, z: number) => void,
+      callback: (id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) => void,
    ) {
       this.spawnEntityCallback = callback;
    }

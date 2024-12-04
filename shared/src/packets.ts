@@ -39,12 +39,15 @@ export class Spawn {
    constructor(private entity: Entity) {}
 
    read(data: (string | number)[]) {
-      const id = data[0] as number;
-      const name = data[1] as string;
-      const x = data[2] as number;
-      const y = data[3] as number;
-      const z = data[4] as number;
-      return [id, name, x, y, z];
+      let idx = 0;
+      const id = data[idx++] as number;
+      const flag = data[idx++] as number;
+      const name = data[idx++] as string;
+      const x = data[idx++] as number;
+      const y = data[idx++] as number;
+      const z = data[idx++] as number;
+      const orientation = data[idx++] as number;
+      return [id, flag, name, x, y, z, orientation];
    }
 
    write() {

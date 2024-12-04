@@ -4,9 +4,10 @@ export class Entity {
       public x = 0,
       public y = 0,
       public z = 0,
+      public orientation = 0,
    ) {}
 
    getState(): (string | number)[] {
-      return [this.id, this.x, this.y, this.z];
+      return [this.id, this.x, this.y, this.z, this.orientation];
    }
 }

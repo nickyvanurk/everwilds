@@ -104,22 +104,34 @@ export class Game {
          console.log('Disconnected from server');
       });
 
-      client.onWelcome((id, name, x, y, z) => {
+      client.onWelcome((id, flag, name, x, y, z, orientation) => {
          console.log('Received player ID from server:', id);
 
+         this.player.flag = flag;
          this.player.id = id;
          this.player.name = name;
-         this.player.position.set(x, y, z);
+         this.player.setPosition(x, y, z);
+         this.player.orientation = orientation;
          this.player.client = client;
          this.addEntity(this.player);
+
+         this.player.time = 0;
+         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
+         this.player.speed = isMoving ? 6 : 0;
       });
 
-      client.onSpawnEntity((id, name, x, y, z) => {
+      client.onSpawnEntity((id, flag, name, x, y, z, orientation) => {
          console.log('Received spawn entity:', id, x, y, z);
 
          const character = new Character(name);
+         character.flag = flag;
          character.id = id;
          character.setPosition(x, y, z);
+         character.orientation = orientation;
+
+         character.time = 0;
+         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
+         character.speed = isMoving ? 6 : 0;
 
          this.addEntity(character);
       });

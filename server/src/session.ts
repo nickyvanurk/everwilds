@@ -52,11 +52,13 @@ export class Session {
 
       this.socket.sendPacket([
          Packet.Type.Welcome,
+         this.player.flag,
          this.player.id,
          name,
          this.player.x,
          this.player.y,
          this.player.z,
+         this.player.orientation
       ]);
 
       this.world.pushEntitiesToPlayer(this.player);
@@ -74,9 +76,11 @@ export class Session {
    handleMoveOpcode(clientTime: number, flag: number, x: number, y: number, z: number, orientation: number) {
       if (!this.player) return;
 
+      this.player.flag = flag;
       this.player.x = x;
       this.player.y = y;
       this.player.z = z;
+      this.player.orientation = orientation;
 
       const serverTime = this.adjustClientMovementTime(clientTime);
 

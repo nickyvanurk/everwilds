@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 export class Character {
    id = -1;
-   prevServerPosition = new THREE.Vector3();
+   flag = 0;
    serverPosition = new THREE.Vector3();
    position = new THREE.Vector3();
    velocity = new THREE.Vector3();
@@ -45,7 +45,6 @@ export class Character {
    }
 
    setPosition(x: number, y: number, z: number) {
-      this.prevServerPosition.copy(this.serverPosition);
       this.serverPosition.set(x, y, z);
    }
 }
