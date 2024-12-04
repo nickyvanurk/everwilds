@@ -94,7 +94,6 @@ export class Client {
    }
 
    handleListOpcode(ids: number[]) {
-      console.log(ids);
       this.listCallback(ids);
    }
 

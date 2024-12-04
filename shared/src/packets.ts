@@ -1,6 +1,6 @@
 import type { Client } from '../../client/src/client';
 import type { Entity } from '../../server/src/entity';
-import type { WorldSession } from '../../server/src/world-session';
+import type { Session } from '../../server/src/session';
 
 export enum Type {
    Hello = 0,
@@ -202,7 +202,7 @@ const packetLookup: { [key: number]: any } = {
 };
 
 // Have different handlers for server and client
-export function handlePacket(handlerClass: WorldSession | Client, opcode: number, data: any[]) {
+export function handlePacket(handlerClass: Session | Client, opcode: number, data: any[]) {
    const packetClass = packetLookup[opcode];
    if (!packetClass) {
       console.log(`No packet found for opcode: ${opcode}`);
@@ -223,5 +223,5 @@ export function handlePacket(handlerClass: WorldSession | Client, opcode: number
    }
 
    //@ts-ignore
-   handler.bind(handlerClass)(...pkt.read(data));
+   handler.bind(handlerClass)(...packet.read(data));
 }

@@ -1,19 +1,8 @@
-import { WebSocketServer } from 'ws';
-import { World } from './world';
-import { WorldSocket } from './world-socket';
-import { WorldSession } from './world-session';
+import { GameServer } from './game-server';
 
-console.log('Starting Spellforge game server...');
-const server = new WebSocketServer({ port: 8080 });
+const server = new GameServer(8080);
 
-const world = new World('world0', 2);
-world.run();
-
-server.on('connection', ws => {
-   const socket = new WorldSocket(ws);
-   new WorldSession(
-      Number.parseInt(`4${Math.floor(Math.random() * 1000)}`),
-      socket,
-      world,
-   );
+process.on('SIGINT', () => {
+   server.shutdown();
+   process.exit(0);
 });

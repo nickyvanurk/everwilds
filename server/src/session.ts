@@ -1,10 +1,10 @@
 import { Player } from './player';
 import type { World } from './world';
-import type { WorldSocket } from './world-socket';
+import type { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
 import { getMSTime } from '../../shared/src/time';
 
-export class WorldSession {
+export class Session {
    private player: Player | null = null;
 
    private pendingTimeSyncRequests = new Map<number, number>();
@@ -13,22 +13,15 @@ export class WorldSession {
    private timeSyncClockDeltaQueue: { clockDelta: number, roundTripDuration: number }[] = [];
    private timeSyncClockDelta = 0;
 
+   private helloCallback = (_name: string) => {};
+
    constructor(
       public id: number,
-      public socket: WorldSocket,
+      public socket: Socket,
       private world: World,
    ) {
-      socket.onPacket((opcode, data) => {
-         Packet.handlePacket(this, opcode, data);
-      });
-
-      socket.onClose(() => {
-         if (!this.player) return;
-
-         this.world.removePlayer(this.player);
-         this.player = null;
-      });
-
+      socket.onPacket(this.handlePacket.bind(this));
+      socket.onClose(this.handleSocketClose.bind(this));
       socket.initiateHandshake();
    }
 
@@ -37,16 +30,25 @@ export class WorldSession {
          if (dt >= this.timeSyncTimer) {
             this.sendTimeSync();
          } else {
-            this.timeSyncTimer -= dt
+            this.timeSyncTimer -= dt;
          }
       }
    }
 
+   handlePacket(opcode: number, data: (string | number)[]) {
+      Packet.handlePacket(this, opcode, data);
+   }
+
+   handleSocketClose() {
+      if (!this.player) return;
+
+      this.world.removePlayer(this.player);
+      this.player = null;
+   }
+
    handleHelloOpcode(name: string) {
       this.player = new Player(this, name);
-      this.world.addSession(this);
       this.world.addPlayer(this.player);
-      this.world.pushRelevantEntityListToPlayer(this.player);
 
       this.socket.sendPacket([
          Packet.Type.Welcome,
@@ -57,10 +59,17 @@ export class WorldSession {
          this.player.z,
       ]);
 
+      this.world.pushRelevantEntityListToPlayer(this.player);
       this.world.broadcast(new Packet.Spawn(this.player), this.player.id);
 
       this.sendTimeSync();
+
+      this.helloCallback(name);
    }
+
+   onHello(callback: (name: string) => void) {
+      this.helloCallback = callback
+   };
 
    handleWhoOpcode(ids: number[]) {
       if (!this.player) return;

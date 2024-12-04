@@ -132,6 +132,7 @@ export class Game {
          const character = new Character(name);
          character.id = id;
          character.position.set(x, y, z);
+
          this.addEntity(character);
       });
 

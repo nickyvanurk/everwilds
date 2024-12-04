@@ -1,8 +1,6 @@
 import type { WebSocket } from 'ws';
 
-export class WorldSocket {
-   private closed = false;
-
+export class Socket {
    constructor(public ws: WebSocket) {
       ws.on('error', error => {
          console.log(`Error: ${error}`);
@@ -10,14 +8,7 @@ export class WorldSocket {
    }
 
    isOpen() {
-      return !this.closed && this.ws.readyState === this.ws.OPEN;
-   }
-
-   close() {
-      if (!this.isOpen) return;
-
-      this.ws.close();
-      this.closed = true;
+      return this.ws.readyState === this.ws.OPEN;
    }
 
    initiateHandshake() {
@@ -32,14 +23,17 @@ export class WorldSocket {
       this.ws.send(JSON.stringify(packet));
    }
 
-   onClose(callback: () => void) {
-      this.ws.on('close', callback);
-   }
-
    onPacket(callback: (opcode: number, data: (string | number)[]) => void) {
       this.ws.on('message', (message: (string | number)[]) => {
          const data = JSON.parse(message.toString());
-         callback(+data[0], data.slice(1));
+         const opcode = +data[0];
+         const payload = data.slice(1);
+
+         callback(opcode, payload);
       });
+   }
+
+   onClose(callback: () => void) {
+      this.ws.on('close', callback);
    }
 }
