@@ -12,7 +12,6 @@ export class Client {
       _y: number,
       _z: number,
    ) => {};
-   listCallback = (ids: number[]) => {};
    spawnEntityCallback = (
       _id: number,
       _name: string,
@@ -93,18 +92,12 @@ export class Client {
       this.welcomeCallback(id, name, x, y, z);
    }
 
-   handleListOpcode(ids: number[]) {
-      this.listCallback(ids);
-   }
-
    handleSpawnOpcode(id: number, name: string, x: number, y: number, z: number) {
       this.spawnEntityCallback(id, name, x, y, z);
-      console.log('Spawn:', id, name, x, y, z);
    }
 
    handleDespawnOpcode(id: number) {
       this.despawnCallback(id);
-      console.log('Despawn:', id);
    }
 
    handleMoveUpdateOpcode(serverTime: number, flag: number, id: number, x: number, y: number, z: number, orientation: number) {
@@ -135,10 +128,6 @@ export class Client {
       this.welcomeCallback = callback;
    }
 
-   onEntityList(callback: (ids: number[]) => void) {
-      this.listCallback = callback;
-   }
-
    onSpawnEntity(
       callback: (id: number, name: string, x: number, y: number, z: number) => void,
    ) {
@@ -158,11 +147,6 @@ export class Client {
    sendHello(playername: string) {
       // TODO: Replace with packet class
       this.sendMessage([Packet.Type.Hello, playername]);
-   }
-
-   sendWho(ids: number[]) {
-      // TODO: Replace with packet class
-      this.sendMessage([Packet.Type.Who, ...ids]);
    }
 
    sendMove(flag: number, x: number, y: number, z: number, orientation: number) {

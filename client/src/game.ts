@@ -114,24 +114,12 @@ export class Game {
          this.addEntity(this.player);
       });
 
-      client.onEntityList(ids => {
-         console.log('Received entity list:', ids);
-
-         const entityIds = Object.keys(this.entities).map(id => +id);
-         const knownIds = entityIds.filter(id => ids.includes(id));
-         const newIds = ids.filter(id => !knownIds.includes(id));
-
-         if (newIds.length) {
-            client.sendWho(newIds);
-         }
-      });
-
       client.onSpawnEntity((id, name, x, y, z) => {
          console.log('Received spawn entity:', id, x, y, z);
 
          const character = new Character(name);
          character.id = id;
-         character.position.set(x, y, z);
+         character.setPosition(x, y, z);
 
          this.addEntity(character);
       });

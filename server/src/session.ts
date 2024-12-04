@@ -59,7 +59,7 @@ export class Session {
          this.player.z,
       ]);
 
-      this.world.pushRelevantEntityListToPlayer(this.player);
+      this.world.pushEntitiesToPlayer(this.player);
       this.world.broadcast(new Packet.Spawn(this.player), this.player.id);
 
       this.sendTimeSync();
@@ -70,19 +70,6 @@ export class Session {
    onHello(callback: (name: string) => void) {
       this.helloCallback = callback
    };
-
-   handleWhoOpcode(ids: number[]) {
-      if (!this.player) return;
-
-      for (const id of ids) {
-         const entity = this.world.getEntityById(id);
-         if (entity) {
-            this.world.pushToPlayer(this.player, new Packet.Spawn(entity));
-         }
-      }
-
-      console.log(`Pushed ${ids.length} new spawns to ${this.player.id}`);
-   }
 
    handleMoveOpcode(clientTime: number, flag: number, x: number, y: number, z: number, orientation: number) {
       if (!this.player) return;

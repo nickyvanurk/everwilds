@@ -7,12 +7,10 @@ export enum Type {
    Welcome = 1,
    Spawn = 2,
    Despawn = 3,
-   List = 4,
-   Who = 5,
-   Move = 6,
-   TimeSync = 7,
-   TimeSyncResponse = 8,
-   MoveUpdate = 9,
+   Move = 4,
+   TimeSync = 5,
+   TimeSyncResponse = 6,
+   MoveUpdate = 7,
 }
 
 export type Packet = {
@@ -63,18 +61,6 @@ export class Despawn {
 
    write() {
       return [Type.Despawn, this.entityId];
-   }
-}
-
-export class List {
-   constructor(private ids: number[]) {}
-
-   read(data: (string | number)[]) {
-      return [data.map(Number)];
-   }
-
-   write() {
-      return [Type.List, ...this.ids];
    }
 }
 
@@ -149,18 +135,6 @@ export class Hello implements Packet {
    }
 }
 
-export class Who {
-   constructor(private ids: number[]) {}
-
-   read(data: (string | number)[]) {
-      return [data.map(Number)];
-   }
-
-   write() {
-      return [Type.Who, ...this.ids];
-   }
-}
-
 export class TimeSync {
    constructor(private sequenceIndex: number) {}
 
@@ -193,10 +167,8 @@ const packetLookup: { [key: number]: any } = {
    [Type.Welcome]: Welcome,
    [Type.Spawn]: Spawn,
    [Type.Despawn]: Despawn,
-   [Type.List]: List,
    [Type.Move]: Move,
    [Type.MoveUpdate]: MoveUpdate,
-   [Type.Who]: Who,
    [Type.TimeSync]: TimeSync,
    [Type.TimeSyncResponse]: TimeSyncResponse,
 };

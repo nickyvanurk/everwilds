@@ -47,14 +47,15 @@ export class World {
       }
    }
 
-   pushRelevantEntityListToPlayer(player: Player) {
-      if (player) {
-         const ids = Object.keys(this.entities)
-            .map(Number)
-            .filter(id => id !== player.id);
-         if (ids.length > 0) {
-            this.pushToPlayer(player, new Packet.List(ids));
+   pushEntitiesToPlayer(player: Player) {
+      if (!player) return;
+
+      for (const entity of Object.values(this.entities)) {
+         if (entity.id === player.id) {
+            continue;
          }
+
+         this.pushToPlayer(player, new Packet.Spawn(entity));
       }
    }
 
