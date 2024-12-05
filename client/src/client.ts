@@ -2,7 +2,11 @@ import { getMSTime } from '../../shared/src/time';
 import * as Packet from '../../shared/src/packets';
 
 export class Client {
+   clockDelta = 0;
+
    private connection: WebSocket | null = null;
+   private serverTime = 0;
+   private timeAtGo = 0;
    private connectedCallback = () => {};
    private disconnectedCallback = () => {};
    private welcomeCallback = (
@@ -46,6 +50,7 @@ export class Client {
 
       this.connection.onmessage = ev => {
          if (ev.data === 'go') {
+            this.timeAtGo = getMSTime();
             this.connectedCallback();
             return;
          }
@@ -95,6 +100,11 @@ export class Client {
    }
 
    handleWelcomeOpcode(timestamp: number, id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
+      const timeSinceGo = getMSTime() - this.timeAtGo;
+      const oneWayLatency = timeSinceGo / 2;
+      this.serverTime = timestamp + oneWayLatency;
+      this.clockDelta = this.serverTime - getMSTime();
+
       this.welcomeCallback(timestamp, id, flag, name, x, y, z, orientation);
    }
 

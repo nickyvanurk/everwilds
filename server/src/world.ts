@@ -41,13 +41,6 @@ export class World {
 
    pushToPlayer(player: Player, packet: Packet.Packet) {
       if (player) {
-         // @ts-ignore
-         if (packet.timestamp) {
-            const playerTimeSyncClockDelta = player.session.timeSyncClockDelta;
-            // @ts-ignore
-            packet.timestamp -= playerTimeSyncClockDelta;
-         }
-
          player.session.socket.sendPacket(packet.write());
       } else {
          console.log('pushToPlayer: player was undefined');

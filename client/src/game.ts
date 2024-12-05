@@ -108,10 +108,6 @@ export class Game {
       client.onWelcome((timestamp, id, flag, name, x, y, z, orientation) => {
          console.log('Received player ID from server:', id);
 
-         const delta = (getMSTime() - timestamp) / 1000;
-         x = x + Math.sin(orientation) * delta;
-         z = z + Math.cos(orientation) * delta;
-
          this.player.flag = flag;
          this.player.id = id;
          this.player.name = name;
@@ -127,6 +123,7 @@ export class Game {
          console.log('Received spawn entity:', id, x, y, z);
 
          const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
+         const speed = 6;
 
          // Currently this only works after server/client time sync. Spawned
          // entities on join will be interpolated with a wrong delta. We can
@@ -135,9 +132,10 @@ export class Game {
          // After that the client needs to keep the server time known to the
          // client in sync with the actual server time.
          if (isMoving) {
-            const delta = (getMSTime() - timestamp) / 1000;
-            x = x + Math.sin(orientation) * delta;
-            z = z + Math.cos(orientation) * delta;
+            const estimatedServerTime = (getMSTime() + client.clockDelta);
+            const delta = (estimatedServerTime - timestamp) / 1000;
+            x = x + Math.sin(orientation) * speed * delta;
+            z = z + Math.cos(orientation) * speed * delta;
          }
 
          const character = new Character(name);
@@ -147,7 +145,7 @@ export class Game {
          character.orientation = orientation;
 
          character.time = 0;
-         character.speed = isMoving ? 6 : 0;
+         character.speed = isMoving ? speed : 0;
 
          this.addEntity(character);
       });
@@ -172,17 +170,19 @@ export class Game {
          }
 
          const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
+         const speed = 6;
 
          if (isMoving) {
-            const delta = (getMSTime() - timestamp) / 1000;
-            x = x + Math.sin(orientation) * delta;
-            z = z + Math.cos(orientation) * delta;
+            const estimatedServerTime = (getMSTime() + client.clockDelta);
+            const delta = (estimatedServerTime - timestamp) / 1000;
+            x = x + Math.sin(orientation) * speed * delta;
+            z = z + Math.cos(orientation) * speed * delta;
          }
 
          entity.time = 0;
          entity.setPosition(x, y, z);
          entity.orientation = orientation;
-         entity.speed = isMoving ? 6 : 0;
+         entity.speed = isMoving ? speed : 0;
       });
    }
 
