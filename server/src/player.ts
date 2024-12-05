@@ -1,11 +1,11 @@
 import { Entity } from './entity';
-import type { Session } from './session';
+import { Socket } from './socket';
 
 export class Player extends Entity {
    flag = 0;
 
-   constructor(public session: Session, public name: string) {
-      super(Number.parseInt(`5${Math.floor(Math.random() * 1000)}`)); // TODO: ws wrapper + use connection id
+   constructor(public socket: Socket, public name: string) {
+      super(Number.parseInt(`5${Math.floor(Math.random() * 1000)}`));
    }
 
    getState(): (string | number)[] {

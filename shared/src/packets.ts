@@ -9,6 +9,23 @@ export enum PacketOpcode {
   MoveUpdate,
 };
 
+export const Hello = {
+  serialize(playerName: string) {
+    return [
+      PacketOpcode.Hello,
+      playerName
+    ];
+  },
+
+  deserialize(data: any[]) {
+    let i = 0;
+    return {
+      opcode: data[i++],
+      playerName: data[i++]
+    };
+  }
+};
+
 export const Welcome = {
   serialize(timestamp: number, playerId: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
     return [
@@ -176,25 +193,6 @@ export const TimeSyncResponse = {
       opcode: data[i++],
       sequenceIndex: data[i++],
       timestamp: data[i++]
-    };
-  }
-};
-
-export const Hello = {
-  serialize(timestamp: number, playerName: string) {
-    return [
-      PacketOpcode.Hello,
-      timestamp,
-      playerName
-    ];
-  },
-
-  deserialize(data: any[]) {
-    let i = 0;
-    return {
-      opcode: data[i++],
-      timestamp: data[i++],
-      playerName: data[i++]
     };
   }
 };

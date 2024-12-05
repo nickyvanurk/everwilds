@@ -1,19 +1,21 @@
 import { WebSocketServer } from 'ws';
 import { World } from './world';
 import { Socket } from './socket';
-import { Session } from './session';
+import * as Packet from '../../shared/src/packets';
+import { getMSTime } from '../../shared/src/time';
+import { Player } from './player';
 
 export class GameServer {
   private ups = 50;
   private server: WebSocketServer;
   private world: World;
 
-  private sessions: { [key: number]: Session } = {};
-  private sessionIdCounter = 0;
+  private sockets: { [key: number]: Socket } = {};
+  private socketIdCounter = 0;
 
   constructor(port: number) {
     this.server = new WebSocketServer({ port });
-    this.world = new World('world0', 2);
+    this.world = new World('world', 2);
 
     console.log(`Spellforge game server started on port ${port}`);
 
@@ -21,11 +23,52 @@ export class GameServer {
       console.log('New connection established');
 
       const socket = new Socket(ws);
-      const session = new Session(this.sessionIdCounter++, socket, this.world);
+      this.socketIdCounter++;
 
-      session.onHello(name => {
-        console.log(`Player ${name} joined the game`);
-        this.sessions[session.id] = session;
+      socket.initiateHandshake();
+
+      let player: Player | null = null
+
+      socket.on('hello', ({ playerName }) => {
+        player = new Player(socket, playerName);
+        this.world.addPlayer(player);
+
+        socket.send(Packet.Welcome.serialize(getMSTime(), player.id, player.flag, playerName, player.x, player.y, player.z, player.orientation));
+
+        const serverTime = getMSTime();
+        player.serverTime = serverTime;
+
+        this.world.pushEntitiesToPlayer(player!);
+        this.world.broadcast(Packet.Spawn.serialize(player!.serverTime, player!.id, player!.flag, playerName, player!.x, player!.y, player!.z, player!.orientation), player!.id);
+
+        socket.sendTimeSync();
+
+        console.log(`Player ${playerName} joined the game`);
+        this.sockets[this.socketIdCounter] = socket;
+      });
+
+      socket.on('move', ({ timestamp, flag, x, y, z, orientation }) => {
+        if (!player) return;
+
+        player.flag = flag;
+        player.x = x;
+        player.y = y;
+        player.z = z;
+        player.orientation = orientation;
+
+        const serverTime = socket.clientTimeToServerTime(timestamp);
+        player.serverTime = serverTime;
+
+        this.world.broadcast(Packet.MoveUpdate.serialize(serverTime, player.id, flag, x, y, z, orientation), player.id);
+      });
+
+      socket.on('close', () => {
+        if (!player) return;
+
+        this.world.removePlayer(player);
+        delete this.sockets[this.socketIdCounter];
+
+        console.log(`Player ${player.name} left the game`);
       });
     });
 
@@ -37,8 +80,8 @@ export class GameServer {
   }
 
   update(dt: number) {
-    for (const [_, session] of Object.entries(this.sessions)) {
-      session.update(dt);
+    for (const [_, socket] of Object.entries(this.sockets)) {
+      socket.updateTimeSync(dt);
     }
 
     this.world.update(dt);

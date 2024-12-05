@@ -41,7 +41,7 @@ export class World {
 
    pushToPlayer(player: Player, packet: any[]) {
       if (player) {
-         player.session.socket.send(packet);
+         player.socket.send(packet);
       } else {
          console.log('pushToPlayer: player was undefined');
       }

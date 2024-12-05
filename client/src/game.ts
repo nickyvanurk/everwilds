@@ -8,6 +8,7 @@ import { assets } from './config';
 import { Client } from './client';
 import { Character } from './character';
 import { getMSTime } from '../../shared/src/time';
+import * as Packet from '../../shared/src/packets';
 
 export class Game {
    renderer: THREE.WebGLRenderer;
@@ -95,17 +96,17 @@ export class Game {
 
       client.connect();
 
-      client.onConnected(() => {
+      client.on('connected', () => {
          console.log('Starting client/server handshake');
 
-         client.sendHello(this.playername);
+         client.send(Packet.Hello.serialize(this.playername));
       });
 
-      client.onDisconnected(() => {
+      client.on('disconnected', () => {
          console.log('Disconnected from server');
       });
 
-      client.onWelcome((timestamp, id, flag, name, x, y, z, orientation) => {
+      client.on('welcome', ({ id, flag, name, x, y, z, orientation }) => {
          console.log('Received player ID from server:', id);
 
          this.player.flag = flag;
@@ -119,7 +120,7 @@ export class Game {
          this.player.time = 0;
       });
 
-      client.onSpawnEntity((timestamp, id, flag, name, x, y, z, orientation) => {
+      client.on('spawn', ({ timestamp, id, flag, name, x, y, z, orientation }) => {
          console.log('Received spawn entity:', id, x, y, z);
 
          const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
@@ -150,7 +151,7 @@ export class Game {
          this.addEntity(character);
       });
 
-      client.onDespawnEntity(id => {
+      client.on('despawn', ({ id }) => {
          console.log('Received despawn entity:', id);
 
          //@ts-ignore
@@ -161,7 +162,7 @@ export class Game {
          this.characters.splice(this.characters.indexOf(entity), 1);
       });
 
-      client.onEntityMove((timestamp, id, flag, x, y, z, orientation) => {
+      client.on('move', ({ timestamp, id, flag, x, y, z, orientation }) => {
          //@ts-ignore
          const entity = this.entities[id] as Character;
          if (!entity) {
