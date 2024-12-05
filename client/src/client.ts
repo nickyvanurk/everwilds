@@ -67,7 +67,7 @@ export class Client {
       };
    }
 
-   sendMessage(message: (string | number)[]) {
+   send(message: (string | number)[]) {
       if (this.connection?.readyState !== WebSocket.OPEN) {
          return;
       }
@@ -80,10 +80,8 @@ export class Client {
 
       if (Array.isArray(data)) {
          if (Array.isArray(data[0])) {
-            // Multiple actions received
             this.receiveActionBatch(data);
          } else {
-            // Only one action received
             this.receiveAction(data);
          }
       }
@@ -96,7 +94,25 @@ export class Client {
    }
 
    receiveAction(data: (string | number)[]) {
-      Packet.handlePacket(this, +data[0], data.slice(1));
+      const opcode = +data[0];
+      const payload = data.slice(1);
+
+      const handlers = {
+         [Packet.PacketOpcode.Welcome]: this.handleWelcomeOpcode,
+         [Packet.PacketOpcode.Spawn]: this.handleSpawnOpcode,
+         [Packet.PacketOpcode.Despawn]: this.handleDespawnOpcode,
+         [Packet.PacketOpcode.MoveUpdate]: this.handleMoveUpdateOpcode,
+         [Packet.PacketOpcode.TimeSync]: this.handleTimeSyncOpcode,
+      };
+
+      // @ts-ignore
+      const handler = handlers[opcode];
+      if (!handler) {
+         console.log(`No handler found for opcode: ${opcode}`);
+         return;
+      }
+
+      handler.call(this, ...payload);
    }
 
    handleWelcomeOpcode(timestamp: number, id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
@@ -121,7 +137,7 @@ export class Client {
    }
 
    handleTimeSyncOpcode(sequenceIndex: number) {
-      this.sendMessage([Packet.Type.TimeSyncResponse, sequenceIndex, getMSTime()]);
+      this.send(Packet.TimeSyncResponse.serialize(sequenceIndex, getMSTime()));
    }
 
    onConnected(callback: () => void) {
@@ -164,12 +180,10 @@ export class Client {
    }
 
    sendHello(playername: string) {
-      // TODO: Replace with packet class
-      this.sendMessage([Packet.Type.Hello, getMSTime(), playername]);
+      this.send(Packet.Hello.serialize(getMSTime(), playername));
    }
 
    sendMove(flag: number, x: number, y: number, z: number, orientation: number) {
-      // TODO: Replace with packet class
-      this.sendMessage([Packet.Type.Move, getMSTime(), flag, x, y, z, orientation]);
+      this.send(Packet.Move.serialize(getMSTime(), flag, x, y, z, orientation));
    }
 }

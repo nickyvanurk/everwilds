@@ -31,7 +31,7 @@ export class World {
    }
 
    removePlayer(player: Player) {
-      this.broadcast(new Packet.Despawn(player.id));
+      this.broadcast(Packet.Despawn.serialize(player.id), player.id);
 
       delete this.entities[player.id];
       delete this.players[player.id];
@@ -39,9 +39,9 @@ export class World {
       console.log(`Removed player: ${player.id}`);
    }
 
-   pushToPlayer(player: Player, packet: Packet.Packet) {
+   pushToPlayer(player: Player, packet: any[]) {
       if (player) {
-         player.session.socket.sendPacket(packet.write());
+         player.session.socket.send(packet);
       } else {
          console.log('pushToPlayer: player was undefined');
       }
@@ -55,11 +55,12 @@ export class World {
             continue;
          }
 
-         this.pushToPlayer(player, new Packet.Spawn(entity, entity.serverTime));
+         //@ts-ignore
+         this.pushToPlayer(player, Packet.Spawn.serialize(entity.serverTime, entity.id, entity.flag, entity.name, entity.x, entity.y, entity.z, entity.orientation));
       }
    }
 
-   broadcast(packet: Packet.Packet, ignoredPlayerId?: number) {
+   broadcast(packet: any[], ignoredPlayerId?: number) {
       for (const playerId in this.players) {
          if (+playerId === ignoredPlayerId) {
             continue;

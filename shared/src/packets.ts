@@ -1,207 +1,200 @@
-import type { Client } from '../../client/src/client';
-import type { Entity } from '../../server/src/entity';
-import type { Session } from '../../server/src/session';
-
-export enum Type {
-   Hello = 0,
-   Welcome = 1,
-   Spawn = 2,
-   Despawn = 3,
-   Move = 4,
-   TimeSync = 5,
-   TimeSyncResponse = 6,
-   MoveUpdate = 7,
-}
-
-export type Packet = {
-   read: (data: (string | number)[]) => (string | number | number[])[];
-   write: () => (string | number)[];
+export enum PacketOpcode {
+  Hello,
+  Welcome,
+  Spawn,
+  Despawn,
+  Move,
+  TimeSync,
+  TimeSyncResponse,
+  MoveUpdate,
 };
 
-export class Welcome {
-   constructor(public timestamp: number, private id: number, private flag: number, private name: string, private x: number, private y: number, private z: number, private orientation: number) {}
+export const Welcome = {
+  serialize(timestamp: number, playerId: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
+    return [
+      PacketOpcode.Welcome,
+      timestamp,
+      playerId,
+      flag,
+      name,
+      x,
+      y,
+      z,
+      orientation
+    ];
+  },
 
-   read(data: (string | number)[]) {
-      const timestamp = data[0] as number;
-      const id = data[1] as number;
-      const flag = data[2] as number;
-      const name = data[3] as string;
-      const x = data[4] as number;
-      const y = data[5] as number;
-      const z = data[6] as number;
-      const orientation = data[7] as number;
-      return [timestamp, id, flag, name, x, y, z, orientation];
-   }
-
-   write() {
-      return [Type.Welcome, this.timestamp, this.id, this.flag, this.name, this.x, this.y, this.z, this.orientation];
-   }
-}
-
-export class Spawn {
-   constructor(private entity: Entity, public timestamp: number) {}
-
-   read(data: (string | number)[]) {
-      let idx = 0;
-      const timestamp = data[idx++] as number;
-      const id = data[idx++] as number;
-      const flag = data[idx++] as number;
-      const name = data[idx++] as string;
-      const x = data[idx++] as number;
-      const y = data[idx++] as number;
-      const z = data[idx++] as number;
-      const orientation = data[idx++] as number;
-      return [timestamp, id, flag, name, x, y, z, orientation];
-   }
-
-   write() {
-      return [Type.Spawn, this.timestamp, ...this.entity.getState()];
-   }
-}
-
-export class Despawn {
-   constructor(private entityId: number) {}
-
-   read(data: (string | number)[]) {
-      return [data[0] as number];
-   }
-
-   write() {
-      return [Type.Despawn, this.entityId];
-   }
-}
-
-export class MoveUpdate {
-   constructor(private entity: Entity, private startMove: number, public timestamp: number, private orientation: number) {}
-
-   read(data: (string | number)[]) {
-      const timestamp = data[0] as number;
-      const id = data[1] as number;
-      const flag = data[2] as number;
-      const x = data[3] as number;
-      const y = data[4] as number;
-      const z = data[5] as number;
-      const orientation = data[6] as number;
-      return [timestamp, id, flag, x, y, z, orientation];
-   }
-
-   write() {
-      return [
-         Type.MoveUpdate,
-         this.timestamp,
-         this.entity.id,
-         this.startMove,
-         this.entity.x,
-         this.entity.y,
-         this.entity.z,
-         this.orientation,
-      ];
-   }
-}
-
-export class Move {
-   constructor(private entity: Entity, private startMove: number, private timestamp: number, private orientation: number) {}
-
-   read(data: (string | number)[]) {
-      const timestamp = data[0] as number;
-      const flag = data[1] as number;
-      const x = data[2] as number;
-      const y = data[3] as number;
-      const z = data[4] as number;
-      const orientation = data[5] as number;
-      return [timestamp, flag, x, y, z, orientation];
-   }
-
-   write() {
-      return [
-         Type.Move,
-         this.timestamp,
-         this.startMove,
-         this.entity.x,
-         this.entity.y,
-         this.entity.z,
-         this.orientation,
-      ];
-   }
-}
-
-export class Null {
-   write() {
-      return [];
-   }
-}
-
-export class Hello implements Packet {
-   constructor(public timestamp: number) {}
-
-   read(data: (string | number)[]) {
-      return [data[0], data[1]];
-   }
-
-   write() {
-      return [Type.Hello, this.timestamp];
-   }
-}
-
-export class TimeSync {
-   constructor(private sequenceIndex: number) {}
-
-   read(data: (string | number)[]) {
-      return [data[0] as number];
-   }
-
-   write() {
-      return [Type.TimeSync, this.sequenceIndex];
-   }
-}
-
-export class TimeSyncResponse {
-   constructor(private timestamp: number) {}
-
-   read(data: (string | number)[]) {
-      const sequenceIndex = data[0] as number;
-      const clientTime = data[1] as number;
-      return [sequenceIndex, clientTime];
-   }
-
-   write() {
-      return [Type.TimeSyncResponse, this.timestamp];
-   }
-}
-
-// Split between server and client packets
-const packetLookup: { [key: number]: any } = {
-   [Type.Hello]: Hello,
-   [Type.Welcome]: Welcome,
-   [Type.Spawn]: Spawn,
-   [Type.Despawn]: Despawn,
-   [Type.Move]: Move,
-   [Type.MoveUpdate]: MoveUpdate,
-   [Type.TimeSync]: TimeSync,
-   [Type.TimeSyncResponse]: TimeSyncResponse,
+  deserialize(data: any[]) {
+    let i = 0;
+    return {
+      opcode: data[i++],
+      timestamp: data[i++],
+      playerId: data[i++],
+      flag: data[i++],
+      name: data[i++],
+      x: data[i++],
+      y: data[i++],
+      z: data[i++],
+      orientation: data[i++]
+    };
+  }
 };
 
-// Have different handlers for server and client
-export function handlePacket(handlerClass: Session | Client, opcode: number, data: any[]) {
-   const packetClass = packetLookup[opcode];
-   if (!packetClass) {
-      console.log(`No packet found for opcode: ${opcode}`);
-      return;
-   }
+export const Spawn = {
+  serialize(timestamp: number, entityId: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
+    return [
+      PacketOpcode.Spawn,
+      timestamp,
+      entityId,
+      flag,
+      name,
+      x,
+      y,
+      z,
+      orientation
+    ];
+  },
 
-   // @ts-ignore
-   const handler = handlerClass[`handle${Type[opcode]}Opcode`];
-   if (!handler) {
-      console.log(`No handler found for opcode: ${opcode}`);
-      return;
-   }
+  deserialize(data: any[]) {
+    let i = 0;
+    return {
+      opcode: data[i++],
+      timestamp: data[i++],
+      entityId: data[i++],
+      flag: data[i++],
+      name: data[i++],
+      x: data[i++],
+      y: data[i++],
+      z: data[i++],
+      orientation: data[i++]
+    };
+  }
+};
 
-   //@ts-ignore
-   const packet = new packetClass();
-   if (packet instanceof Null) {
-      return;
-   }
+export const Despawn = {
+  serialize(entityId: number) {
+    return [
+      PacketOpcode.Despawn,
+      entityId
+    ];
+  },
 
-   //@ts-ignore
-   handler.bind(handlerClass)(...packet.read(data));
-}
+  deserialize(data: any[]) {
+    let i = 0;
+    return {
+      opcode: data[i++],
+      entityId: data[i++]
+    };
+  }
+};
+
+export const MoveUpdate = {
+  serialize(timestamp: number, entityId: number, flag: number, x: number, y: number, z: number, orientation: number) {
+    return [
+      PacketOpcode.MoveUpdate,
+      timestamp,
+      entityId,
+      flag,
+      x,
+      y,
+      z,
+      orientation
+    ];
+  },
+
+  deserialize(data: any[]) {
+    let i = 0;
+    return {
+      opcode: data[i++],
+      timestamp: data[i++],
+      entityId: data[i++],
+      flag: data[i++],
+      x: data[i++],
+      y: data[i++],
+      z: data[i++],
+      orientation: data[i++]
+    };
+  }
+};
+
+export const Move = {
+  serialize(timestamp: number, flag: number, x: number, y: number, z: number, orientation: number) {
+    return [
+      PacketOpcode.Move,
+      timestamp,
+      flag,
+      x,
+      y,
+      z,
+      orientation
+    ];
+  },
+
+  deserialize(data: any[]) {
+    let i = 0;
+    return {
+      opcode: data[i++],
+      timestamp: data[i++],
+      flag: data[i++],
+      x: data[i++],
+      y: data[i++],
+      z: data[i++],
+      orientation: data[i++]
+    };
+  }
+};
+
+export const TimeSync = {
+  serialize(sequenceIndex: number) {
+    return [
+      PacketOpcode.TimeSync,
+      sequenceIndex
+    ];
+  },
+
+  deserialize(data: any[]) {
+    let i = 0;
+    return {
+      opcode: data[i++],
+      sequenceIndex: data[i++]
+    };
+  }
+};
+
+export const TimeSyncResponse = {
+  serialize(sequenceIndex: number, timestamp: number) {
+    return [
+      PacketOpcode.TimeSyncResponse,
+      sequenceIndex,
+      timestamp
+    ];
+  },
+
+  deserialize(data: any[]) {
+    let i = 0;
+    return {
+      opcode: data[i++],
+      sequenceIndex: data[i++],
+      timestamp: data[i++]
+    };
+  }
+};
+
+export const Hello = {
+  serialize(timestamp: number, playerName: string) {
+    return [
+      PacketOpcode.Hello,
+      timestamp,
+      playerName
+    ];
+  },
+
+  deserialize(data: any[]) {
+    let i = 0;
+    return {
+      opcode: data[i++],
+      timestamp: data[i++],
+      playerName: data[i++]
+    };
+  }
+};

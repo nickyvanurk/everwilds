@@ -1,8 +1,8 @@
 import { Player } from './player';
 import type { World } from './world';
 import type { Socket } from './socket';
-import * as Packet from '../../shared/src/packets';
 import { getMSTime } from '../../shared/src/time';
+import * as Packet from '../../shared/src/packets';
 
 export class Session {
    private player: Player | null = null;
@@ -36,7 +36,20 @@ export class Session {
    }
 
    handlePacket(opcode: number, data: (string | number)[]) {
-      Packet.handlePacket(this, opcode, data);
+      const handlers = {
+         [Packet.PacketOpcode.Hello]: this.handleHelloOpcode,
+         [Packet.PacketOpcode.Move]: this.handleMoveOpcode,
+         [Packet.PacketOpcode.TimeSyncResponse]: this.handleTimeSyncResponseOpcode,
+      };
+
+      // @ts-ignore
+      const handler = handlers[opcode];
+      if (!handler) {
+         console.log(`No handler found for opcode: ${opcode}`);
+         return;
+      }
+
+      handler.call(this, ...data);
    }
 
    handleSocketClose() {
@@ -50,23 +63,13 @@ export class Session {
       this.player = new Player(this, name);
       this.world.addPlayer(this.player);
 
-      this.socket.sendPacket([
-         Packet.Type.Welcome,
-         getMSTime(),
-         this.player.id,
-         this.player.flag,
-         name,
-         this.player.x,
-         this.player.y,
-         this.player.z,
-         this.player.orientation
-      ]);
+      this.socket.send(Packet.Welcome.serialize(getMSTime(), this.player.id, this.player.flag, name, this.player.x, this.player.y, this.player.z, this.player.orientation));
 
       const serverTime = this.adjustClientMovementTime(clientTime);
       this.player.serverTime = serverTime;
 
       this.world.pushEntitiesToPlayer(this.player!);
-      this.world.broadcast(new Packet.Spawn(this.player!, this.player!.serverTime), this.player!.id);
+      this.world.broadcast(Packet.Spawn.serialize(this.player!.serverTime, this.player!.id, this.player!.flag, name, this.player!.x, this.player!.y, this.player!.z, this.player!.orientation), this.player!.id);
 
       this.sendTimeSync();
 
@@ -89,7 +92,7 @@ export class Session {
       const serverTime = this.adjustClientMovementTime(clientTime);
       this.player.serverTime = serverTime;
 
-      this.world.broadcast(new Packet.MoveUpdate(this.player, flag, serverTime, orientation), this.player.id);
+      this.world.broadcast(Packet.MoveUpdate.serialize(serverTime, this.player.id, flag, x, y, z, orientation), this.player.id);
    }
 
    resetTimeSync() {
@@ -98,7 +101,7 @@ export class Session {
    }
 
    sendTimeSync() {
-      this.socket.sendPacket([Packet.Type.TimeSync, this.timeSyncNextCounter]);
+      this.socket.send(Packet.TimeSync.serialize(this.timeSyncNextCounter));
 
       this.pendingTimeSyncRequests.set(this.timeSyncNextCounter, getMSTime());
 

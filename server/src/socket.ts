@@ -17,6 +17,12 @@ export class Socket {
       this.ws.send('go');
    }
 
+   send(message: any[]) {
+      if (!this.isOpen()) return;
+
+      this.ws.send(JSON.stringify(message));
+   }
+
    sendPacket(packet: (string | number)[]) {
       if (!this.isOpen()) return;
 
