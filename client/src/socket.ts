@@ -5,7 +5,7 @@ import * as Packet from '../../shared/src/packets';
 export class Socket extends EventEmitter {
    clockDelta = 0;
 
-   private connection: WebSocket | null = null;
+   private ws: WebSocket | null = null;
    private serverTime = 0;
    private timeAtGo = 0;
 
@@ -19,13 +19,13 @@ export class Socket extends EventEmitter {
    connect() {
       const url = `ws://${this.host}:${this.port}`;
       console.log(`Connecting to ${url}`);
-      this.connection = new WebSocket(url);
+      this.ws = new WebSocket(url);
 
-      this.connection.onopen = () => {
+      this.ws.onopen = () => {
          console.log('Connected to server');
       };
 
-      this.connection.onmessage = ev => {
+      this.ws.onmessage = ev => {
          if (ev.data === 'go') {
             this.timeAtGo = getMSTime();
             this.emit('connected');
@@ -35,21 +35,21 @@ export class Socket extends EventEmitter {
          this.receiveMessage(ev.data);
       };
 
-      this.connection.onerror = ev => {
+      this.ws.onerror = ev => {
          console.error(`Error: ${ev}`);
       };
 
-      this.connection.onclose = () => {
+      this.ws.onclose = () => {
          this.emit('disconnected');
       };
    }
 
    send(message: (string | number)[]) {
-      if (this.connection?.readyState !== WebSocket.OPEN) {
+      if (this.ws?.readyState !== WebSocket.OPEN) {
          return;
       }
 
-      this.connection.send(JSON.stringify(message));
+      this.ws.send(JSON.stringify(message));
    }
 
    receiveMessage(message: string) {

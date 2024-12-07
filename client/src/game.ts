@@ -25,7 +25,7 @@ export class Game {
    private hud: HUD;
    private player: Player;
 
-   private entities = {};
+   private entities: Record<number, Player | Character> = {};
 
    constructor() {
       const { renderer, camera, controls, scene } = this.setup();
@@ -148,16 +148,13 @@ export class Game {
       socket.on('despawn', ({ id }) => {
          console.log('Received despawn entity:', id);
 
-         //@ts-ignore
          const entity = this.entities[id] as Character;
          this.scene.remove(entity.mesh);
-         //@ts-ignore
          delete this.entities[id];
          this.characters.splice(this.characters.indexOf(entity), 1);
       });
 
       socket.on('move', ({ timestamp, id, flag, x, y, z, orientation }) => {
-         //@ts-ignore
          const entity = this.entities[id] as Character;
          if (!entity) {
             console.error(`Entity with ID ${id} not found`);
@@ -182,7 +179,6 @@ export class Game {
    }
 
    addEntity(entity: Player | Character) {
-      //@ts-ignore
       this.entities[entity.id] = entity;
       this.scene.add(entity.mesh);
       this.characters.push(entity);
