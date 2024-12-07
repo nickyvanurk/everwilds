@@ -27,7 +27,11 @@ export class Game {
 
    private entities: Record<number, Player | Character> = {};
 
-   constructor() {
+   constructor(host: string, port: number, playername: string) {
+      this.host = host;
+      this.port = port;
+      this.playername = playername;
+
       const { renderer, camera, controls, scene } = this.setup();
       this.renderer = renderer;
       this.camera = camera;
@@ -83,12 +87,6 @@ export class Game {
       this.renderer.setAnimationLoop(this.update.bind(this));
 
       this.connect();
-   }
-
-   setServerOptions(host: string, port: number, playername: string) {
-      this.host = host;
-      this.port = port;
-      this.playername = playername;
    }
 
    connect() {

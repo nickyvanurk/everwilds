@@ -15,7 +15,7 @@ export class GameServer {
 
   constructor(port: number) {
     this.server = new WebSocketServer({ port });
-    this.world = new World('world', 2);
+    this.world = new World();
 
     console.log(`Spellforge game server started on port ${port}`);
 
@@ -38,7 +38,7 @@ export class GameServer {
         const serverTime = getMSTime();
         player.serverTime = serverTime;
 
-        this.world.pushEntitiesToPlayer(player!);
+        this.world.pushPlayersToPlayer(player!);
         this.world.broadcast(Packet.Spawn.serialize(player!.serverTime, player!.id, player!.flag, playerName, player!.x, player!.y, player!.z, player!.orientation), player!.id);
 
         socket.sendTimeSync();

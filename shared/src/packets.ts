@@ -27,11 +27,11 @@ export const Hello = {
 };
 
 export const Welcome = {
-  serialize(timestamp: number, playerId: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
+  serialize(timestamp: number, id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
     return [
       PacketOpcode.Welcome,
       timestamp,
-      playerId,
+      id,
       flag,
       name,
       x,
@@ -46,7 +46,7 @@ export const Welcome = {
     return {
       opcode: data[i++],
       timestamp: data[i++],
-      playerId: data[i++],
+      id: data[i++],
       flag: data[i++],
       name: data[i++],
       x: data[i++],
@@ -58,11 +58,11 @@ export const Welcome = {
 };
 
 export const Spawn = {
-  serialize(timestamp: number, entityId: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
+  serialize(timestamp: number, id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
     return [
       PacketOpcode.Spawn,
       timestamp,
-      entityId,
+      id,
       flag,
       name,
       x,
@@ -77,7 +77,7 @@ export const Spawn = {
     return {
       opcode: data[i++],
       timestamp: data[i++],
-      entityId: data[i++],
+      id: data[i++],
       flag: data[i++],
       name: data[i++],
       x: data[i++],
@@ -89,10 +89,10 @@ export const Spawn = {
 };
 
 export const Despawn = {
-  serialize(entityId: number) {
+  serialize(id: number) {
     return [
       PacketOpcode.Despawn,
-      entityId
+      id
     ];
   },
 
@@ -100,17 +100,17 @@ export const Despawn = {
     let i = 0;
     return {
       opcode: data[i++],
-      entityId: data[i++]
+      id: data[i++]
     };
   }
 };
 
 export const MoveUpdate = {
-  serialize(timestamp: number, entityId: number, flag: number, x: number, y: number, z: number, orientation: number) {
+  serialize(timestamp: number, id: number, flag: number, x: number, y: number, z: number, orientation: number) {
     return [
       PacketOpcode.MoveUpdate,
       timestamp,
-      entityId,
+      id,
       flag,
       x,
       y,
@@ -124,7 +124,7 @@ export const MoveUpdate = {
     return {
       opcode: data[i++],
       timestamp: data[i++],
-      entityId: data[i++],
+      id: data[i++],
       flag: data[i++],
       x: data[i++],
       y: data[i++],
