@@ -21,13 +21,13 @@ export class Socket extends EventEmitter {
       const opcode = +data[0];
 
       switch (opcode) {
-        case Packet.PacketOpcode.Hello:
+        case Packet.Opcode.Hello:
           this.emit('hello', Packet.Hello.deserialize(data));
           break;
-        case Packet.PacketOpcode.Move:
+        case Packet.Opcode.Move:
           this.emit('move', Packet.Move.deserialize(data));
           break;
-        case Packet.PacketOpcode.TimeSyncResponse: {
+        case Packet.Opcode.TimeSyncResponse: {
           const { sequenceIndex, timestamp } =
             Packet.TimeSyncResponse.deserialize(data);
           this.handleTimeSyncResponseOpcode(sequenceIndex, timestamp);

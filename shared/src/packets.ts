@@ -1,4 +1,4 @@
-export enum PacketOpcode {
+export enum Opcode {
   Hello,
   Welcome,
   Spawn,
@@ -13,7 +13,7 @@ export type Serialized = (string | number)[];
 
 export const Hello = {
   serialize(playerName: string) {
-    return [PacketOpcode.Hello, playerName];
+    return [Opcode.Hello, playerName];
   },
 
   deserialize(data: Serialized) {
@@ -36,17 +36,7 @@ export const Welcome = {
     z: number,
     orientation: number,
   ) {
-    return [
-      PacketOpcode.Welcome,
-      timestamp,
-      id,
-      flag,
-      name,
-      x,
-      y,
-      z,
-      orientation,
-    ];
+    return [Opcode.Welcome, timestamp, id, flag, name, x, y, z, orientation];
   },
 
   deserialize(data: Serialized) {
@@ -76,17 +66,7 @@ export const Spawn = {
     z: number,
     orientation: number,
   ) {
-    return [
-      PacketOpcode.Spawn,
-      timestamp,
-      id,
-      flag,
-      name,
-      x,
-      y,
-      z,
-      orientation,
-    ];
+    return [Opcode.Spawn, timestamp, id, flag, name, x, y, z, orientation];
   },
 
   deserialize(data: Serialized) {
@@ -107,7 +87,7 @@ export const Spawn = {
 
 export const Despawn = {
   serialize(id: number) {
-    return [PacketOpcode.Despawn, id];
+    return [Opcode.Despawn, id];
   },
 
   deserialize(data: Serialized) {
@@ -129,7 +109,7 @@ export const MoveUpdate = {
     z: number,
     orientation: number,
   ) {
-    return [PacketOpcode.MoveUpdate, timestamp, id, flag, x, y, z, orientation];
+    return [Opcode.MoveUpdate, timestamp, id, flag, x, y, z, orientation];
   },
 
   deserialize(data: Serialized) {
@@ -156,7 +136,7 @@ export const Move = {
     z: number,
     orientation: number,
   ) {
-    return [PacketOpcode.Move, timestamp, flag, x, y, z, orientation];
+    return [Opcode.Move, timestamp, flag, x, y, z, orientation];
   },
 
   deserialize(data: Serialized) {
@@ -175,7 +155,7 @@ export const Move = {
 
 export const TimeSync = {
   serialize(sequenceIndex: number) {
-    return [PacketOpcode.TimeSync, sequenceIndex];
+    return [Opcode.TimeSync, sequenceIndex];
   },
 
   deserialize(data: Serialized) {
@@ -189,7 +169,7 @@ export const TimeSync = {
 
 export const TimeSyncResponse = {
   serialize(sequenceIndex: number, timestamp: number) {
-    return [PacketOpcode.TimeSyncResponse, sequenceIndex, timestamp];
+    return [Opcode.TimeSyncResponse, sequenceIndex, timestamp];
   },
 
   deserialize(data: Serialized) {

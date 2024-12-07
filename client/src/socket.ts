@@ -74,7 +74,7 @@ export class Socket extends EventEmitter {
     const opcode = +data[0];
 
     switch (opcode) {
-      case Packet.PacketOpcode.Welcome: {
+      case Packet.Opcode.Welcome: {
         const welcomeData = Packet.Welcome.deserialize(data);
         const timeSinceGo = getMSTime() - this.timeAtGo;
         const oneWayLatency = timeSinceGo / 2;
@@ -84,16 +84,16 @@ export class Socket extends EventEmitter {
         this.emit('welcome', welcomeData);
         break;
       }
-      case Packet.PacketOpcode.Spawn:
+      case Packet.Opcode.Spawn:
         this.emit('spawn', Packet.Spawn.deserialize(data));
         break;
-      case Packet.PacketOpcode.Despawn:
+      case Packet.Opcode.Despawn:
         this.emit('despawn', Packet.Despawn.deserialize(data));
         break;
-      case Packet.PacketOpcode.MoveUpdate:
+      case Packet.Opcode.MoveUpdate:
         this.emit('move', Packet.MoveUpdate.deserialize(data));
         break;
-      case Packet.PacketOpcode.TimeSync: {
+      case Packet.Opcode.TimeSync: {
         const { sequenceIndex } = Packet.TimeSync.deserialize(data);
         this.send(
           Packet.TimeSyncResponse.serialize(sequenceIndex, getMSTime()),
