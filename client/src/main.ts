@@ -1,5 +1,6 @@
 import './globals';
 import { Game } from './game';
 
-const game = new Game();
+const game = new Game('localhost', 8080, 'Balthazar');
+
 game.run();

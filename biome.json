@@ -14,7 +14,8 @@
 			"recommended": true,
 			"style": {
 				"noNonNullAssertion": "off",
-				"noParameterAssign": "off"
+				"noParameterAssign": "off",
+				"useEnumInitializers": "off"
 			},
 			"complexity": {
 				"noForEach": "off"
@@ -33,7 +34,7 @@
 			"arrowParentheses": "asNeeded",
 			"bracketSpacing": true,
 			"quoteStyle": "single",
-			"indentWidth": 3,
+			"indentWidth": 2,
 			"indentStyle": "space"
 		}
 	}

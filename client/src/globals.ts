@@ -1,7 +1,7 @@
 import { AssetManager } from './asset-manager';
 
 declare global {
-   var gAssetManager: AssetManager;
+  var gAssetManager: AssetManager;
 }
 
 globalThis.gAssetManager = new AssetManager('assets/');

@@ -23,5 +23,5 @@
       "three"
     ]
   },
-  "include": ["src"]
+  "include": ["client/src", "server/src", "shared/src"],
 }
