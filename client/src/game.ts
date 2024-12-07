@@ -5,7 +5,7 @@ import { setKeyBindings } from './input';
 import { Player } from './player';
 import { HUD } from './hud';
 import { assets } from './config';
-import { Client } from './client';
+import { Socket } from './socket';
 import { Character } from './character';
 import { getMSTime } from '../../shared/src/time';
 import * as Packet from '../../shared/src/packets';
@@ -92,21 +92,21 @@ export class Game {
    }
 
    connect() {
-      const client = new Client(this.host, this.port);
+      const socket = new Socket(this.host, this.port);
 
-      client.connect();
+      socket.connect();
 
-      client.on('connected', () => {
+      socket.on('connected', () => {
          console.log('Starting client/server handshake');
 
-         client.send(Packet.Hello.serialize(this.playername));
+         socket.send(Packet.Hello.serialize(this.playername));
       });
 
-      client.on('disconnected', () => {
+      socket.on('disconnected', () => {
          console.log('Disconnected from server');
       });
 
-      client.on('welcome', ({ id, flag, name, x, y, z, orientation }) => {
+      socket.on('welcome', ({ id, flag, name, x, y, z, orientation }) => {
          console.log('Received player ID from server:', id);
 
          this.player.flag = flag;
@@ -114,26 +114,20 @@ export class Game {
          this.player.name = name;
          this.player.setPosition(x, y, z);
          this.player.orientation = orientation;
-         this.player.client = client;
+         this.player.socket = socket;
          this.addEntity(this.player);
 
          this.player.time = 0;
       });
 
-      client.on('spawn', ({ timestamp, id, flag, name, x, y, z, orientation }) => {
+      socket.on('spawn', ({ timestamp, id, flag, name, x, y, z, orientation }) => {
          console.log('Received spawn entity:', id, x, y, z);
 
          const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
          const speed = 6;
 
-         // Currently this only works after server/client time sync. Spawned
-         // entities on join will be interpolated with a wrong delta. We can
-         // probably mitigate this by using the server timestamp instead of the
-         // client timestamp. The server sends his time in the welcome packet.
-         // After that the client needs to keep the server time known to the
-         // client in sync with the actual server time.
          if (isMoving) {
-            const estimatedServerTime = (getMSTime() + client.clockDelta);
+            const estimatedServerTime = (getMSTime() + socket.clockDelta);
             const delta = (estimatedServerTime - timestamp) / 1000;
             x = x + Math.sin(orientation) * speed * delta;
             z = z + Math.cos(orientation) * speed * delta;
@@ -151,7 +145,7 @@ export class Game {
          this.addEntity(character);
       });
 
-      client.on('despawn', ({ id }) => {
+      socket.on('despawn', ({ id }) => {
          console.log('Received despawn entity:', id);
 
          //@ts-ignore
@@ -162,7 +156,7 @@ export class Game {
          this.characters.splice(this.characters.indexOf(entity), 1);
       });
 
-      client.on('move', ({ timestamp, id, flag, x, y, z, orientation }) => {
+      socket.on('move', ({ timestamp, id, flag, x, y, z, orientation }) => {
          //@ts-ignore
          const entity = this.entities[id] as Character;
          if (!entity) {
@@ -174,7 +168,7 @@ export class Game {
          const speed = 6;
 
          if (isMoving) {
-            const estimatedServerTime = (getMSTime() + client.clockDelta);
+            const estimatedServerTime = (getMSTime() + socket.clockDelta);
             const delta = (estimatedServerTime - timestamp) / 1000;
             x = x + Math.sin(orientation) * speed * delta;
             z = z + Math.cos(orientation) * speed * delta;

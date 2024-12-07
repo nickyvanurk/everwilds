@@ -2,7 +2,7 @@ import EventEmitter from 'eventemitter3';
 import { getMSTime } from '../../shared/src/time';
 import * as Packet from '../../shared/src/packets';
 
-export class Client extends EventEmitter {
+export class Socket extends EventEmitter {
    clockDelta = 0;
 
    private connection: WebSocket | null = null;

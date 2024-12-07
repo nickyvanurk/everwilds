@@ -1,11 +1,11 @@
 import { actions, input } from './input';
 import { Character } from './character';
-import type { Client } from './client';
+import type { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
 import { getMSTime } from '../../shared/src/time';
 
 export class Player extends Character {
-   client: Client | null = null;
+   socket: Socket | null = null;
 
    constructor(
       public name: string,
@@ -26,7 +26,7 @@ export class Player extends Character {
          if (actions.left) movementFlag |= 4;
          if (actions.right) movementFlag |= 8;
 
-         this.client?.send(Packet.Move.serialize(getMSTime(), movementFlag, this.position.x, this.position.y, this.position.z, orientation));
+         this.socket?.send(Packet.Move.serialize(getMSTime(), movementFlag, this.position.x, this.position.y, this.position.z, orientation));
       };
 
       input.on('forward', sendMovementPacket);
