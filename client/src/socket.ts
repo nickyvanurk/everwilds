@@ -93,7 +93,8 @@ export class Socket extends EventEmitter {
             this.emit('move', Packet.MoveUpdate.deserialize(data));
             break;
          case Packet.PacketOpcode.TimeSync:
-            this.emit('timesync', Packet.TimeSync.deserialize(data));
+            const { sequenceIndex } = Packet.TimeSync.deserialize(data);
+            this.send(Packet.TimeSyncResponse.serialize(sequenceIndex, getMSTime()));
             break;
          default:
             console.log(`No handler found for opcode: ${opcode}`);
