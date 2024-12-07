@@ -11,198 +11,201 @@ import { getMSTime } from '../../shared/src/time';
 import * as Packet from '../../shared/src/packets';
 
 export class Game {
-   renderer: THREE.WebGLRenderer;
-   controls: OrbitControls;
-   camera: THREE.PerspectiveCamera;
-   scene: THREE.Scene;
-   characters: Character[] = [];
+  renderer: THREE.WebGLRenderer;
+  controls: OrbitControls;
+  camera: THREE.PerspectiveCamera;
+  scene: THREE.Scene;
+  characters: Character[] = [];
 
-   private host = 'localhost';
-   private port = 8080;
-   private playername = 'player';
+  private host = 'localhost';
+  private port = 8080;
+  private playername = 'player';
 
-   private prevTime = 0;
-   private hud: HUD;
-   private player: Player;
+  private prevTime = 0;
+  private hud: HUD;
+  private player: Player;
 
-   private entities: Record<number, Player | Character> = {};
+  private entities: Record<number, Player | Character> = {};
 
-   constructor(host: string, port: number, playername: string) {
-      this.host = host;
-      this.port = port;
-      this.playername = playername;
+  constructor(host: string, port: number, playername: string) {
+    this.host = host;
+    this.port = port;
+    this.playername = playername;
 
-      const { renderer, camera, controls, scene } = this.setup();
-      this.renderer = renderer;
-      this.camera = camera;
-      this.controls = controls;
-      this.scene = scene;
+    const { renderer, camera, controls, scene } = this.setup();
+    this.renderer = renderer;
+    this.camera = camera;
+    this.controls = controls;
+    this.scene = scene;
 
-      setKeyBindings([
-         { action: 'forward', key: 'KeyW' },
-         { action: 'backward', key: 'KeyS' },
-         { action: 'left', key: 'KeyA' },
-         { action: 'right', key: 'KeyD' }
-      ]);
+    setKeyBindings([
+      { action: 'forward', key: 'KeyW' },
+      { action: 'backward', key: 'KeyS' },
+      { action: 'left', key: 'KeyA' },
+      { action: 'right', key: 'KeyD' },
+    ]);
 
-      const gridHelper = new THREE.GridHelper(10, 10);
-      scene.add(gridHelper);
+    const gridHelper = new THREE.GridHelper(10, 10);
+    scene.add(gridHelper);
 
-      const player = new Player(this.playername, 6);
-      this.player = player;
+    const player = new Player(this.playername, 6);
+    this.player = player;
 
-      this.hud = new HUD(this);
+    this.hud = new HUD(this);
 
-      gAssetManager.load(assets);
-   }
+    gAssetManager.load(assets);
+  }
 
-   setup() {
-      const renderer = new THREE.WebGLRenderer({ antialias: true });
+  setup() {
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000,
+    );
+    camera.position.set(0, 12, 12);
+
+    const controls = new OrbitControls(camera, document.body);
+
+    const scene = new THREE.Scene();
+
+    addEventListener('resize', () => {
       renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+    });
 
-      const camera = new THREE.PerspectiveCamera(
-         75,
-         window.innerWidth / window.innerHeight,
-         0.1,
-         1000,
-      );
-      camera.position.set(0, 12, 12);
+    return { renderer, camera, controls, scene };
+  }
 
-      const controls = new OrbitControls(camera, document.body);
+  run() {
+    this.renderer.setAnimationLoop(this.update.bind(this));
 
-      const scene = new THREE.Scene();
+    this.connect();
+  }
 
-      addEventListener('resize', () => {
-         renderer.setSize(window.innerWidth, window.innerHeight);
-         camera.aspect = window.innerWidth / window.innerHeight;
-         camera.updateProjectionMatrix();
-         renderer.render(scene, camera);
-      });
+  connect() {
+    const socket = new Socket(this.host, this.port);
 
-      return { renderer, camera, controls, scene };
-   }
+    socket.connect();
 
-   run() {
-      this.renderer.setAnimationLoop(this.update.bind(this));
+    socket.on('connected', () => {
+      console.log('Starting client/server handshake');
 
-      this.connect();
-   }
+      socket.send(Packet.Hello.serialize(this.playername));
+    });
 
-   connect() {
-      const socket = new Socket(this.host, this.port);
+    socket.on('disconnected', () => {
+      console.log('Disconnected from server');
+    });
 
-      socket.connect();
+    socket.on('welcome', ({ playerId, flag, name, x, y, z, orientation }) => {
+      console.log('Received player ID from server:', playerId);
 
-      socket.on('connected', () => {
-         console.log('Starting client/server handshake');
+      this.player.flag = flag;
+      this.player.id = playerId;
+      this.player.name = name;
+      this.player.setPosition(x, y, z);
+      this.player.orientation = orientation;
+      this.player.socket = socket;
+      this.addEntity(this.player);
 
-         socket.send(Packet.Hello.serialize(this.playername));
-      });
+      this.player.time = 0;
+    });
 
-      socket.on('disconnected', () => {
-         console.log('Disconnected from server');
-      });
+    socket.on(
+      'spawn',
+      ({ timestamp, playerId, flag, name, x, y, z, orientation }) => {
+        console.log('Received spawn entity:', playerId, x, y, z);
 
-      socket.on('welcome', ({ id, flag, name, x, y, z, orientation }) => {
-         console.log('Received player ID from server:', id);
+        const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
+        const speed = 6;
 
-         this.player.flag = flag;
-         this.player.id = id;
-         this.player.name = name;
-         this.player.setPosition(x, y, z);
-         this.player.orientation = orientation;
-         this.player.socket = socket;
-         this.addEntity(this.player);
+        if (isMoving) {
+          const estimatedServerTime = getMSTime() + socket.clockDelta;
+          const delta = (estimatedServerTime - timestamp) / 1000;
+          x = x + Math.sin(orientation) * speed * delta;
+          z = z + Math.cos(orientation) * speed * delta;
+        }
 
-         this.player.time = 0;
-      });
+        const character = new Character(name);
+        character.flag = flag;
+        character.id = playerId;
+        character.setPosition(x, y, z);
+        character.orientation = orientation;
 
-      socket.on('spawn', ({ timestamp, id, flag, name, x, y, z, orientation }) => {
-         console.log('Received spawn entity:', id, x, y, z);
+        character.time = 0;
+        character.speed = isMoving ? speed : 0;
 
-         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
-         const speed = 6;
+        this.addEntity(character);
+      },
+    );
 
-         if (isMoving) {
-            const estimatedServerTime = (getMSTime() + socket.clockDelta);
-            const delta = (estimatedServerTime - timestamp) / 1000;
-            x = x + Math.sin(orientation) * speed * delta;
-            z = z + Math.cos(orientation) * speed * delta;
-         }
+    socket.on('despawn', ({ id }) => {
+      console.log('Received despawn entity:', id);
 
-         const character = new Character(name);
-         character.flag = flag;
-         character.id = id;
-         character.setPosition(x, y, z);
-         character.orientation = orientation;
+      const entity = this.entities[id] as Character;
+      this.scene.remove(entity.mesh);
+      delete this.entities[id];
+      this.characters.splice(this.characters.indexOf(entity), 1);
+    });
 
-         character.time = 0;
-         character.speed = isMoving ? speed : 0;
-
-         this.addEntity(character);
-      });
-
-      socket.on('despawn', ({ id }) => {
-         console.log('Received despawn entity:', id);
-
-         const entity = this.entities[id] as Character;
-         this.scene.remove(entity.mesh);
-         delete this.entities[id];
-         this.characters.splice(this.characters.indexOf(entity), 1);
-      });
-
-      socket.on('move', ({ timestamp, id, flag, x, y, z, orientation }) => {
-         const entity = this.entities[id] as Character;
-         if (!entity) {
-            console.error(`Entity with ID ${id} not found`);
-            return;
-         }
-
-         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
-         const speed = 6;
-
-         if (isMoving) {
-            const estimatedServerTime = (getMSTime() + socket.clockDelta);
-            const delta = (estimatedServerTime - timestamp) / 1000;
-            x = x + Math.sin(orientation) * speed * delta;
-            z = z + Math.cos(orientation) * speed * delta;
-         }
-
-         entity.time = 0;
-         entity.setPosition(x, y, z);
-         entity.orientation = orientation;
-         entity.speed = isMoving ? speed : 0;
-      });
-   }
-
-   addEntity(entity: Player | Character) {
-      this.entities[entity.id] = entity;
-      this.scene.add(entity.mesh);
-      this.characters.push(entity);
-   }
-
-   update(time: number) {
-      const dt = (time - this.prevTime) / 1000;
-      this.prevTime = time;
-
-      for (const character of this.characters) {
-         character.update(dt);
+    socket.on('move', ({ timestamp, id, flag, x, y, z, orientation }) => {
+      const entity = this.entities[id] as Character;
+      if (!entity) {
+        console.error(`Entity with ID ${id} not found`);
+        return;
       }
 
-      const target = this.controls.target;
-      const diff = this.camera.position.sub(target);
-      target.x = this.player.position.x;
-      target.z = this.player.position.z;
-      this.camera.position.set(
-         target.x + diff.x,
-         target.y + diff.y,
-         target.z + diff.z,
-      );
-      this.controls.update();
+      const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
+      const speed = 6;
 
-      this.hud?.update(dt);
+      if (isMoving) {
+        const estimatedServerTime = getMSTime() + socket.clockDelta;
+        const delta = (estimatedServerTime - timestamp) / 1000;
+        x = x + Math.sin(orientation) * speed * delta;
+        z = z + Math.cos(orientation) * speed * delta;
+      }
 
-      this.renderer.render(this.scene, this.camera);
-   }
+      entity.time = 0;
+      entity.setPosition(x, y, z);
+      entity.orientation = orientation;
+      entity.speed = isMoving ? speed : 0;
+    });
+  }
+
+  addEntity(entity: Player | Character) {
+    this.entities[entity.id] = entity;
+    this.scene.add(entity.mesh);
+    this.characters.push(entity);
+  }
+
+  update(time: number) {
+    const dt = (time - this.prevTime) / 1000;
+    this.prevTime = time;
+
+    for (const character of this.characters) {
+      character.update(dt);
+    }
+
+    const target = this.controls.target;
+    const diff = this.camera.position.sub(target);
+    target.x = this.player.position.x;
+    target.z = this.player.position.z;
+    this.camera.position.set(
+      target.x + diff.x,
+      target.y + diff.y,
+      target.z + diff.z,
+    );
+    this.controls.update();
+
+    this.hud?.update(dt);
+
+    this.renderer.render(this.scene, this.camera);
+  }
 }

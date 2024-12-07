@@ -3,101 +3,105 @@ import { getMSTime } from '../../shared/src/time';
 import * as Packet from '../../shared/src/packets';
 
 export class Socket extends EventEmitter {
-   clockDelta = 0;
+  clockDelta = 0;
 
-   private ws: WebSocket | null = null;
-   private serverTime = 0;
-   private timeAtGo = 0;
+  private ws: WebSocket | null = null;
+  private serverTime = 0;
+  private timeAtGo = 0;
 
-   constructor(
-      private host: string,
-      private port: number,
-   ) {
-      super();
-   }
+  constructor(
+    private host: string,
+    private port: number,
+  ) {
+    super();
+  }
 
-   connect() {
-      const url = `ws://${this.host}:${this.port}`;
-      console.log(`Connecting to ${url}`);
-      this.ws = new WebSocket(url);
+  connect() {
+    const url = `ws://${this.host}:${this.port}`;
+    console.log(`Connecting to ${url}`);
+    this.ws = new WebSocket(url);
 
-      this.ws.onopen = () => {
-         console.log('Connected to server');
-      };
+    this.ws.onopen = () => {
+      console.log('Connected to server');
+    };
 
-      this.ws.onmessage = ev => {
-         if (ev.data === 'go') {
-            this.timeAtGo = getMSTime();
-            this.emit('connected');
-            return;
-         }
-
-         this.receiveMessage(ev.data);
-      };
-
-      this.ws.onerror = ev => {
-         console.error(`Error: ${ev}`);
-      };
-
-      this.ws.onclose = () => {
-         this.emit('disconnected');
-      };
-   }
-
-   send(message: (string | number)[]) {
-      if (this.ws?.readyState !== WebSocket.OPEN) {
-         return;
+    this.ws.onmessage = ev => {
+      if (ev.data === 'go') {
+        this.timeAtGo = getMSTime();
+        this.emit('connected');
+        return;
       }
 
-      this.ws.send(JSON.stringify(message));
-   }
+      this.receiveMessage(ev.data);
+    };
 
-   receiveMessage(message: string) {
-      const data = JSON.parse(message);
+    this.ws.onerror = ev => {
+      console.error(`Error: ${ev}`);
+    };
 
-      if (Array.isArray(data)) {
-         if (Array.isArray(data[0])) {
-            this.receiveActionBatch(data);
-         } else {
-            this.receiveAction(data);
-         }
+    this.ws.onclose = () => {
+      this.emit('disconnected');
+    };
+  }
+
+  send(message: (string | number)[]) {
+    if (this.ws?.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    this.ws.send(JSON.stringify(message));
+  }
+
+  receiveMessage(message: string) {
+    const data = JSON.parse(message);
+
+    if (Array.isArray(data)) {
+      if (Array.isArray(data[0])) {
+        this.receiveActionBatch(data);
+      } else {
+        this.receiveAction(data);
       }
-   }
+    }
+  }
 
-   receiveActionBatch(data: (string | number)[][]) {
-      for (const action of data) {
-         this.receiveAction(action);
+  receiveActionBatch(data: (string | number)[][]) {
+    for (const action of data) {
+      this.receiveAction(action);
+    }
+  }
+
+  receiveAction(data: (string | number)[]) {
+    const opcode = +data[0];
+
+    switch (opcode) {
+      case Packet.PacketOpcode.Welcome: {
+        const welcomeData = Packet.Welcome.deserialize(data);
+        const timeSinceGo = getMSTime() - this.timeAtGo;
+        const oneWayLatency = timeSinceGo / 2;
+        this.serverTime = welcomeData.timestamp + oneWayLatency;
+        this.clockDelta = this.serverTime - getMSTime();
+
+        this.emit('welcome', welcomeData);
+        break;
       }
-   }
-
-   receiveAction(data: (string | number)[]) {
-      const opcode = +data[0];
-
-      switch(opcode) {
-         case Packet.PacketOpcode.Welcome: {
-            const welcomeData = Packet.Welcome.deserialize(data);
-            const timeSinceGo = getMSTime() - this.timeAtGo;
-            const oneWayLatency = timeSinceGo / 2;
-            this.serverTime = welcomeData.timestamp + oneWayLatency;
-            this.clockDelta = this.serverTime - getMSTime();
-
-            this.emit('welcome', welcomeData);
-         } break;
-         case Packet.PacketOpcode.Spawn:
-            this.emit('spawn', Packet.Spawn.deserialize(data));
-            break;
-         case Packet.PacketOpcode.Despawn:
-            this.emit('despawn', Packet.Despawn.deserialize(data));
-            break;
-         case Packet.PacketOpcode.MoveUpdate:
-            this.emit('move', Packet.MoveUpdate.deserialize(data));
-            break;
-         case Packet.PacketOpcode.TimeSync:
-            const { sequenceIndex } = Packet.TimeSync.deserialize(data);
-            this.send(Packet.TimeSyncResponse.serialize(sequenceIndex, getMSTime()));
-            break;
-         default:
-            console.log(`No handler found for opcode: ${opcode}`);
+      case Packet.PacketOpcode.Spawn:
+        this.emit('spawn', Packet.Spawn.deserialize(data));
+        break;
+      case Packet.PacketOpcode.Despawn:
+        this.emit('despawn', Packet.Despawn.deserialize(data));
+        break;
+      case Packet.PacketOpcode.MoveUpdate:
+        this.emit('move', Packet.MoveUpdate.deserialize(data));
+        break;
+      case Packet.PacketOpcode.TimeSync: {
+        const { sequenceIndex } = Packet.TimeSync.deserialize(data);
+        this.send(
+          Packet.TimeSyncResponse.serialize(sequenceIndex, getMSTime()),
+        );
+        break;
       }
-   }
+      default:
+        console.log(`No handler found for opcode: ${opcode}`);
+    }
+  }
 }

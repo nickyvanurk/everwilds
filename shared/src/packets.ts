@@ -7,27 +7,35 @@ export enum PacketOpcode {
   TimeSync,
   TimeSyncResponse,
   MoveUpdate,
-};
+}
+
+export type Serialized = (string | number)[];
 
 export const Hello = {
   serialize(playerName: string) {
-    return [
-      PacketOpcode.Hello,
-      playerName
-    ];
+    return [PacketOpcode.Hello, playerName];
   },
 
-  deserialize(data: any[]) {
+  deserialize(data: Serialized) {
     let i = 0;
     return {
-      opcode: data[i++],
-      playerName: data[i++]
+      opcode: data[i++] as number,
+      playerName: data[i++] as number,
     };
-  }
+  },
 };
 
 export const Welcome = {
-  serialize(timestamp: number, id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
+  serialize(
+    timestamp: number,
+    id: number,
+    flag: number,
+    name: string,
+    x: number,
+    y: number,
+    z: number,
+    orientation: number,
+  ) {
     return [
       PacketOpcode.Welcome,
       timestamp,
@@ -37,28 +45,37 @@ export const Welcome = {
       x,
       y,
       z,
-      orientation
+      orientation,
     ];
   },
 
-  deserialize(data: any[]) {
+  deserialize(data: Serialized) {
     let i = 0;
     return {
-      opcode: data[i++],
-      timestamp: data[i++],
-      id: data[i++],
-      flag: data[i++],
-      name: data[i++],
-      x: data[i++],
-      y: data[i++],
-      z: data[i++],
-      orientation: data[i++]
+      opcode: data[i++] as number,
+      timestamp: data[i++] as number,
+      id: data[i++] as number,
+      flag: data[i++] as number,
+      name: data[i++] as string,
+      x: data[i++] as number,
+      y: data[i++] as number,
+      z: data[i++] as number,
+      orientation: data[i++] as number,
     };
-  }
+  },
 };
 
 export const Spawn = {
-  serialize(timestamp: number, id: number, flag: number, name: string, x: number, y: number, z: number, orientation: number) {
+  serialize(
+    timestamp: number,
+    id: number,
+    flag: number,
+    name: string,
+    x: number,
+    y: number,
+    z: number,
+    orientation: number,
+  ) {
     return [
       PacketOpcode.Spawn,
       timestamp,
@@ -68,131 +85,119 @@ export const Spawn = {
       x,
       y,
       z,
-      orientation
+      orientation,
     ];
   },
 
-  deserialize(data: any[]) {
+  deserialize(data: Serialized) {
     let i = 0;
     return {
-      opcode: data[i++],
-      timestamp: data[i++],
-      id: data[i++],
-      flag: data[i++],
-      name: data[i++],
-      x: data[i++],
-      y: data[i++],
-      z: data[i++],
-      orientation: data[i++]
+      opcode: data[i++] as number,
+      timestamp: data[i++] as number,
+      id: data[i++] as number,
+      flag: data[i++] as number,
+      name: data[i++] as string,
+      x: data[i++] as number,
+      y: data[i++] as number,
+      z: data[i++] as number,
+      orientation: data[i++] as number,
     };
-  }
+  },
 };
 
 export const Despawn = {
   serialize(id: number) {
-    return [
-      PacketOpcode.Despawn,
-      id
-    ];
+    return [PacketOpcode.Despawn, id];
   },
 
-  deserialize(data: any[]) {
+  deserialize(data: Serialized) {
     let i = 0;
     return {
-      opcode: data[i++],
-      id: data[i++]
+      opcode: data[i++] as number,
+      id: data[i++] as number,
     };
-  }
+  },
 };
 
 export const MoveUpdate = {
-  serialize(timestamp: number, id: number, flag: number, x: number, y: number, z: number, orientation: number) {
-    return [
-      PacketOpcode.MoveUpdate,
-      timestamp,
-      id,
-      flag,
-      x,
-      y,
-      z,
-      orientation
-    ];
+  serialize(
+    timestamp: number,
+    id: number,
+    flag: number,
+    x: number,
+    y: number,
+    z: number,
+    orientation: number,
+  ) {
+    return [PacketOpcode.MoveUpdate, timestamp, id, flag, x, y, z, orientation];
   },
 
-  deserialize(data: any[]) {
+  deserialize(data: Serialized) {
     let i = 0;
     return {
-      opcode: data[i++],
-      timestamp: data[i++],
-      id: data[i++],
-      flag: data[i++],
-      x: data[i++],
-      y: data[i++],
-      z: data[i++],
-      orientation: data[i++]
+      opcode: data[i++] as number,
+      timestamp: data[i++] as number,
+      id: data[i++] as number,
+      flag: data[i++] as number,
+      x: data[i++] as number,
+      y: data[i++] as number,
+      z: data[i++] as number,
+      orientation: data[i++] as number,
     };
-  }
+  },
 };
 
 export const Move = {
-  serialize(timestamp: number, flag: number, x: number, y: number, z: number, orientation: number) {
-    return [
-      PacketOpcode.Move,
-      timestamp,
-      flag,
-      x,
-      y,
-      z,
-      orientation
-    ];
+  serialize(
+    timestamp: number,
+    flag: number,
+    x: number,
+    y: number,
+    z: number,
+    orientation: number,
+  ) {
+    return [PacketOpcode.Move, timestamp, flag, x, y, z, orientation];
   },
 
-  deserialize(data: any[]) {
+  deserialize(data: Serialized) {
     let i = 0;
     return {
-      opcode: data[i++],
-      timestamp: data[i++],
-      flag: data[i++],
-      x: data[i++],
-      y: data[i++],
-      z: data[i++],
-      orientation: data[i++]
+      opcode: data[i++] as number,
+      timestamp: data[i++] as number,
+      flag: data[i++] as number,
+      x: data[i++] as number,
+      y: data[i++] as number,
+      z: data[i++] as number,
+      orientation: data[i++] as number,
     };
-  }
+  },
 };
 
 export const TimeSync = {
   serialize(sequenceIndex: number) {
-    return [
-      PacketOpcode.TimeSync,
-      sequenceIndex
-    ];
+    return [PacketOpcode.TimeSync, sequenceIndex];
   },
 
-  deserialize(data: any[]) {
+  deserialize(data: Serialized) {
     let i = 0;
     return {
-      opcode: data[i++],
-      sequenceIndex: data[i++]
+      opcode: data[i++] as number,
+      sequenceIndex: data[i++] as number,
     };
-  }
+  },
 };
 
 export const TimeSyncResponse = {
   serialize(sequenceIndex: number, timestamp: number) {
-    return [
-      PacketOpcode.TimeSyncResponse,
-      sequenceIndex,
-      timestamp
-    ];
+    return [PacketOpcode.TimeSyncResponse, sequenceIndex, timestamp];
   },
 
-  deserialize(data: any[]) {
+  deserialize(data: Serialized) {
     let i = 0;
     return {
-      opcode: data[i++],
-      sequenceIndex: data[i++],
-      timestamp: data[i++]
+      opcode: data[i++] as number,
+      sequenceIndex: data[i++] as number,
+      timestamp: data[i++] as number,
     };
-  }
+  },
 };

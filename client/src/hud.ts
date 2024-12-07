@@ -5,46 +5,46 @@ import type { Game } from './game';
 import type { Character } from './character';
 
 export class HUD {
-   private names = new Map<Character, THREE.Mesh>();
+  private names = new Map<Character, THREE.Mesh>();
 
-   constructor(private game: Game) {}
+  constructor(private game: Game) {}
 
-   update(_dt: number) {
-      for (const character of this.game.characters) {
-         if (this.names.has(character)) continue;
+  update(_dt: number) {
+    for (const character of this.game.characters) {
+      if (this.names.has(character)) continue;
 
-         const font = gAssetManager.getFont('helvetiker');
-         if (!font) continue;
+      const font = gAssetManager.getFont('helvetiker');
+      if (!font) continue;
 
-         const geometry = new TextGeometry(character.name, {
-            font: font,
-            size: 0.2,
-            depth: 0,
-            curveSegments: 12,
-         });
-         geometry.computeBoundingBox();
-         const bbox = geometry.boundingBox!;
-         const offset = -0.5 * (bbox.max.x - bbox.min.x);
-         geometry.translate(offset, 0, 0);
-         const material = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
-         });
-         const name = new THREE.Mesh(geometry, material);
-         this.game.scene.add(name);
-         this.names.set(character, name);
+      const geometry = new TextGeometry(character.name, {
+        font: font,
+        size: 0.2,
+        depth: 0,
+        curveSegments: 12,
+      });
+      geometry.computeBoundingBox();
+      const bbox = geometry.boundingBox!;
+      const offset = -0.5 * (bbox.max.x - bbox.min.x);
+      geometry.translate(offset, 0, 0);
+      const material = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+      });
+      const name = new THREE.Mesh(geometry, material);
+      this.game.scene.add(name);
+      this.names.set(character, name);
+    }
+
+    for (const [character, name] of this.names) {
+      if (!this.game.characters.includes(character)) {
+        this.game.scene.remove(name);
+        this.names.delete(character);
       }
+    }
 
-      for (const [character, name] of this.names) {
-         if (!this.game.characters.includes(character)) {
-            this.game.scene.remove(name);
-            this.names.delete(character);
-         }
-      }
-
-      for (const [character, name] of this.names) {
-         name.position.copy(character.position);
-         name.position.y += character.getHeight() + 0.5;
-         name.rotation.setFromRotationMatrix(this.game.camera.matrix);
-      }
-   }
+    for (const [character, name] of this.names) {
+      name.position.copy(character.position);
+      name.position.y += character.getHeight() + 0.5;
+      name.rotation.setFromRotationMatrix(this.game.camera.matrix);
+    }
+  }
 }

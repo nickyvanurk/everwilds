@@ -1,10 +1,10 @@
-import EventEmitter from "eventemitter3";
+import EventEmitter from 'eventemitter3';
 
 export const input = new EventEmitter();
 
 export const actions: { [action: string]: boolean } = {};
 
-export function setKeyBindings (bindings: KeyBinding[]) {
+export function setKeyBindings(bindings: KeyBinding[]) {
   for (const binding of bindings) {
     actions[binding.action] = false;
     keyBindings[binding.key] = binding.action;
