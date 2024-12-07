@@ -104,11 +104,11 @@ export class Game {
       console.log('Disconnected from server');
     });
 
-    socket.on('welcome', ({ playerId, flag, name, x, y, z, orientation }) => {
-      console.log('Received player ID from server:', playerId);
+    socket.on('welcome', ({ id, flag, name, x, y, z, orientation }) => {
+      console.log('Received player ID from server:', id);
 
       this.player.flag = flag;
-      this.player.id = playerId;
+      this.player.id = id;
       this.player.name = name;
       this.player.setPosition(x, y, z);
       this.player.orientation = orientation;
@@ -120,8 +120,8 @@ export class Game {
 
     socket.on(
       'spawn',
-      ({ timestamp, playerId, flag, name, x, y, z, orientation }) => {
-        console.log('Received spawn entity:', playerId, x, y, z);
+      ({ timestamp, id, flag, name, x, y, z, orientation }) => {
+        console.log('Received spawn entity:', id, x, y, z);
 
         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
         const speed = 6;
@@ -135,7 +135,7 @@ export class Game {
 
         const character = new Character(name);
         character.flag = flag;
-        character.id = playerId;
+        character.id = id;
         character.setPosition(x, y, z);
         character.orientation = orientation;
 
