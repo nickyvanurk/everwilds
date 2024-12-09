@@ -22,7 +22,7 @@ export class Game {
   private playername = 'player';
 
   private prevTime = 0;
-  private hud: HUD;
+  hud: HUD;
   private player: Player;
 
   private entities: Record<number, Player | Character> = {};
@@ -202,10 +202,12 @@ export class Game {
       target.y + diff.y,
       target.z + diff.z,
     );
+
     this.controls.update();
+    this.hud.update(dt);
 
-    this.hud?.update(dt);
-
+    this.renderer.resetState();
     this.renderer.render(this.scene, this.camera);
+    this.hud.render();
   }
 }
