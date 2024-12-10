@@ -43,6 +43,7 @@ export class Game {
       { action: 'backward', key: 'KeyS' },
       { action: 'left', key: 'KeyA' },
       { action: 'right', key: 'KeyD' },
+      { action: 'toggleNameplates', key: 'KeyV' },
     ]);
 
     const gridHelper = new THREE.GridHelper(10, 10);
@@ -54,6 +55,10 @@ export class Game {
     this.hud = new HUD(this);
 
     gAssetManager.load(assets);
+  }
+
+  async init() {
+    await this.hud.init();
   }
 
   setup() {
@@ -202,10 +207,12 @@ export class Game {
       target.y + diff.y,
       target.z + diff.z,
     );
+
     this.controls.update();
+    this.hud.update(dt);
 
-    this.hud?.update(dt);
-
+    this.renderer.resetState();
     this.renderer.render(this.scene, this.camera);
+    this.hud.render();
   }
 }

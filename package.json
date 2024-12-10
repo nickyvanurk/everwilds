@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "eventemitter3": "^5.0.1",
+    "pixi.js": "^8.6.3",
     "three": "^0.170.0",
     "tweakpane": "^4.0.5",
     "ws": "^8.18.0"
