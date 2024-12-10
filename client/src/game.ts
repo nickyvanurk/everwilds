@@ -22,7 +22,7 @@ export class Game {
   private playername = 'player';
 
   private prevTime = 0;
-  hud: HUD;
+  private hud: HUD;
   private player: Player;
 
   private entities: Record<number, Player | Character> = {};
@@ -43,6 +43,7 @@ export class Game {
       { action: 'backward', key: 'KeyS' },
       { action: 'left', key: 'KeyA' },
       { action: 'right', key: 'KeyD' },
+      { action: 'toggleNameplates', key: 'KeyV' },
     ]);
 
     const gridHelper = new THREE.GridHelper(10, 10);
@@ -54,6 +55,10 @@ export class Game {
     this.hud = new HUD(this);
 
     gAssetManager.load(assets);
+  }
+
+  async init() {
+    await this.hud.init();
   }
 
   setup() {
