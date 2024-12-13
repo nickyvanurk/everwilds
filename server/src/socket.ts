@@ -34,12 +34,12 @@ export class Socket extends EventEmitter {
           break;
         }
         default:
-          console.log(`No handler found for opcode: ${opcode}`);
+          log.error(`No handler found for opcode: ${opcode}`);
       }
     });
 
     ws.on('error', error => {
-      console.log(`Error: ${error}`);
+      log.error(`Error: ${error}`);
     });
 
     ws.on('close', () => {

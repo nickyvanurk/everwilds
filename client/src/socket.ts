@@ -18,11 +18,11 @@ export class Socket extends EventEmitter {
 
   connect() {
     const url = `ws://${this.host}:${this.port}`;
-    console.log(`Connecting to ${url}`);
+    log.debug(`Connecting to ${url}`);
     this.ws = new WebSocket(url);
 
     this.ws.onopen = () => {
-      console.log('Connected to server');
+      log.debug('Connected to server');
     };
 
     this.ws.onmessage = ev => {
@@ -36,7 +36,7 @@ export class Socket extends EventEmitter {
     };
 
     this.ws.onerror = ev => {
-      console.error(`Error: ${ev}`);
+      log.error(`Error: ${ev}`);
     };
 
     this.ws.onclose = () => {
@@ -101,7 +101,7 @@ export class Socket extends EventEmitter {
         break;
       }
       default:
-        console.log(`No handler found for opcode: ${opcode}`);
+        log.error(`No handler found for opcode: ${opcode}`);
     }
   }
 }
