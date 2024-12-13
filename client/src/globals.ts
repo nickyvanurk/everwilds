@@ -1,3 +1,4 @@
+import '../../shared/src/globals';
 import { AssetManager } from './asset-manager';
 
 declare global {

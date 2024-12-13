@@ -5,7 +5,7 @@ export class World {
   private players: { [key: number]: Player } = {};
 
   constructor() {
-    console.log('World created');
+    log.debug('World created');
   }
 
   update(_dt: number) {}
@@ -15,13 +15,13 @@ export class World {
       return this.players[id];
     }
 
-    console.log(`Unknown entity : ${id}`);
+    log.debug(`Unknown entity : ${id}`);
   }
 
   addPlayer(player: Player) {
     this.players[player.id] = player;
 
-    console.log(`Added player: ${player.id}`);
+    log.debug(`Added player: ${player.id}`);
   }
 
   removePlayer(player: Player) {
@@ -29,14 +29,14 @@ export class World {
 
     delete this.players[player.id];
 
-    console.log(`Removed player: ${player.id}`);
+    log.debug(`Removed player: ${player.id}`);
   }
 
   pushToPlayer(player: Player, packet: (number | string)[]) {
     if (player) {
       player.socket.send(packet);
     } else {
-      console.log('pushToPlayer: player was undefined');
+      log.debug('pushToPlayer: player was undefined');
     }
   }
 

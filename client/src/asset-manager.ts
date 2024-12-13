@@ -53,7 +53,7 @@ export class AssetManager {
         },
         undefined,
         error => {
-          console.log('Error loading', source.type, source.name, ':', error);
+          log.error(`Error loading ${source.type} ${source.name} : ${error}`);
         },
       );
     };

@@ -17,33 +17,56 @@ export class GameServer {
     this.server = new WebSocketServer({ port });
     this.world = new World();
 
-    console.log(`Spellforge game server started on port ${port}`);
+    log.info(`Spellforge game server started on port ${port}`);
 
     this.server.on('connection', ws => {
-      console.log('New connection established');
+      log.info('New connection established');
 
       const socket = new Socket(ws);
       this.socketIdCounter++;
 
       socket.initiateHandshake();
 
-      let player: Player | null = null
+      let player: Player | null = null;
 
       socket.on('hello', ({ playerName }) => {
         player = new Player(socket, playerName);
         this.world.addPlayer(player);
 
-        socket.send(Packet.Welcome.serialize(getMSTime(), player.id, player.flag, playerName, player.x, player.y, player.z, player.orientation));
+        socket.send(
+          Packet.Welcome.serialize(
+            getMSTime(),
+            player.id,
+            player.flag,
+            playerName,
+            player.x,
+            player.y,
+            player.z,
+            player.orientation,
+          ),
+        );
 
         const serverTime = getMSTime();
         player.serverTime = serverTime;
 
         this.world.pushPlayersToPlayer(player!);
-        this.world.broadcast(Packet.Spawn.serialize(player!.serverTime, player!.id, player!.flag, playerName, player!.x, player!.y, player!.z, player!.orientation), player!.id);
+        this.world.broadcast(
+          Packet.Spawn.serialize(
+            player!.serverTime,
+            player!.id,
+            player!.flag,
+            playerName,
+            player!.x,
+            player!.y,
+            player!.z,
+            player!.orientation,
+          ),
+          player!.id,
+        );
 
         socket.sendTimeSync();
 
-        console.log(`Player ${playerName} joined the game`);
+        log.info(`Player ${playerName} joined the game`);
         this.sockets[this.socketIdCounter] = socket;
       });
 
@@ -59,7 +82,18 @@ export class GameServer {
         const serverTime = socket.clientTimeToServerTime(timestamp);
         player.serverTime = serverTime;
 
-        this.world.broadcast(Packet.MoveUpdate.serialize(serverTime, player.id, flag, x, y, z, orientation), player.id);
+        this.world.broadcast(
+          Packet.MoveUpdate.serialize(
+            serverTime,
+            player.id,
+            flag,
+            x,
+            y,
+            z,
+            orientation,
+          ),
+          player.id,
+        );
       });
 
       socket.on('close', () => {
@@ -68,15 +102,17 @@ export class GameServer {
         this.world.removePlayer(player);
         delete this.sockets[this.socketIdCounter];
 
-        console.log(`Player ${player.name} left the game`);
+        log.info(`Player ${player.name} left the game`);
       });
     });
 
-    this.server.on('error', err => console.error(`Server error: ${err.message}`));
+    this.server.on('error', err =>
+      console.error(`Server error: ${err.message}`),
+    );
 
     setInterval(() => {
       this.update(1000 / this.ups);
-   }, 1000 / this.ups);
+    }, 1000 / this.ups);
   }
 
   update(dt: number) {
@@ -88,7 +124,7 @@ export class GameServer {
   }
 
   shutdown() {
-    console.log('Shutting down game server...');
-    this.server.close(() => console.log('Server shut down.'));
+    log.info('Shutting down game server...');
+    this.server.close(() => log.info('Server shut down.'));
   }
 }

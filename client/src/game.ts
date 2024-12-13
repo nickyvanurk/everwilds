@@ -100,17 +100,17 @@ export class Game {
     socket.connect();
 
     socket.on('connected', () => {
-      console.log('Starting client/server handshake');
+      log.debug('Starting client/server handshake');
 
       socket.send(Packet.Hello.serialize(this.playername));
     });
 
     socket.on('disconnected', () => {
-      console.log('Disconnected from server');
+      log.debug('Disconnected from server');
     });
 
     socket.on('welcome', ({ id, flag, name, x, y, z, orientation }) => {
-      console.log('Received player ID from server:', id);
+      log.debug(`Received player ID from server: ${id}`);
 
       this.player.flag = flag;
       this.player.id = id;
@@ -126,7 +126,7 @@ export class Game {
     socket.on(
       'spawn',
       ({ timestamp, id, flag, name, x, y, z, orientation }) => {
-        console.log('Received spawn entity:', id, x, y, z);
+        log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
 
         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
         const speed = 6;
@@ -152,7 +152,7 @@ export class Game {
     );
 
     socket.on('despawn', ({ id }) => {
-      console.log('Received despawn entity:', id);
+      log.debug(`Received despawn entity: ${id}`);
 
       const entity = this.entities[id] as Character;
       this.scene.remove(entity.mesh);
@@ -163,7 +163,7 @@ export class Game {
     socket.on('move', ({ timestamp, id, flag, x, y, z, orientation }) => {
       const entity = this.entities[id] as Character;
       if (!entity) {
-        console.error(`Entity with ID ${id} not found`);
+        log.error(`Entity with ID ${id} not found`);
         return;
       }
 
