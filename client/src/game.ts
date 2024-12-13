@@ -9,6 +9,7 @@ import { Socket } from './socket';
 import { Character } from './character';
 import { getMSTime } from '../../shared/src/time';
 import * as Packet from '../../shared/src/packets';
+import { NetworkSimulator } from './network-simulator';
 
 export class Game {
   renderer: THREE.WebGLRenderer;
@@ -20,6 +21,7 @@ export class Game {
   private host = 'localhost';
   private port = 8080;
   private playername = 'player';
+  private netsim = new NetworkSimulator();
 
   private prevTime = 0;
   private hud: HUD;
@@ -95,7 +97,7 @@ export class Game {
   }
 
   connect() {
-    const socket = new Socket(this.host, this.port);
+    const socket = new Socket(this.host, this.port, this.netsim);
 
     socket.connect();
 
@@ -214,5 +216,7 @@ export class Game {
     this.renderer.resetState();
     this.renderer.render(this.scene, this.camera);
     this.hud.render();
+
+    this.netsim.update(dt);
   }
 }
