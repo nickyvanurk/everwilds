@@ -9,12 +9,16 @@ import { Socket } from './socket';
 import { Character } from './character';
 import { getMSTime } from '../../shared/src/time';
 import * as Packet from '../../shared/src/packets';
+import { NetworkSimulator } from './network-simulator';
+import { UI } from './ui';
 
 export class Game {
   renderer: THREE.WebGLRenderer;
   controls: OrbitControls;
   camera: THREE.PerspectiveCamera;
   scene: THREE.Scene;
+  netsim = new NetworkSimulator();
+
   characters: Character[] = [];
 
   private host = 'localhost';
@@ -23,6 +27,7 @@ export class Game {
 
   private prevTime = 0;
   private hud: HUD;
+  private ui: UI;
   private player: Player;
 
   private entities: Record<number, Player | Character> = {};
@@ -53,6 +58,7 @@ export class Game {
     this.player = player;
 
     this.hud = new HUD(this);
+    this.ui = new UI(this);
 
     gAssetManager.load(assets);
   }
@@ -95,7 +101,7 @@ export class Game {
   }
 
   connect() {
-    const socket = new Socket(this.host, this.port);
+    const socket = new Socket(this.host, this.port, this.netsim);
 
     socket.connect();
 
@@ -214,5 +220,7 @@ export class Game {
     this.renderer.resetState();
     this.renderer.render(this.scene, this.camera);
     this.hud.render();
+
+    this.netsim.update(dt);
   }
 }

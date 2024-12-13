@@ -1,6 +1,8 @@
 import EventEmitter from 'eventemitter3';
 import { getMSTime } from '../../shared/src/time';
 import * as Packet from '../../shared/src/packets';
+import type { NetworkSimulator } from './network-simulator';
+import { isDebug } from './utils';
 
 export class Socket extends EventEmitter {
   clockDelta = 0;
@@ -12,6 +14,7 @@ export class Socket extends EventEmitter {
   constructor(
     private host: string,
     private port: number,
+    private netsim: NetworkSimulator,
   ) {
     super();
   }
@@ -45,11 +48,13 @@ export class Socket extends EventEmitter {
   }
 
   send(message: (string | number)[]) {
-    if (this.ws?.readyState !== WebSocket.OPEN) {
-      return;
-    }
+    const send = () => {
+      if (this.ws?.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify(message));
+      }
+    };
 
-    this.ws.send(JSON.stringify(message));
+    isDebug() ? this.netsim.enqueue(send) : send();
   }
 
   receiveMessage(message: string) {
