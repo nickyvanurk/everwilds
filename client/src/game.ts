@@ -10,21 +10,24 @@ import { Character } from './character';
 import { getMSTime } from '../../shared/src/time';
 import * as Packet from '../../shared/src/packets';
 import { NetworkSimulator } from './network-simulator';
+import { UI } from './ui';
 
 export class Game {
   renderer: THREE.WebGLRenderer;
   controls: OrbitControls;
   camera: THREE.PerspectiveCamera;
   scene: THREE.Scene;
+  netsim = new NetworkSimulator();
+
   characters: Character[] = [];
 
   private host = 'localhost';
   private port = 8080;
   private playername = 'player';
-  private netsim = new NetworkSimulator();
 
   private prevTime = 0;
   private hud: HUD;
+  private ui: UI;
   private player: Player;
 
   private entities: Record<number, Player | Character> = {};
@@ -55,6 +58,7 @@ export class Game {
     this.player = player;
 
     this.hud = new HUD(this);
+    this.ui = new UI(this);
 
     gAssetManager.load(assets);
   }

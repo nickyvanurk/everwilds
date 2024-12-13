@@ -1,6 +1,6 @@
 import { range } from './utils';
 
-type PresetKey =
+export type PresetKey =
   | 'broadband'
   | 'fiber'
   | 'cable'
@@ -129,7 +129,7 @@ export class NetworkSimulator {
       packetLoss: 4,
     },
   };
-  private config = {
+  config = {
     latency: this.presets.fiber.latency, // ms
     jitter: this.presets.fiber.jitter, // max +/- ms variance
     packetLoss: this.presets.fiber.packetLoss, // percentage
