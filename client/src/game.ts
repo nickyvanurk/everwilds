@@ -120,7 +120,6 @@ export class Game {
       this.player.id = id;
       this.player.name = name;
       this.player.setPosition(x, y, z);
-      this.player.orientation = orientation;
       this.player.socket = socket;
       this.addEntity(this.player);
     });
@@ -130,15 +129,19 @@ export class Game {
       ({ timestamp, id, flag, name, x, y, z, orientation }) => {
         log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
 
-        const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
-        const speed = 6;
-
         const character = new Character(name);
         character.id = id;
-        character.setPosition(x, y, z);
-        character.orientation = orientation;
 
-        character.speed = isMoving ? speed : 0;
+        const input = {
+          x: flag & 4 ? -1 : flag & 8 ? 1 : 0,
+          z: flag & 1 ? -1 : flag & 2 ? 1 : 0,
+        };
+        const velocity = new THREE.Vector3(input.x, 0, input.z)
+          .normalize()
+          .multiplyScalar(character.speed);
+
+        character.setPosition(x, y, z);
+        character.setVelocity(velocity.x, velocity.y, velocity.z);
 
         this.addEntity(character);
       },
@@ -160,15 +163,16 @@ export class Game {
         return;
       }
 
-      const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
-      const speed = 6;
+      const input = {
+        x: flag & 4 ? -1 : flag & 8 ? 1 : 0,
+        z: flag & 1 ? -1 : flag & 2 ? 1 : 0,
+      };
+      const velocity = new THREE.Vector3(input.x, 0, input.z)
+        .normalize()
+        .multiplyScalar(entity.speed);
 
       entity.setPosition(x, y, z);
-      entity.orientation = orientation;
-      entity.speed = isMoving ? speed : 0;
-
-      // Let's just send pos/vel for ease of programming... makes 3D
-      // direction and speed calculations easier
+      entity.setVelocity(velocity.x, velocity.y, velocity.z);
     });
   }
 

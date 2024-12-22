@@ -13,7 +13,7 @@ export class Character {
 
   constructor(
     public name: string,
-    public speed = 0,
+    public speed = 6,
   ) {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     geometry.translate(0, 0.5, 0);
@@ -24,13 +24,10 @@ export class Character {
   }
 
   update(dt: number) {
-    const dir = new THREE.Vector3();
-    dir.x = Math.sin(this.orientation);
-    dir.z = Math.cos(this.orientation);
-    dir.normalize();
-    dir.multiplyScalar(this.speed).multiplyScalar(dt);
+    this.deadReckoningPosition.x += this.velocity.x * dt;
+    this.deadReckoningPosition.y += this.velocity.y * dt;
+    this.deadReckoningPosition.z += this.velocity.z * dt;
 
-    this.deadReckoningPosition.add(dir);
     this.position.copy(this.deadReckoningPosition).add(this.positionError);
 
     this.positionError.multiplyScalar(this.errorCorrectionFactor);
@@ -57,6 +54,10 @@ export class Character {
     const len = this.positionError.length();
     const t = len < 0.25 ? 0 : len > 1 ? 1 : len - 0.25 / 0.75;
     this.errorCorrectionFactor = lerp(0.85, 0.2, t);
+  }
+
+  setVelocity(x: number, y: number, z: number) {
+    this.velocity.set(x, y, z);
   }
 }
 
