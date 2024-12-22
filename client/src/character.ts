@@ -56,8 +56,20 @@ export class Character {
     this.errorCorrectionFactor = lerp(0.85, 0.2, t);
   }
 
-  setVelocity(x: number, y: number, z: number) {
-    this.velocity.set(x, y, z);
+  setFlags(flags: number) {
+    const isStrafeLeft = flags & 4;
+    const isStrafeRight = flags & 8;
+    const isForward = flags & 1;
+    const isBackward = flags & 2;
+
+    const input = {
+      x: isStrafeLeft ? -1 : isStrafeRight ? 1 : 0,
+      z: isForward ? -1 : isBackward ? 1 : 0,
+    };
+
+    this.velocity.x = input.x;
+    this.velocity.z = input.z;
+    this.velocity.normalize().multiplyScalar(this.speed);
   }
 }
 

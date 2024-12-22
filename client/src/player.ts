@@ -8,11 +8,8 @@ export class Player extends Character {
   socket: Socket | null = null;
   private timeSinceLastMovePacket = 0;
 
-  constructor(
-    public name: string,
-    public speed: number,
-  ) {
-    super(name, speed);
+  constructor(public name: string) {
+    super(name);
 
     const sendMovementPacket = () => {
       const input = {

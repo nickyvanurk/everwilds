@@ -53,7 +53,7 @@ export class Game {
     const gridHelper = new THREE.GridHelper(10, 10);
     scene.add(gridHelper);
 
-    const player = new Player(this.playername, 6);
+    const player = new Player(this.playername);
     this.player = player;
 
     this.hud = new HUD(this);
@@ -119,6 +119,7 @@ export class Game {
 
       this.player.id = id;
       this.player.name = name;
+      this.player.setFlags(flag);
       this.player.setPosition(x, y, z);
       this.player.socket = socket;
       this.addEntity(this.player);
@@ -131,17 +132,8 @@ export class Game {
 
         const character = new Character(name);
         character.id = id;
-
-        const input = {
-          x: flag & 4 ? -1 : flag & 8 ? 1 : 0,
-          z: flag & 1 ? -1 : flag & 2 ? 1 : 0,
-        };
-        const velocity = new THREE.Vector3(input.x, 0, input.z)
-          .normalize()
-          .multiplyScalar(character.speed);
-
+        character.setFlags(flag);
         character.setPosition(x, y, z);
-        character.setVelocity(velocity.x, velocity.y, velocity.z);
 
         this.addEntity(character);
       },
@@ -162,17 +154,8 @@ export class Game {
         log.error(`Entity with ID ${id} not found`);
         return;
       }
-
-      const input = {
-        x: flag & 4 ? -1 : flag & 8 ? 1 : 0,
-        z: flag & 1 ? -1 : flag & 2 ? 1 : 0,
-      };
-      const velocity = new THREE.Vector3(input.x, 0, input.z)
-        .normalize()
-        .multiplyScalar(entity.speed);
-
+      entity.setFlags(flag);
       entity.setPosition(x, y, z);
-      entity.setVelocity(velocity.x, velocity.y, velocity.z);
     });
   }
 
