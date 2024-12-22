@@ -37,7 +37,7 @@ export class GameServer {
           Packet.Welcome.serialize(
             getMSTime(),
             player.id,
-            player.flag,
+            player.flags,
             playerName,
             player.x,
             player.y,
@@ -54,7 +54,7 @@ export class GameServer {
           Packet.Spawn.serialize(
             player!.serverTime,
             player!.id,
-            player!.flag,
+            player!.flags,
             playerName,
             player!.x,
             player!.y,
@@ -70,10 +70,10 @@ export class GameServer {
         this.sockets[this.socketIdCounter] = socket;
       });
 
-      socket.on('move', ({ timestamp, flag, x, y, z, orientation }) => {
+      socket.on('move', ({ timestamp, flags, x, y, z, orientation }) => {
         if (!player) return;
 
-        player.flag = flag;
+        player.flags = flags;
         player.x = x;
         player.y = y;
         player.z = z;
@@ -86,7 +86,7 @@ export class GameServer {
           Packet.MoveUpdate.serialize(
             serverTime,
             player.id,
-            flag,
+            flags,
             x,
             y,
             z,

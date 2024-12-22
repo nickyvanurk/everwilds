@@ -53,7 +53,7 @@ export class World {
         Packet.Spawn.serialize(
           other.serverTime,
           other.id,
-          other.flag,
+          other.flags,
           other.name,
           other.x,
           other.y,

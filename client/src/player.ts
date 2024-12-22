@@ -18,16 +18,16 @@ export class Player extends Character {
       };
       const orientation = Math.atan2(input.x, input.z);
 
-      let movementFlag = 0;
-      if (actions.forward) movementFlag |= 1;
-      if (actions.backward) movementFlag |= 2;
-      if (actions.left) movementFlag |= 4;
-      if (actions.right) movementFlag |= 8;
+      let movementFlags = 0;
+      if (actions.forward) movementFlags |= 1;
+      if (actions.backward) movementFlags |= 2;
+      if (actions.left) movementFlags |= 4;
+      if (actions.right) movementFlags |= 8;
 
       this.socket?.send(
         Packet.Move.serialize(
           getMSTime(),
-          movementFlag,
+          movementFlags,
           this.position.x,
           this.position.y,
           this.position.z,
@@ -57,16 +57,16 @@ export class Player extends Character {
 
         const orientation = Math.atan2(input.x, input.z);
 
-        let movementFlag = 0;
-        if (actions.forward) movementFlag |= 1;
-        if (actions.backward) movementFlag |= 2;
-        if (actions.left) movementFlag |= 4;
-        if (actions.right) movementFlag |= 8;
+        let movementFlags = 0;
+        if (actions.forward) movementFlags |= 1;
+        if (actions.backward) movementFlags |= 2;
+        if (actions.left) movementFlags |= 4;
+        if (actions.right) movementFlags |= 8;
 
         this.socket?.send(
           Packet.Move.serialize(
             getMSTime(),
-            movementFlag,
+            movementFlags,
             this.position.x,
             this.position.y,
             this.position.z,

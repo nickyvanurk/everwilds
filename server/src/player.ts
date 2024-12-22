@@ -2,7 +2,7 @@ import type { Socket } from './socket';
 
 export class Player {
   serverTime = 0;
-  flag = 0;
+  flags = 0;
   id: number;
   x = 0;
   y = 0;
@@ -19,7 +19,7 @@ export class Player {
   getState(): (string | number)[] {
     return [
       this.id,
-      this.flag,
+      this.flags,
       this.name,
       this.x,
       this.y,

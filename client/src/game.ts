@@ -114,12 +114,12 @@ export class Game {
       log.debug('Disconnected from server');
     });
 
-    socket.on('welcome', ({ id, flag, name, x, y, z, orientation }) => {
+    socket.on('welcome', ({ id, flags, name, x, y, z, orientation }) => {
       log.debug(`Received player ID from server: ${id}`);
 
       this.player.id = id;
       this.player.name = name;
-      this.player.setFlags(flag);
+      this.player.setFlags(flags);
       this.player.setPosition(x, y, z);
       this.player.socket = socket;
       this.addEntity(this.player);
@@ -127,12 +127,12 @@ export class Game {
 
     socket.on(
       'spawn',
-      ({ timestamp, id, flag, name, x, y, z, orientation }) => {
+      ({ timestamp, id, flags, name, x, y, z, orientation }) => {
         log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
 
         const character = new Character(name);
         character.id = id;
-        character.setFlags(flag);
+        character.setFlags(flags);
         character.setPosition(x, y, z);
 
         this.addEntity(character);
@@ -148,13 +148,13 @@ export class Game {
       this.characters.splice(this.characters.indexOf(entity), 1);
     });
 
-    socket.on('move', ({ timestamp, id, flag, x, y, z, orientation }) => {
+    socket.on('move', ({ timestamp, id, flags, x, y, z, orientation }) => {
       const entity = this.entities[id] as Character;
       if (!entity) {
         log.error(`Entity with ID ${id} not found`);
         return;
       }
-      entity.setFlags(flag);
+      entity.setFlags(flags);
       entity.setPosition(x, y, z);
     });
   }
