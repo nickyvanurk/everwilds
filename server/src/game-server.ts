@@ -6,7 +6,7 @@ import { getMSTime } from '../../shared/src/time';
 import { Player } from './player';
 
 export class GameServer {
-  private ups = 50;
+  private ups = 20;
   private server: WebSocketServer;
   private world: World;
 

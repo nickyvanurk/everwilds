@@ -7,7 +7,6 @@ import { HUD } from './hud';
 import { assets } from './config';
 import { Socket } from './socket';
 import { Character } from './character';
-import { getMSTime } from '../../shared/src/time';
 import * as Packet from '../../shared/src/packets';
 import { NetworkSimulator } from './network-simulator';
 import { UI } from './ui';
@@ -118,15 +117,12 @@ export class Game {
     socket.on('welcome', ({ id, flag, name, x, y, z, orientation }) => {
       log.debug(`Received player ID from server: ${id}`);
 
-      this.player.flag = flag;
       this.player.id = id;
       this.player.name = name;
       this.player.setPosition(x, y, z);
       this.player.orientation = orientation;
       this.player.socket = socket;
       this.addEntity(this.player);
-
-      this.player.time = 0;
     });
 
     socket.on(
@@ -137,20 +133,11 @@ export class Game {
         const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
         const speed = 6;
 
-        if (isMoving) {
-          const estimatedServerTime = getMSTime() + socket.clockDelta;
-          const delta = (estimatedServerTime - timestamp) / 1000;
-          x = x + Math.sin(orientation) * speed * delta;
-          z = z + Math.cos(orientation) * speed * delta;
-        }
-
         const character = new Character(name);
-        character.flag = flag;
         character.id = id;
         character.setPosition(x, y, z);
         character.orientation = orientation;
 
-        character.time = 0;
         character.speed = isMoving ? speed : 0;
 
         this.addEntity(character);
@@ -176,17 +163,12 @@ export class Game {
       const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
       const speed = 6;
 
-      if (isMoving) {
-        const estimatedServerTime = getMSTime() + socket.clockDelta;
-        const delta = (estimatedServerTime - timestamp) / 1000;
-        x = x + Math.sin(orientation) * speed * delta;
-        z = z + Math.cos(orientation) * speed * delta;
-      }
-
-      entity.time = 0;
       entity.setPosition(x, y, z);
       entity.orientation = orientation;
       entity.speed = isMoving ? speed : 0;
+
+      // Let's just send pos/vel for ease of programming... makes 3D
+      // direction and speed calculations easier
     });
   }
 
