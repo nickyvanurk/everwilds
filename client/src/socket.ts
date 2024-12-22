@@ -1,5 +1,4 @@
 import EventEmitter from 'eventemitter3';
-import { getMSTime } from '../../shared/src/time';
 import * as Packet from '../../shared/src/packets';
 import type { NetworkSimulator } from './network-simulator';
 import { isDebug } from './utils';
@@ -8,8 +7,6 @@ export class Socket extends EventEmitter {
   clockDelta = 0;
 
   private ws: WebSocket | null = null;
-  private serverTime = 0;
-  private timeAtGo = 0;
 
   constructor(
     private host: string,
@@ -30,7 +27,6 @@ export class Socket extends EventEmitter {
 
     this.ws.onmessage = ev => {
       if (ev.data === 'go') {
-        this.timeAtGo = getMSTime();
         this.emit('connected');
         return;
       }
@@ -81,11 +77,6 @@ export class Socket extends EventEmitter {
     switch (opcode) {
       case Packet.Opcode.Welcome: {
         const welcomeData = Packet.Welcome.deserialize(data);
-        const timeSinceGo = getMSTime() - this.timeAtGo;
-        const oneWayLatency = timeSinceGo / 2;
-        this.serverTime = welcomeData.timestamp + oneWayLatency;
-        this.clockDelta = this.serverTime - getMSTime();
-
         this.emit('welcome', welcomeData);
         break;
       }
@@ -98,13 +89,6 @@ export class Socket extends EventEmitter {
       case Packet.Opcode.MoveUpdate:
         this.emit('move', Packet.MoveUpdate.deserialize(data));
         break;
-      case Packet.Opcode.TimeSync: {
-        const { sequenceIndex } = Packet.TimeSync.deserialize(data);
-        this.send(
-          Packet.TimeSyncResponse.serialize(sequenceIndex, getMSTime()),
-        );
-        break;
-      }
       default:
         log.error(`No handler found for opcode: ${opcode}`);
     }

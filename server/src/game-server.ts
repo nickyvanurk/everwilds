@@ -2,7 +2,6 @@ import { WebSocketServer } from 'ws';
 import { World } from './world';
 import { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
-import { getMSTime } from '../../shared/src/time';
 import { Player } from './player';
 
 export class GameServer {
@@ -35,7 +34,6 @@ export class GameServer {
 
         socket.send(
           Packet.Welcome.serialize(
-            getMSTime(),
             player.id,
             player.flags,
             playerName,
@@ -46,13 +44,9 @@ export class GameServer {
           ),
         );
 
-        const serverTime = getMSTime();
-        player.serverTime = serverTime;
-
         this.world.pushPlayersToPlayer(player!);
         this.world.broadcast(
           Packet.Spawn.serialize(
-            player!.serverTime,
             player!.id,
             player!.flags,
             playerName,
@@ -64,13 +58,11 @@ export class GameServer {
           player!.id,
         );
 
-        socket.sendTimeSync();
-
         log.info(`Player ${playerName} joined the game`);
         this.sockets[this.socketIdCounter] = socket;
       });
 
-      socket.on('move', ({ timestamp, flags, x, y, z, orientation }) => {
+      socket.on('move', ({ flags, x, y, z, orientation }) => {
         if (!player) return;
 
         player.flags = flags;
@@ -79,19 +71,8 @@ export class GameServer {
         player.z = z;
         player.orientation = orientation;
 
-        const serverTime = socket.clientTimeToServerTime(timestamp);
-        player.serverTime = serverTime;
-
         this.world.broadcast(
-          Packet.MoveUpdate.serialize(
-            serverTime,
-            player.id,
-            flags,
-            x,
-            y,
-            z,
-            orientation,
-          ),
+          Packet.MoveUpdate.serialize(player.id, flags, x, y, z, orientation),
           player.id,
         );
       });
@@ -116,10 +97,6 @@ export class GameServer {
   }
 
   update(dt: number) {
-    for (const [_, socket] of Object.entries(this.sockets)) {
-      socket.updateTimeSync(dt);
-    }
-
     this.world.update(dt);
   }
 

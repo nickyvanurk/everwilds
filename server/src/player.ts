@@ -1,7 +1,6 @@
 import type { Socket } from './socket';
 
 export class Player {
-  serverTime = 0;
   flags = 0;
   id: number;
   x = 0;

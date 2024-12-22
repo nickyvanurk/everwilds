@@ -125,19 +125,16 @@ export class Game {
       this.addEntity(this.player);
     });
 
-    socket.on(
-      'spawn',
-      ({ timestamp, id, flags, name, x, y, z, orientation }) => {
-        log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
+    socket.on('spawn', ({ id, flags, name, x, y, z, orientation }) => {
+      log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
 
-        const character = new Character(name);
-        character.id = id;
-        character.setFlags(flags);
-        character.setPosition(x, y, z);
+      const character = new Character(name);
+      character.id = id;
+      character.setFlags(flags);
+      character.setPosition(x, y, z);
 
-        this.addEntity(character);
-      },
-    );
+      this.addEntity(character);
+    });
 
     socket.on('despawn', ({ id }) => {
       log.debug(`Received despawn entity: ${id}`);
@@ -148,7 +145,7 @@ export class Game {
       this.characters.splice(this.characters.indexOf(entity), 1);
     });
 
-    socket.on('move', ({ timestamp, id, flags, x, y, z, orientation }) => {
+    socket.on('move', ({ id, flags, x, y, z, orientation }) => {
       const entity = this.entities[id] as Character;
       if (!entity) {
         log.error(`Entity with ID ${id} not found`);

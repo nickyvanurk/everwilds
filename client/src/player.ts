@@ -2,7 +2,6 @@ import { actions, input } from './input';
 import { Character } from './character';
 import type { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
-import { getMSTime } from '../../shared/src/time';
 
 export class Player extends Character {
   socket: Socket | null = null;
@@ -26,7 +25,6 @@ export class Player extends Character {
 
       this.socket?.send(
         Packet.Move.serialize(
-          getMSTime(),
           movementFlags,
           this.position.x,
           this.position.y,
@@ -65,7 +63,6 @@ export class Player extends Character {
 
         this.socket?.send(
           Packet.Move.serialize(
-            getMSTime(),
             movementFlags,
             this.position.x,
             this.position.y,
