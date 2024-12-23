@@ -80,6 +80,9 @@ export class Game {
     camera.position.set(0, 12, 12);
 
     const controls = new OrbitControls(camera, document.body);
+    controls.enablePan = false;
+    controls.mouseButtons.LEFT = undefined;
+    controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
     camera.userData.prevAzimuthAngle = controls.getAzimuthalAngle();
 
     const scene = new THREE.Scene();
