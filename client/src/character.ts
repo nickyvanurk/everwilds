@@ -47,14 +47,14 @@ export class Character {
     const isForward = flags & 1;
     const isBackward = flags & 2;
 
-    const input = {
-      x: isStrafeLeft ? -1 : isStrafeRight ? 1 : 0,
-      z: isForward ? -1 : isBackward ? 1 : 0,
-    };
+    const input = new THREE.Vector3();
+    input.x = isStrafeLeft ? -1 : isStrafeRight ? 1 : 0;
+    input.z = isForward ? -1 : isBackward ? 1 : 0;
+    input.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.orientation);
+    input.normalize();
 
-    this.velocity.x = input.x;
-    this.velocity.z = input.z;
-    this.velocity.normalize().multiplyScalar(this.speed);
+    this.velocity.x = this.speed * input.x;
+    this.velocity.z = this.speed * input.z;
   }
 
   setPosition(x: number, y: number, z: number) {
