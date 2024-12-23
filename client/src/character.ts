@@ -40,20 +40,6 @@ export class Character {
     return this.mesh.geometry.boundingBox!.max.y;
   }
 
-  setPosition(x: number, y: number, z: number) {
-    this.deadReckoningPosition.set(x, y, z);
-
-    this.positionError.set(
-      this.mesh.position.x - x,
-      this.mesh.position.y - y,
-      this.mesh.position.z - z,
-    );
-
-    const len = this.positionError.length();
-    const t = len < 0.25 ? 0 : len > 1 ? 1 : len - 0.25 / 0.75;
-    this.errorCorrectionFactor = lerp(0.85, 0.2, t);
-  }
-
   setFlags(flags: number) {
     const isStrafeLeft = flags & 4;
     const isStrafeRight = flags & 8;
@@ -68,6 +54,25 @@ export class Character {
     this.velocity.x = input.x;
     this.velocity.z = input.z;
     this.velocity.normalize().multiplyScalar(this.speed);
+  }
+
+  setPosition(x: number, y: number, z: number) {
+    this.deadReckoningPosition.set(x, y, z);
+
+    this.positionError.set(
+      this.mesh.position.x - x,
+      this.mesh.position.y - y,
+      this.mesh.position.z - z,
+    );
+
+    const len = this.positionError.length();
+    const t = len < 0.25 ? 0 : len > 1 ? 1 : len - 0.25 / 0.75;
+    this.errorCorrectionFactor = lerp(0.85, 0.2, t);
+  }
+
+  setOrientation(orientation: number) {
+    this.orientation = orientation;
+    this.mesh.rotation.y = orientation;
   }
 }
 

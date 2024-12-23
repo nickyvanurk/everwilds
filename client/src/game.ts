@@ -80,6 +80,7 @@ export class Game {
     camera.position.set(0, 12, 12);
 
     const controls = new OrbitControls(camera, document.body);
+    camera.userData.prevAzimuthAngle = controls.getAzimuthalAngle();
 
     const scene = new THREE.Scene();
 
@@ -166,6 +167,12 @@ export class Game {
     const dt = (time - this.prevTime) / 1000;
     this.prevTime = time;
 
+    const currentAzimuthAngle = this.controls.getAzimuthalAngle();
+    if (currentAzimuthAngle !== this.camera.userData.prevAzimuthAngle) {
+      this.player.setOrientation(currentAzimuthAngle);
+    }
+    this.camera.userData.prevAzimuthAngle = currentAzimuthAngle;
+
     for (const character of this.characters) {
       character.update(dt);
     }
@@ -181,6 +188,7 @@ export class Game {
     );
 
     this.controls.update();
+
     this.hud.update(dt);
 
     this.renderer.resetState();

@@ -91,5 +91,6 @@ export class Player extends Character {
     }
 
     this.mesh.position.copy(this.position);
+    this.mesh.rotation.y = this.orientation;
   }
 }
