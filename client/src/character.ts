@@ -34,6 +34,7 @@ export class Character {
     }
 
     this.mesh.position.copy(this.position);
+    this.mesh.rotation.y = this.orientation;
   }
 
   getHeight() {
@@ -72,7 +73,6 @@ export class Character {
 
   setOrientation(orientation: number) {
     this.orientation = orientation;
-    this.mesh.rotation.y = orientation;
   }
 }
 

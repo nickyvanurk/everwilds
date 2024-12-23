@@ -133,6 +133,7 @@ export class Game {
       character.id = id;
       character.setFlags(flags);
       character.setPosition(x, y, z);
+      character.setOrientation(orientation);
 
       this.addEntity(character);
     });
@@ -154,6 +155,7 @@ export class Game {
       }
       entity.setFlags(flags);
       entity.setPosition(x, y, z);
+      entity.setOrientation(orientation);
     });
   }
 
