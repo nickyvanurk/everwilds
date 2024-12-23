@@ -34,10 +34,27 @@ export class Character {
     }
 
     this.mesh.position.copy(this.position);
+    this.mesh.rotation.y = this.orientation;
   }
 
   getHeight() {
     return this.mesh.geometry.boundingBox!.max.y;
+  }
+
+  setFlags(flags: number) {
+    const isStrafeLeft = flags & 4;
+    const isStrafeRight = flags & 8;
+    const isForward = flags & 1;
+    const isBackward = flags & 2;
+
+    const input = new THREE.Vector3();
+    input.x = isStrafeLeft ? -1 : isStrafeRight ? 1 : 0;
+    input.z = isForward ? -1 : isBackward ? 1 : 0;
+    input.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.orientation);
+    input.normalize();
+
+    this.velocity.x = this.speed * input.x;
+    this.velocity.z = this.speed * input.z;
   }
 
   setPosition(x: number, y: number, z: number) {
@@ -54,20 +71,8 @@ export class Character {
     this.errorCorrectionFactor = lerp(0.85, 0.2, t);
   }
 
-  setFlags(flags: number) {
-    const isStrafeLeft = flags & 4;
-    const isStrafeRight = flags & 8;
-    const isForward = flags & 1;
-    const isBackward = flags & 2;
-
-    const input = {
-      x: isStrafeLeft ? -1 : isStrafeRight ? 1 : 0,
-      z: isForward ? -1 : isBackward ? 1 : 0,
-    };
-
-    this.velocity.x = input.x;
-    this.velocity.z = input.z;
-    this.velocity.normalize().multiplyScalar(this.speed);
+  setOrientation(orientation: number) {
+    this.orientation = orientation;
   }
 }
 
