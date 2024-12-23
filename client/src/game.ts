@@ -7,7 +7,6 @@ import { HUD } from './hud';
 import { assets } from './config';
 import { Socket } from './socket';
 import { Character } from './character';
-import { getMSTime } from '../../shared/src/time';
 import * as Packet from '../../shared/src/packets';
 import { NetworkSimulator } from './network-simulator';
 import { UI } from './ui';
@@ -54,7 +53,7 @@ export class Game {
     const gridHelper = new THREE.GridHelper(10, 10);
     scene.add(gridHelper);
 
-    const player = new Player(this.playername, 6);
+    const player = new Player(this.playername);
     this.player = player;
 
     this.hud = new HUD(this);
@@ -115,47 +114,27 @@ export class Game {
       log.debug('Disconnected from server');
     });
 
-    socket.on('welcome', ({ id, flag, name, x, y, z, orientation }) => {
+    socket.on('welcome', ({ id, flags, name, x, y, z, orientation }) => {
       log.debug(`Received player ID from server: ${id}`);
 
-      this.player.flag = flag;
       this.player.id = id;
       this.player.name = name;
+      this.player.setFlags(flags);
       this.player.setPosition(x, y, z);
-      this.player.orientation = orientation;
       this.player.socket = socket;
       this.addEntity(this.player);
-
-      this.player.time = 0;
     });
 
-    socket.on(
-      'spawn',
-      ({ timestamp, id, flag, name, x, y, z, orientation }) => {
-        log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
+    socket.on('spawn', ({ id, flags, name, x, y, z, orientation }) => {
+      log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
 
-        const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
-        const speed = 6;
+      const character = new Character(name);
+      character.id = id;
+      character.setFlags(flags);
+      character.setPosition(x, y, z);
 
-        if (isMoving) {
-          const estimatedServerTime = getMSTime() + socket.clockDelta;
-          const delta = (estimatedServerTime - timestamp) / 1000;
-          x = x + Math.sin(orientation) * speed * delta;
-          z = z + Math.cos(orientation) * speed * delta;
-        }
-
-        const character = new Character(name);
-        character.flag = flag;
-        character.id = id;
-        character.setPosition(x, y, z);
-        character.orientation = orientation;
-
-        character.time = 0;
-        character.speed = isMoving ? speed : 0;
-
-        this.addEntity(character);
-      },
-    );
+      this.addEntity(character);
+    });
 
     socket.on('despawn', ({ id }) => {
       log.debug(`Received despawn entity: ${id}`);
@@ -166,27 +145,14 @@ export class Game {
       this.characters.splice(this.characters.indexOf(entity), 1);
     });
 
-    socket.on('move', ({ timestamp, id, flag, x, y, z, orientation }) => {
+    socket.on('move', ({ id, flags, x, y, z, orientation }) => {
       const entity = this.entities[id] as Character;
       if (!entity) {
         log.error(`Entity with ID ${id} not found`);
         return;
       }
-
-      const isMoving = flag & 1 || flag & 2 || flag & 4 || flag & 8;
-      const speed = 6;
-
-      if (isMoving) {
-        const estimatedServerTime = getMSTime() + socket.clockDelta;
-        const delta = (estimatedServerTime - timestamp) / 1000;
-        x = x + Math.sin(orientation) * speed * delta;
-        z = z + Math.cos(orientation) * speed * delta;
-      }
-
-      entity.time = 0;
+      entity.setFlags(flags);
       entity.setPosition(x, y, z);
-      entity.orientation = orientation;
-      entity.speed = isMoving ? speed : 0;
     });
   }
 

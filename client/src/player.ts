@@ -2,16 +2,13 @@ import { actions, input } from './input';
 import { Character } from './character';
 import type { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
-import { getMSTime } from '../../shared/src/time';
 
 export class Player extends Character {
   socket: Socket | null = null;
+  private timeSinceLastMovePacket = 0;
 
-  constructor(
-    public name: string,
-    public speed: number,
-  ) {
-    super(name, speed);
+  constructor(public name: string) {
+    super(name);
 
     const sendMovementPacket = () => {
       const input = {
@@ -20,22 +17,23 @@ export class Player extends Character {
       };
       const orientation = Math.atan2(input.x, input.z);
 
-      let movementFlag = 0;
-      if (actions.forward) movementFlag |= 1;
-      if (actions.backward) movementFlag |= 2;
-      if (actions.left) movementFlag |= 4;
-      if (actions.right) movementFlag |= 8;
+      let movementFlags = 0;
+      if (actions.forward) movementFlags |= 1;
+      if (actions.backward) movementFlags |= 2;
+      if (actions.left) movementFlags |= 4;
+      if (actions.right) movementFlags |= 8;
 
       this.socket?.send(
         Packet.Move.serialize(
-          getMSTime(),
-          movementFlag,
+          movementFlags,
           this.position.x,
           this.position.y,
           this.position.z,
           orientation,
         ),
       );
+
+      this.timeSinceLastMovePacket = 0;
     };
 
     input.on('forward', sendMovementPacket);
@@ -49,6 +47,31 @@ export class Player extends Character {
       x: actions.left ? -1 : actions.right ? 1 : 0,
       z: actions.forward ? -1 : actions.backward ? 1 : 0,
     };
+
+    if (input.x || input.z) {
+      this.timeSinceLastMovePacket += dt;
+      if (this.timeSinceLastMovePacket > 0.5) {
+        this.timeSinceLastMovePacket -= 0.5;
+
+        const orientation = Math.atan2(input.x, input.z);
+
+        let movementFlags = 0;
+        if (actions.forward) movementFlags |= 1;
+        if (actions.backward) movementFlags |= 2;
+        if (actions.left) movementFlags |= 4;
+        if (actions.right) movementFlags |= 8;
+
+        this.socket?.send(
+          Packet.Move.serialize(
+            movementFlags,
+            this.position.x,
+            this.position.y,
+            this.position.z,
+            orientation,
+          ),
+        );
+      }
+    }
 
     this.velocity.x = this.speed * input.x;
     this.velocity.z = this.speed * input.z;

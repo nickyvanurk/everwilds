@@ -34,7 +34,7 @@ export class HUD {
       resolution: window.devicePixelRatio,
     });
 
-    input.on('toggleNameplates', (isDown) => {
+    input.on('toggleNameplates', isDown => {
       if (!isDown) return;
 
       for (const [_, name] of this.names) {
@@ -70,8 +70,8 @@ export class HUD {
       anchor.y += character.getHeight() + 0.5;
 
       const screenPosition = anchor.clone().project(this.game.camera);
-      const x = (screenPosition.x + 1) * window.innerWidth / 2;
-      const y = (-screenPosition.y + 1) * window.innerHeight / 2;
+      const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
+      const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
 
       // === Three.js ===
 
@@ -97,7 +97,7 @@ export class HUD {
         this.game.scene.add(name);
         this.names.set(character, name);
         name.visible = !this.nameplatesVisible;
-      };
+      }
 
       const name = this.names.get(character);
       if (name) {
@@ -116,7 +116,7 @@ export class HUD {
             fontSize: 16,
             fill: 0xffffff,
             align: 'center',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
           },
         });
         this.pixiScene.addChild(label);
@@ -127,7 +127,7 @@ export class HUD {
       const label = this.labels.get(character);
       if (label) {
         const labelX = x - label.width / 2;
-        const labelY = y - label.height / 2 - label.height
+        const labelY = y - label.height / 2 - label.height;
         label.position.set(labelX, labelY);
       }
 

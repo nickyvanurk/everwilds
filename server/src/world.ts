@@ -51,9 +51,8 @@ export class World {
       this.pushToPlayer(
         player,
         Packet.Spawn.serialize(
-          other.serverTime,
           other.id,
-          other.flag,
+          other.flags,
           other.name,
           other.x,
           other.y,
