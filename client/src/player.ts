@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 import { actions, input } from './input';
 import { Character } from './character';
 import type { Socket } from './socket';
@@ -5,6 +7,7 @@ import * as Packet from '../../shared/src/packets';
 
 export class Player extends Character {
   socket: Socket | null = null;
+
   private timeSinceLastMovePacket = 0;
 
   constructor(public name: string) {
@@ -17,10 +20,11 @@ export class Player extends Character {
   }
 
   update(dt: number) {
-    const input = {
-      x: actions.left ? -1 : actions.right ? 1 : 0,
-      z: actions.forward ? -1 : actions.backward ? 1 : 0,
-    };
+    const input = new THREE.Vector3();
+    input.x = actions.left ? -1 : actions.right ? 1 : 0;
+    input.z = actions.forward ? -1 : actions.backward ? 1 : 0;
+    input.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.orientation);
+    input.normalize();
 
     if (input.x || input.z) {
       this.timeSinceLastMovePacket += dt;
@@ -33,11 +37,6 @@ export class Player extends Character {
     this.velocity.x = this.speed * input.x;
     this.velocity.z = this.speed * input.z;
     this.velocity.y -= 1;
-
-    if (this.velocity.x && this.velocity.z) {
-      this.velocity.x *= Math.SQRT1_2;
-      this.velocity.z *= Math.SQRT1_2;
-    }
 
     this.position.x += this.velocity.x * dt;
     this.position.z += this.velocity.z * dt;
