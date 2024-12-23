@@ -6,15 +6,13 @@ export class Character {
   velocity = new THREE.Vector3();
   mesh: THREE.Mesh;
   orientation = 0;
+  speed = 6;
 
   private deadReckoningPosition = new THREE.Vector3();
   private positionError = new THREE.Vector3();
   private errorCorrectionFactor = 0.9;
 
-  constructor(
-    public name: string,
-    public speed = 6,
-  ) {
+  constructor(public name: string) {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     geometry.translate(0, 0.5, 0);
     geometry.computeBoundingBox();
