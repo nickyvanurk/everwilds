@@ -1,3 +1,6 @@
+export const host = 'localhost';
+export const port = 8080;
+
 export const assets = [
   {
     type: 'font',

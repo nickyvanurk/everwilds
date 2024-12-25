@@ -12,10 +12,7 @@ export class Player {
 
   private timeSinceLastMovePacket = 0;
 
-  constructor(
-    private game: Game,
-    public name: string,
-  ) {
+  constructor(private game: Game) {
     input.on('forward', this.sendMovementPacket.bind(this));
     input.on('backward', this.sendMovementPacket.bind(this));
     input.on('left', this.sendMovementPacket.bind(this));

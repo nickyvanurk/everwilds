@@ -20,10 +20,6 @@ export class Game {
 
   characters: Character[] = [];
 
-  private host = 'localhost';
-  private port = 8080;
-  private playername = 'player';
-
   private prevTime = 0;
   private hud: HUD;
   private ui: UI;
@@ -31,11 +27,7 @@ export class Game {
 
   private entities: Record<number, Player | Character> = {};
 
-  constructor(host: string, port: number, playername: string) {
-    this.host = host;
-    this.port = port;
-    this.playername = playername;
-
+  constructor() {
     const { renderer, camera, controls, scene } = this.setup();
     this.renderer = renderer;
     this.camera = camera;
@@ -47,13 +39,12 @@ export class Game {
     const gridHelper = new THREE.GridHelper(10, 10);
     scene.add(gridHelper);
 
-    const player = new Player(this, this.playername);
-    this.player = player;
-
     this.hud = new HUD(this);
     this.ui = new UI(this);
 
     gAssetManager.load(config.assets);
+
+    this.player = new Player(this);
   }
 
   async init() {
@@ -94,18 +85,18 @@ export class Game {
   run() {
     this.renderer.setAnimationLoop(this.update.bind(this));
 
-    this.connect();
+    this.connect('Balthazar');
   }
 
-  connect() {
-    const socket = new Socket(this.host, this.port, this.netsim);
+  connect(requestedPlayerName: string) {
+    const socket = new Socket(config.host, config.port, this.netsim);
 
     socket.connect();
 
     socket.on('connected', () => {
       log.debug('Starting client/server handshake');
 
-      socket.send(Packet.Hello.serialize(this.playername));
+      socket.send(Packet.Hello.serialize(requestedPlayerName));
     });
 
     socket.on('disconnected', () => {
