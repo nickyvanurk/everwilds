@@ -53,7 +53,7 @@ export class Game {
     const gridHelper = new THREE.GridHelper(10, 10);
     scene.add(gridHelper);
 
-    const player = new Player(this.playername);
+    const player = new Player(this, this.playername);
     this.player = player;
 
     this.hud = new HUD(this);
@@ -178,13 +178,6 @@ export class Game {
     this.prevTime = time;
 
     if (this.player.character) {
-      const currentAzimuthAngle = this.controls.getAzimuthalAngle();
-      if (currentAzimuthAngle !== this.camera.userData.prevAzimuthAngle) {
-        this.player.character.setOrientation(currentAzimuthAngle);
-        this.player.sendMovementPacket();
-      }
-      this.camera.userData.prevAzimuthAngle = currentAzimuthAngle;
-
       this.player.update(dt);
     }
 
@@ -213,5 +206,7 @@ export class Game {
     this.hud.render();
 
     this.netsim.update(dt);
+
+    this.camera.userData.prevAzimuthAngle = this.controls.getAzimuthalAngle();
   }
 }
