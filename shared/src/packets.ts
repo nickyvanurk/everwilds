@@ -1,3 +1,5 @@
+import * as handlers from '../../client/src/packet-handler';
+
 export enum Opcode {
   Hello,
   Welcome,
@@ -21,6 +23,17 @@ export const Hello = {
       playerName: data[i++] as number,
     };
   },
+};
+
+export type Welcome = {
+  opcode: Opcode;
+  id: number;
+  flags: number;
+  name: string;
+  x: number;
+  y: number;
+  z: number;
+  orientation: number;
 };
 
 export const Welcome = {
@@ -51,6 +64,17 @@ export const Welcome = {
   },
 };
 
+export type Spawn = {
+  opcode: Opcode;
+  id: number;
+  flags: number;
+  name: string;
+  x: number;
+  y: number;
+  z: number;
+  orientation: number;
+};
+
 export const Spawn = {
   serialize(
     id: number,
@@ -79,6 +103,11 @@ export const Spawn = {
   },
 };
 
+export type Despawn = {
+  opcode: Opcode;
+  id: number;
+};
+
 export const Despawn = {
   serialize(id: number) {
     return [Opcode.Despawn, id];
@@ -91,6 +120,16 @@ export const Despawn = {
       id: data[i++] as number,
     };
   },
+};
+
+export type MoveUpdate = {
+  opcode: Opcode;
+  id: number;
+  flags: number;
+  x: number;
+  y: number;
+  z: number;
+  orientation: number;
 };
 
 export const MoveUpdate = {
@@ -119,6 +158,15 @@ export const MoveUpdate = {
   },
 };
 
+export type Move = {
+  opcode: Opcode;
+  flags: number;
+  x: number;
+  y: number;
+  z: number;
+  orientation: number;
+};
+
 export const Move = {
   serialize(
     flags: number,
@@ -141,4 +189,11 @@ export const Move = {
       orientation: data[i++] as number,
     };
   },
+};
+
+export const clientHandlers = {
+  welcome: handlers.handleWelcome,
+  spawn: handlers.handleSpawn,
+  despawn: handlers.handleDespawn,
+  move: handlers.handleMove,
 };

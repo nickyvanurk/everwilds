@@ -1,3 +1,4 @@
+import type { Game } from './game';
 import { NetworkSimulator } from './network-simulator';
 import { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
@@ -6,8 +7,12 @@ export class NetworkManager {
   socket: Socket;
   netsim = new NetworkSimulator();
 
-  constructor(host: string, port: number) {
+  constructor(game: Game, host: string, port: number) {
     this.socket = new Socket(host, port, this.netsim);
+
+    for (const [name, handler] of Object.entries(Packet.clientHandlers)) {
+      this.socket.on(name, handler.bind(game));
+    }
   }
 
   connect(requestedPlayerName: string) {
