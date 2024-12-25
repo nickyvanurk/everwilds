@@ -70,12 +70,4 @@ export class Player {
       this.timeSinceLastMovePacket = 0;
     }
   }
-
-  setCharacter(character: Character) {
-    this.character = character;
-  }
-
-  setSocket(socket: Socket) {
-    this.socket = socket;
-  }
 }

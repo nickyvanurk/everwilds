@@ -7,7 +7,7 @@ export function handleWelcome(this: Game, data: Packet.Welcome) {
 
   log.debug(`Received player ID from server: ${id}`);
 
-  this.player.setSocket(this.networkManager.socket);
+  this.player.socket = this.networkManager.socket;
 
   const playerCharacter = new Character(name);
   playerCharacter.id = id;
@@ -17,7 +17,7 @@ export function handleWelcome(this: Game, data: Packet.Welcome) {
 
   this.entityManager.addEntity(playerCharacter);
 
-  this.player.setCharacter(playerCharacter);
+  this.player.character = playerCharacter;
 
   this.sceneManager.setCameraTarget(playerCharacter);
 }
