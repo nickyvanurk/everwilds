@@ -36,25 +36,9 @@ export class Player {
       }
     }
 
-    this.character.velocity.x = this.character.speed * input.x;
-    this.character.velocity.z = this.character.speed * input.z;
-    this.character.velocity.y -= 1;
-
-    this.character.position.x += this.character.velocity.x * dt;
-    this.character.position.z += this.character.velocity.z * dt;
-    this.character.position.y += this.character.velocity.y * dt;
-
-    if (this.character.position.y < 0) {
-      this.character.position.y = 0;
-    }
-
-    this.character.mesh.position.copy(this.character.position);
-    this.character.mesh.rotation.y = this.character.orientation;
-  }
-
-  setOrientation(orientation: number) {
-    this.character.setOrientation(orientation);
-    this.sendMovementPacket();
+    const vx = this.character.speed * input.x;
+    const vz = this.character.speed * input.z;
+    this.character.setVelocity(vx, 0, vz);
   }
 
   sendMovementPacket(resetTimer = true) {

@@ -7,6 +7,7 @@ export class Character {
   mesh: THREE.Mesh;
   orientation = 0;
   speed = 6;
+  remote = false;
 
   private deadReckoningPosition = new THREE.Vector3();
   private positionError = new THREE.Vector3();
@@ -22,15 +23,27 @@ export class Character {
   }
 
   update(dt: number) {
-    this.deadReckoningPosition.x += this.velocity.x * dt;
-    this.deadReckoningPosition.y += this.velocity.y * dt;
-    this.deadReckoningPosition.z += this.velocity.z * dt;
+    if (this.remote) {
+      this.deadReckoningPosition.x += this.velocity.x * dt;
+      this.deadReckoningPosition.y += this.velocity.y * dt;
+      this.deadReckoningPosition.z += this.velocity.z * dt;
 
-    this.position.copy(this.deadReckoningPosition).add(this.positionError);
+      this.position.copy(this.deadReckoningPosition).add(this.positionError);
 
-    this.positionError.multiplyScalar(this.errorCorrectionFactor);
-    if (this.positionError.length() < 0.01) {
-      this.positionError.setScalar(0);
+      this.positionError.multiplyScalar(this.errorCorrectionFactor);
+      if (this.positionError.length() < 0.01) {
+        this.positionError.setScalar(0);
+      }
+    } else {
+      this.velocity.y -= 1;
+
+      this.position.x += this.velocity.x * dt;
+      this.position.z += this.velocity.z * dt;
+      this.position.y += this.velocity.y * dt;
+
+      if (this.position.y < 0) {
+        this.position.y = 0;
+      }
     }
 
     this.mesh.position.copy(this.position);
@@ -73,6 +86,10 @@ export class Character {
 
   setOrientation(orientation: number) {
     this.orientation = orientation;
+  }
+
+  setVelocity(x: number, y: number, z: number) {
+    this.velocity.set(x, y, z);
   }
 }
 

@@ -180,17 +180,19 @@ export class Game {
     if (this.player.character) {
       const currentAzimuthAngle = this.controls.getAzimuthalAngle();
       if (currentAzimuthAngle !== this.camera.userData.prevAzimuthAngle) {
-        this.player.setOrientation(currentAzimuthAngle);
+        this.player.character.setOrientation(currentAzimuthAngle);
+        this.player.sendMovementPacket();
       }
       this.camera.userData.prevAzimuthAngle = currentAzimuthAngle;
 
       this.player.update(dt);
-      for (const character of this.characters) {
-        if (character === this.player.character) continue;
+    }
 
-        character.update(dt);
-      }
+    for (const character of this.characters) {
+      character.update(dt);
+    }
 
+    if (this.player.character) {
       const target = this.controls.target;
       const diff = this.camera.position.sub(target);
       target.x = this.player.character.position.x;
