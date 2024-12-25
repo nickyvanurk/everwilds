@@ -177,9 +177,7 @@ export class Game {
     const dt = (time - this.prevTime) / 1000;
     this.prevTime = time;
 
-    if (this.player.character) {
-      this.player.update(dt);
-    }
+    this.player.update(dt);
 
     for (const character of this.characters) {
       character.update(dt);
