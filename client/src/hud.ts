@@ -52,7 +52,7 @@ export class HUD {
   }
 
   update(_dt: number) {
-    const characters = this.game
+    const characters = this.game.entityManager
       .getCharacters()
       .slice()
       .sort((a, b) => {
