@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { setKeyBindings } from './input';
 import { Player } from './player';
 import { HUD } from './hud';
-import { assets } from './config';
+import * as config from './config';
 import { Socket } from './socket';
 import { Character } from './character';
 import * as Packet from '../../shared/src/packets';
@@ -42,13 +42,7 @@ export class Game {
     this.controls = controls;
     this.scene = scene;
 
-    setKeyBindings([
-      { action: 'forward', key: 'KeyW' },
-      { action: 'backward', key: 'KeyS' },
-      { action: 'left', key: 'KeyA' },
-      { action: 'right', key: 'KeyD' },
-      { action: 'toggleNameplates', key: 'KeyV' },
-    ]);
+    setKeyBindings(config.keyBindings);
 
     const gridHelper = new THREE.GridHelper(10, 10);
     scene.add(gridHelper);
@@ -59,7 +53,7 @@ export class Game {
     this.hud = new HUD(this);
     this.ui = new UI(this);
 
-    gAssetManager.load(assets);
+    gAssetManager.load(config.assets);
   }
 
   async init() {
