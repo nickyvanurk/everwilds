@@ -139,6 +139,7 @@ export class Game {
 
       const character = new Character(name);
       character.id = id;
+      character.remoteControlled = true;
       character.setFlags(flags);
       character.setPosition(x, y, z);
       character.setOrientation(orientation);

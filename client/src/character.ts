@@ -7,7 +7,7 @@ export class Character {
   mesh: THREE.Mesh;
   orientation = 0;
   speed = 6;
-  remote = false;
+  remoteControlled = false;
 
   private deadReckoningPosition = new THREE.Vector3();
   private positionError = new THREE.Vector3();
@@ -23,7 +23,7 @@ export class Character {
   }
 
   update(dt: number) {
-    if (this.remote) {
+    if (this.remoteControlled) {
       this.deadReckoningPosition.x += this.velocity.x * dt;
       this.deadReckoningPosition.y += this.velocity.y * dt;
       this.deadReckoningPosition.z += this.velocity.z * dt;
@@ -71,17 +71,21 @@ export class Character {
   }
 
   setPosition(x: number, y: number, z: number) {
-    this.deadReckoningPosition.set(x, y, z);
+    if (this.remoteControlled) {
+      this.deadReckoningPosition.set(x, y, z);
 
-    this.positionError.set(
-      this.mesh.position.x - x,
-      this.mesh.position.y - y,
-      this.mesh.position.z - z,
-    );
+      this.positionError.set(
+        this.mesh.position.x - x,
+        this.mesh.position.y - y,
+        this.mesh.position.z - z,
+      );
 
-    const len = this.positionError.length();
-    const t = len < 0.25 ? 0 : len > 1 ? 1 : len - 0.25 / 0.75;
-    this.errorCorrectionFactor = lerp(0.85, 0.2, t);
+      const len = this.positionError.length();
+      const t = len < 0.25 ? 0 : len > 1 ? 1 : len - 0.25 / 0.75;
+      this.errorCorrectionFactor = lerp(0.85, 0.2, t);
+    } else {
+      this.position.set(x, y, z);
+    }
   }
 
   setOrientation(orientation: number) {
