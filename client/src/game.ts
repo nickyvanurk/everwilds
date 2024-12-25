@@ -10,7 +10,7 @@ import { Player } from './player';
 export class Game {
   sceneManager = new SceneManager();
   entityManager = new EntityManager(this.sceneManager);
-  networkManager = new NetworkManager(this, config.host, config.port);
+  networkManager = new NetworkManager(config.host, config.port);
   hud: HUD;
   ui: UI;
   player: Player;
@@ -33,7 +33,7 @@ export class Game {
   run() {
     this.sceneManager.startRenderLoop(this.update.bind(this));
 
-    this.networkManager.connect('Balthazar');
+    this.networkManager.connect(this, 'Balthazar');
   }
 
   update() {
