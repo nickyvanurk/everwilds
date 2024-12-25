@@ -40,9 +40,11 @@ export class Game {
     const dt = this.sceneManager.getDeltaTime();
 
     this.player.update(dt);
+    this.sceneManager.prePlayerMoveUpdate(dt);
     this.entityManager.update(dt);
-    this.hud.update(dt);
+    this.sceneManager.postPlayerMoveUpdate(dt);
     this.networkManager.update(dt);
+    this.hud.update(dt);
 
     this.sceneManager.render();
     this.hud.render();

@@ -54,7 +54,6 @@ export class SceneManager extends EventEmitter {
   startRenderLoop(updateCallback: () => void) {
     const loop = () => {
       updateCallback();
-      this.render();
       requestAnimationFrame(loop);
     };
     loop();
@@ -64,7 +63,14 @@ export class SceneManager extends EventEmitter {
     return this.clock.getDelta();
   }
 
-  render() {
+  prePlayerMoveUpdate(_dt: number) {
+    const currentAzimuthAngle = this.controls.getAzimuthalAngle();
+    if (currentAzimuthAngle !== this.camera.userData.prevAzimuthAngle) {
+      this.emit('cameraYawChanged', currentAzimuthAngle);
+    }
+  }
+
+  postPlayerMoveUpdate(_dt: number) {
     if (this.cameraTarget) {
       const target = this.controls.target;
       const diff = this.camera.position.sub(target);
@@ -77,17 +83,14 @@ export class SceneManager extends EventEmitter {
       );
     }
 
-    const currentAzimuthAngle = this.controls.getAzimuthalAngle();
-    if (currentAzimuthAngle !== this.camera.userData.prevAzimuthAngle) {
-      this.emit('cameraYawChanged', currentAzimuthAngle);
-    }
-
     this.controls.update();
 
+    this.camera.userData.prevAzimuthAngle = this.controls.getAzimuthalAngle();
+  }
+
+  render() {
     this.renderer.resetState();
     this.renderer.render(this.scene, this.camera);
-
-    this.camera.userData.prevAzimuthAngle = this.controls.getAzimuthalAngle();
   }
 
   addObject(object: THREE.Object3D) {
