@@ -121,12 +121,17 @@ export class Game {
     socket.on('welcome', ({ id, flags, name, x, y, z, orientation }) => {
       log.debug(`Received player ID from server: ${id}`);
 
-      this.player.id = id;
-      this.player.name = name;
-      this.player.setFlags(flags);
-      this.player.setPosition(x, y, z);
-      this.player.socket = socket;
-      this.addEntity(this.player);
+      this.player.setSocket(socket);
+
+      const playerCharacter = new Character(name);
+      playerCharacter.id = id;
+      playerCharacter.setFlags(flags);
+      playerCharacter.setPosition(x, y, z);
+      playerCharacter.setOrientation(orientation);
+
+      this.addEntity(playerCharacter);
+
+      this.player.setCharacter(playerCharacter);
     });
 
     socket.on('spawn', ({ id, flags, name, x, y, z, orientation }) => {
@@ -162,7 +167,7 @@ export class Game {
     });
   }
 
-  addEntity(entity: Player | Character) {
+  addEntity(entity: Character) {
     this.entities[entity.id] = entity;
     this.scene.add(entity.mesh);
     this.characters.push(entity);
@@ -172,25 +177,30 @@ export class Game {
     const dt = (time - this.prevTime) / 1000;
     this.prevTime = time;
 
-    const currentAzimuthAngle = this.controls.getAzimuthalAngle();
-    if (currentAzimuthAngle !== this.camera.userData.prevAzimuthAngle) {
-      this.player.setOrientation(currentAzimuthAngle);
-    }
-    this.camera.userData.prevAzimuthAngle = currentAzimuthAngle;
+    if (this.player.character) {
+      const currentAzimuthAngle = this.controls.getAzimuthalAngle();
+      if (currentAzimuthAngle !== this.camera.userData.prevAzimuthAngle) {
+        this.player.setOrientation(currentAzimuthAngle);
+      }
+      this.camera.userData.prevAzimuthAngle = currentAzimuthAngle;
 
-    for (const character of this.characters) {
-      character.update(dt);
-    }
+      this.player.update(dt);
+      for (const character of this.characters) {
+        if (character === this.player.character) continue;
 
-    const target = this.controls.target;
-    const diff = this.camera.position.sub(target);
-    target.x = this.player.position.x;
-    target.z = this.player.position.z;
-    this.camera.position.set(
-      target.x + diff.x,
-      target.y + diff.y,
-      target.z + diff.z,
-    );
+        character.update(dt);
+      }
+
+      const target = this.controls.target;
+      const diff = this.camera.position.sub(target);
+      target.x = this.player.character.position.x;
+      target.z = this.player.character.position.z;
+      this.camera.position.set(
+        target.x + diff.x,
+        target.y + diff.y,
+        target.z + diff.z,
+      );
+    }
 
     this.controls.update();
 

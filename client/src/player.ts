@@ -1,18 +1,17 @@
 import * as THREE from 'three';
 
 import { actions, input } from './input';
-import { Character } from './character';
+import type { Character } from './character';
 import type { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
 
-export class Player extends Character {
+export class Player {
   socket: Socket | null = null;
+  character!: Character;
 
   private timeSinceLastMovePacket = 0;
 
   constructor(public name: string) {
-    super(name);
-
     input.on('forward', this.sendMovementPacket.bind(this));
     input.on('backward', this.sendMovementPacket.bind(this));
     input.on('left', this.sendMovementPacket.bind(this));
@@ -23,7 +22,10 @@ export class Player extends Character {
     const input = new THREE.Vector3();
     input.x = actions.left ? -1 : actions.right ? 1 : 0;
     input.z = actions.forward ? -1 : actions.backward ? 1 : 0;
-    input.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.orientation);
+    input.applyAxisAngle(
+      new THREE.Vector3(0, 1, 0),
+      this.character.orientation,
+    );
     input.normalize();
 
     if (input.x || input.z) {
@@ -34,24 +36,24 @@ export class Player extends Character {
       }
     }
 
-    this.velocity.x = this.speed * input.x;
-    this.velocity.z = this.speed * input.z;
-    this.velocity.y -= 1;
+    this.character.velocity.x = this.character.speed * input.x;
+    this.character.velocity.z = this.character.speed * input.z;
+    this.character.velocity.y -= 1;
 
-    this.position.x += this.velocity.x * dt;
-    this.position.z += this.velocity.z * dt;
-    this.position.y += this.velocity.y * dt;
+    this.character.position.x += this.character.velocity.x * dt;
+    this.character.position.z += this.character.velocity.z * dt;
+    this.character.position.y += this.character.velocity.y * dt;
 
-    if (this.position.y < 0) {
-      this.position.y = 0;
+    if (this.character.position.y < 0) {
+      this.character.position.y = 0;
     }
 
-    this.mesh.position.copy(this.position);
-    this.mesh.rotation.y = this.orientation;
+    this.character.mesh.position.copy(this.character.position);
+    this.character.mesh.rotation.y = this.character.orientation;
   }
 
   setOrientation(orientation: number) {
-    super.setOrientation(orientation);
+    this.character.setOrientation(orientation);
     this.sendMovementPacket();
   }
 
@@ -65,15 +67,23 @@ export class Player extends Character {
     this.socket?.send(
       Packet.Move.serialize(
         movementFlags,
-        this.position.x,
-        this.position.y,
-        this.position.z,
-        this.orientation,
+        this.character.position.x,
+        this.character.position.y,
+        this.character.position.z,
+        this.character.orientation,
       ),
     );
 
     if (resetTimer) {
       this.timeSinceLastMovePacket = 0;
     }
+  }
+
+  setCharacter(character: Character) {
+    this.character = character;
+  }
+
+  setSocket(socket: Socket) {
+    this.socket = socket;
   }
 }
