@@ -21,17 +21,25 @@ export class UI {
 
     // Network folder
     const networkFolder = pane.addFolder({ title: 'Network Simulator' });
-    networkFolder.addBinding(this.game.netsim.config, 'latency', {
-      label: 'Latency (ms)',
-    });
-    networkFolder.addBinding(this.game.netsim.config, 'jitter', {
+    networkFolder.addBinding(
+      this.game.networkManager.netsim.config,
+      'latency',
+      {
+        label: 'Latency (ms)',
+      },
+    );
+    networkFolder.addBinding(this.game.networkManager.netsim.config, 'jitter', {
       label: 'Jitter (ms)',
     });
-    networkFolder.addBinding(this.game.netsim.config, 'packetLoss', {
-      label: 'Packet Loss (%)',
-    });
+    networkFolder.addBinding(
+      this.game.networkManager.netsim.config,
+      'packetLoss',
+      {
+        label: 'Packet Loss (%)',
+      },
+    );
     networkFolder
-      .addBinding(this.game.netsim.config, 'preset', {
+      .addBinding(this.game.networkManager.netsim.config, 'preset', {
         label: 'Preset',
         options: {
           'Home Broadband [WIFI, Cable, Console, PC]': 'broadband',
@@ -52,7 +60,7 @@ export class UI {
         },
       })
       .on('change', ({ value }) => {
-        this.game.netsim.setPreset(value as PresetKey);
+        this.game.networkManager.netsim.setPreset(value as PresetKey);
         networkFolder.refresh();
       });
   }

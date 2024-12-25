@@ -1,20 +1,18 @@
-import { setKeyBindings } from './input';
-import { Player } from './player';
-import { HUD } from './hud';
 import * as config from './config';
-import { Socket } from './socket';
-import { Character } from './character';
-import * as Packet from '../../shared/src/packets';
-import { NetworkSimulator } from './network-simulator';
-import { UI } from './ui';
 import { SceneManager } from './scene-manager';
 import { EntityManager } from './entity-manager';
+import { NetworkManager } from './network-manager';
+import { setKeyBindings } from './input';
+import { HUD } from './hud';
+import { UI } from './ui';
+import { Player } from './player';
+import { Character } from './character';
 
 export class Game {
   sceneManager = new SceneManager();
   entityManager = new EntityManager(this.sceneManager);
 
-  private netsim = new NetworkSimulator();
+  private networkManager = new NetworkManager(config.host, config.port);
   private hud: HUD;
   private ui: UI;
   private player: Player;
@@ -37,56 +35,46 @@ export class Game {
   run() {
     this.sceneManager.startRenderLoop(this.update.bind(this));
 
-    this.connect('Balthazar');
-  }
+    this.networkManager.connect('Balthazar');
 
-  connect(requestedPlayerName: string) {
-    const socket = new Socket(config.host, config.port, this.netsim);
+    this.networkManager.socket.on(
+      'welcome',
+      ({ id, flags, name, x, y, z, orientation }) => {
+        log.debug(`Received player ID from server: ${id}`);
 
-    socket.connect();
+        this.player.setSocket(this.networkManager.socket);
 
-    socket.on('connected', () => {
-      log.debug('Starting client/server handshake');
+        const playerCharacter = new Character(name);
+        playerCharacter.id = id;
+        playerCharacter.setFlags(flags);
+        playerCharacter.setPosition(x, y, z);
+        playerCharacter.setOrientation(orientation);
 
-      socket.send(Packet.Hello.serialize(requestedPlayerName));
-    });
+        this.entityManager.addEntity(playerCharacter);
 
-    socket.on('disconnected', () => {
-      log.debug('Disconnected from server');
-    });
+        this.player.setCharacter(playerCharacter);
 
-    socket.on('welcome', ({ id, flags, name, x, y, z, orientation }) => {
-      log.debug(`Received player ID from server: ${id}`);
+        this.sceneManager.setCameraTarget(playerCharacter);
+      },
+    );
 
-      this.player.setSocket(socket);
+    this.networkManager.socket.on(
+      'spawn',
+      ({ id, flags, name, x, y, z, orientation }) => {
+        log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
 
-      const playerCharacter = new Character(name);
-      playerCharacter.id = id;
-      playerCharacter.setFlags(flags);
-      playerCharacter.setPosition(x, y, z);
-      playerCharacter.setOrientation(orientation);
+        const character = new Character(name);
+        character.id = id;
+        character.remoteControlled = true;
+        character.setFlags(flags);
+        character.setPosition(x, y, z);
+        character.setOrientation(orientation);
 
-      this.entityManager.addEntity(playerCharacter);
+        this.entityManager.addEntity(character);
+      },
+    );
 
-      this.player.setCharacter(playerCharacter);
-
-      this.sceneManager.setCameraTarget(playerCharacter);
-    });
-
-    socket.on('spawn', ({ id, flags, name, x, y, z, orientation }) => {
-      log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
-
-      const character = new Character(name);
-      character.id = id;
-      character.remoteControlled = true;
-      character.setFlags(flags);
-      character.setPosition(x, y, z);
-      character.setOrientation(orientation);
-
-      this.entityManager.addEntity(character);
-    });
-
-    socket.on('despawn', ({ id }) => {
+    this.networkManager.socket.on('despawn', ({ id }) => {
       log.debug(`Received despawn entity: ${id}`);
 
       const entity = this.entityManager.getEntity(id);
@@ -96,14 +84,17 @@ export class Game {
       }
     });
 
-    socket.on('move', ({ id, flags, x, y, z, orientation }) => {
-      const entity = this.entityManager.getEntity(id);
-      if (entity) {
-        entity.setFlags(flags);
-        entity.setPosition(x, y, z);
-        entity.setOrientation(orientation);
-      }
-    });
+    this.networkManager.socket.on(
+      'move',
+      ({ id, flags, x, y, z, orientation }) => {
+        const entity = this.entityManager.getEntity(id);
+        if (entity) {
+          entity.setFlags(flags);
+          entity.setPosition(x, y, z);
+          entity.setOrientation(orientation);
+        }
+      },
+    );
   }
 
   update() {
@@ -112,7 +103,7 @@ export class Game {
     this.player.update(dt);
     this.entityManager.update(dt);
     this.hud.update(dt);
-    this.netsim.update(dt);
+    this.networkManager.update(dt);
 
     this.sceneManager.render();
     this.hud.render();
