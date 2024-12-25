@@ -52,11 +52,14 @@ export class HUD {
   }
 
   update(_dt: number) {
-    const characters = this.game.characters.slice().sort((a, b) => {
-      const distA = a.position.distanceTo(this.game.camera.position);
-      const distB = b.position.distanceTo(this.game.camera.position);
-      return distA - distB;
-    });
+    const characters = this.game
+      .getCharacters()
+      .slice()
+      .sort((a, b) => {
+        const distA = a.position.distanceTo(this.game.camera.position);
+        const distB = b.position.distanceTo(this.game.camera.position);
+        return distA - distB;
+      });
 
     characters.forEach((character, index) => {
       const label = this.labels.get(character);
@@ -65,7 +68,7 @@ export class HUD {
       if (healthBar) this.pixiScene.setChildIndex(healthBar, index);
     });
 
-    for (const character of this.game.characters) {
+    for (const character of characters) {
       const anchor = character.position.clone();
       anchor.y += character.getHeight() + 0.5;
 
@@ -151,21 +154,21 @@ export class HUD {
     }
 
     for (const [character, name] of this.names) {
-      if (!this.game.characters.includes(character)) {
+      if (!characters.includes(character)) {
         this.game.scene.remove(name);
         this.names.delete(character);
       }
     }
 
     for (const [character, label] of this.labels) {
-      if (!this.game.characters.includes(character)) {
+      if (!characters.includes(character)) {
         this.pixiScene.removeChild(label);
         this.labels.delete(character);
       }
     }
 
     for (const [character, healthBar] of this.healthBars) {
-      if (!this.game.characters.includes(character)) {
+      if (!characters.includes(character)) {
         this.pixiScene.removeChild(healthBar);
         this.healthBars.delete(character);
       }

@@ -18,14 +18,12 @@ export class Game {
   scene: THREE.Scene;
   netsim = new NetworkSimulator();
 
-  characters: Character[] = [];
-
   private prevTime = 0;
   private hud: HUD;
   private ui: UI;
   private player: Player;
 
-  private entities: Record<number, Player | Character> = {};
+  private entities: Record<number, Character> = {};
 
   constructor() {
     const { renderer, camera, controls, scene } = this.setup();
@@ -138,7 +136,6 @@ export class Game {
       const entity = this.entities[id] as Character;
       this.scene.remove(entity.mesh);
       delete this.entities[id];
-      this.characters.splice(this.characters.indexOf(entity), 1);
     });
 
     socket.on('move', ({ id, flags, x, y, z, orientation }) => {
@@ -156,7 +153,6 @@ export class Game {
   addEntity(entity: Character) {
     this.entities[entity.id] = entity;
     this.scene.add(entity.mesh);
-    this.characters.push(entity);
   }
 
   update(time: number) {
@@ -165,8 +161,8 @@ export class Game {
 
     this.player.update(dt);
 
-    for (const character of this.characters) {
-      character.update(dt);
+    for (const entity of Object.values(this.entities)) {
+      entity.update(dt);
     }
 
     if (this.player.character) {
@@ -192,5 +188,9 @@ export class Game {
     this.netsim.update(dt);
 
     this.camera.userData.prevAzimuthAngle = this.controls.getAzimuthalAngle();
+  }
+
+  getCharacters() {
+    return Object.values(this.entities);
   }
 }
