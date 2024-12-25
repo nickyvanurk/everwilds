@@ -4,7 +4,7 @@ import { actions, input } from './input';
 import type { Character } from './character';
 import type { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
-import type { Game } from './game';
+import type { SceneManager } from './scene-manager';
 
 export class Player {
   socket: Socket | null = null;
@@ -12,11 +12,16 @@ export class Player {
 
   private timeSinceLastMovePacket = 0;
 
-  constructor(private game: Game) {
+  constructor(sceneManager: SceneManager) {
     input.on('forward', this.sendMovementPacket.bind(this));
     input.on('backward', this.sendMovementPacket.bind(this));
     input.on('left', this.sendMovementPacket.bind(this));
     input.on('right', this.sendMovementPacket.bind(this));
+
+    sceneManager.on('cameraYawChanged', (yaw: number) => {
+      this.character.setOrientation(yaw);
+      this.sendMovementPacket();
+    });
   }
 
   update(dt: number) {
@@ -42,12 +47,6 @@ export class Player {
     const vx = this.character.speed * input.x;
     const vz = this.character.speed * input.z;
     this.character.setVelocity(vx, 0, vz);
-
-    const currentAzimuthAngle = this.game.controls.getAzimuthalAngle();
-    if (currentAzimuthAngle !== this.game.camera.userData.prevAzimuthAngle) {
-      this.character.setOrientation(currentAzimuthAngle);
-      this.sendMovementPacket();
-    }
   }
 
   sendMovementPacket(resetTimer = true) {

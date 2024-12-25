@@ -1,6 +1,3 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-
 import { setKeyBindings } from './input';
 import { Player } from './player';
 import { HUD } from './hud';
@@ -10,78 +7,34 @@ import { Character } from './character';
 import * as Packet from '../../shared/src/packets';
 import { NetworkSimulator } from './network-simulator';
 import { UI } from './ui';
+import { SceneManager } from './scene-manager';
 
 export class Game {
-  renderer: THREE.WebGLRenderer;
-  controls: OrbitControls;
-  camera: THREE.PerspectiveCamera;
-  scene: THREE.Scene;
-  netsim = new NetworkSimulator();
+  sceneManager = new SceneManager();
 
-  private prevTime = 0;
+  private netsim = new NetworkSimulator();
   private hud: HUD;
   private ui: UI;
   private player: Player;
-
   private entities: Record<number, Character> = {};
 
   constructor() {
-    const { renderer, camera, controls, scene } = this.setup();
-    this.renderer = renderer;
-    this.camera = camera;
-    this.controls = controls;
-    this.scene = scene;
-
     setKeyBindings(config.keyBindings);
-
-    const gridHelper = new THREE.GridHelper(10, 10);
-    scene.add(gridHelper);
 
     this.hud = new HUD(this);
     this.ui = new UI(this);
 
     gAssetManager.load(config.assets);
 
-    this.player = new Player(this);
+    this.player = new Player(this.sceneManager);
   }
 
   async init() {
     await this.hud.init();
   }
 
-  setup() {
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000,
-    );
-    camera.position.set(0, 12, 12);
-
-    const controls = new OrbitControls(camera, document.body);
-    controls.enablePan = false;
-    controls.mouseButtons.LEFT = undefined;
-    controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
-    camera.userData.prevAzimuthAngle = controls.getAzimuthalAngle();
-
-    const scene = new THREE.Scene();
-
-    addEventListener('resize', () => {
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.render(scene, camera);
-    });
-
-    return { renderer, camera, controls, scene };
-  }
-
   run() {
-    this.renderer.setAnimationLoop(this.update.bind(this));
+    this.sceneManager.startRenderLoop(this.update.bind(this));
 
     this.connect('Balthazar');
   }
@@ -115,6 +68,8 @@ export class Game {
       this.addEntity(playerCharacter);
 
       this.player.setCharacter(playerCharacter);
+
+      this.sceneManager.setCameraTarget(playerCharacter);
     });
 
     socket.on('spawn', ({ id, flags, name, x, y, z, orientation }) => {
@@ -134,7 +89,7 @@ export class Game {
       log.debug(`Received despawn entity: ${id}`);
 
       const entity = this.entities[id] as Character;
-      this.scene.remove(entity.mesh);
+      this.sceneManager.addObject(entity.mesh);
       delete this.entities[id];
     });
 
@@ -152,12 +107,11 @@ export class Game {
 
   addEntity(entity: Character) {
     this.entities[entity.id] = entity;
-    this.scene.add(entity.mesh);
+    this.sceneManager.addObject(entity.mesh);
   }
 
-  update(time: number) {
-    const dt = (time - this.prevTime) / 1000;
-    this.prevTime = time;
+  update() {
+    const dt = this.sceneManager.getDeltaTime();
 
     this.player.update(dt);
 
@@ -165,29 +119,12 @@ export class Game {
       entity.update(dt);
     }
 
-    if (this.player.character) {
-      const target = this.controls.target;
-      const diff = this.camera.position.sub(target);
-      target.x = this.player.character.position.x;
-      target.z = this.player.character.position.z;
-      this.camera.position.set(
-        target.x + diff.x,
-        target.y + diff.y,
-        target.z + diff.z,
-      );
-    }
-
-    this.controls.update();
-
     this.hud.update(dt);
 
-    this.renderer.resetState();
-    this.renderer.render(this.scene, this.camera);
+    this.sceneManager.render();
     this.hud.render();
 
     this.netsim.update(dt);
-
-    this.camera.userData.prevAzimuthAngle = this.controls.getAzimuthalAngle();
   }
 
   getCharacters() {
