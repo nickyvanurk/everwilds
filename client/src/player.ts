@@ -44,17 +44,25 @@ export class Player {
       }
     }
 
-    const vx = this.character.speed * input.x;
-    const vz = this.character.speed * input.z;
-    this.character.setVelocity(vx, 0, vz);
+    this.character.move(input.x, input.z);
+
+    if (actions.jump && this.character.isGrounded()) {
+      this.character.jump();
+      this.sendMovementPacket(true, true);
+      actions.jump = false;
+    }
   }
 
-  sendMovementPacket(resetTimer = true) {
+  sendMovementPacket(resetTimer = true, jumping = false) {
     let movementFlags = 0;
     if (actions.forward) movementFlags |= 1;
     if (actions.backward) movementFlags |= 2;
     if (actions.left) movementFlags |= 4;
     if (actions.right) movementFlags |= 8;
+
+    if (jumping) {
+      movementFlags |= 16;
+    }
 
     this.socket?.send(
       Packet.Move.serialize(
