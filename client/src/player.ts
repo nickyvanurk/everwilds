@@ -44,8 +44,7 @@ export class Player {
       }
     }
 
-    this.character.velocity.x = this.character.speed * input.x;
-    this.character.velocity.z = this.character.speed * input.z;
+    this.character.move(input.x, input.z);
 
     if (actions.jump && this.character.isGrounded()) {
       this.character.jump();

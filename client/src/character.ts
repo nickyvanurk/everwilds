@@ -69,8 +69,7 @@ export class Character {
     input.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.orientation);
     input.normalize();
 
-    this.velocity.x = this.speed * input.x;
-    this.velocity.z = this.speed * input.z;
+    this.move(input.x, input.z);
 
     if (isJumping) {
       this.jump();
@@ -101,6 +100,11 @@ export class Character {
 
   isGrounded() {
     return this.position.y === 0;
+  }
+
+  move(x: number, z: number) {
+    this.velocity.x = this.speed * x;
+    this.velocity.z = this.speed * z;
   }
 
   jump() {
