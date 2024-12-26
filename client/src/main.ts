@@ -1,7 +1,7 @@
 import './globals';
 import { Game } from './game';
 
-const game = new Game('localhost', 8080, 'Balthazar');
+const game = new Game();
 await game.init();
 
 game.run();

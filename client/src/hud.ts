@@ -27,7 +27,7 @@ export class HUD {
     await this.pixiRenderer.init({
       width: window.innerWidth,
       height: window.innerHeight,
-      canvas: this.game.renderer.domElement,
+      canvas: this.game.sceneManager.renderer.domElement,
       backgroundAlpha: 0,
       antialias: true,
       autoDensity: true,
@@ -52,11 +52,18 @@ export class HUD {
   }
 
   update(_dt: number) {
-    const characters = this.game.characters.slice().sort((a, b) => {
-      const distA = a.position.distanceTo(this.game.camera.position);
-      const distB = b.position.distanceTo(this.game.camera.position);
-      return distA - distB;
-    });
+    const characters = this.game.entityManager
+      .getCharacters()
+      .slice()
+      .sort((a, b) => {
+        const distA = a.position.distanceTo(
+          this.game.sceneManager.camera.position,
+        );
+        const distB = b.position.distanceTo(
+          this.game.sceneManager.camera.position,
+        );
+        return distA - distB;
+      });
 
     characters.forEach((character, index) => {
       const label = this.labels.get(character);
@@ -65,11 +72,13 @@ export class HUD {
       if (healthBar) this.pixiScene.setChildIndex(healthBar, index);
     });
 
-    for (const character of this.game.characters) {
+    for (const character of characters) {
       const anchor = character.position.clone();
       anchor.y += character.getHeight() + 0.5;
 
-      const screenPosition = anchor.clone().project(this.game.camera);
+      const screenPosition = anchor
+        .clone()
+        .project(this.game.sceneManager.camera);
       const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
       const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
 
@@ -94,7 +103,7 @@ export class HUD {
           color: 0xffffff,
         });
         const name = new THREE.Mesh(geometry, material);
-        this.game.scene.add(name);
+        this.game.sceneManager.addObject(name);
         this.names.set(character, name);
         name.visible = !this.nameplatesVisible;
       }
@@ -102,7 +111,9 @@ export class HUD {
       const name = this.names.get(character);
       if (name) {
         name.position.copy(anchor);
-        name.rotation.setFromRotationMatrix(this.game.camera.matrix);
+        name.rotation.setFromRotationMatrix(
+          this.game.sceneManager.camera.matrix,
+        );
       }
 
       // === Pixi.js ===
@@ -151,21 +162,21 @@ export class HUD {
     }
 
     for (const [character, name] of this.names) {
-      if (!this.game.characters.includes(character)) {
-        this.game.scene.remove(name);
+      if (!characters.includes(character)) {
+        this.game.sceneManager.removeObject(name);
         this.names.delete(character);
       }
     }
 
     for (const [character, label] of this.labels) {
-      if (!this.game.characters.includes(character)) {
+      if (!characters.includes(character)) {
         this.pixiScene.removeChild(label);
         this.labels.delete(character);
       }
     }
 
     for (const [character, healthBar] of this.healthBars) {
-      if (!this.game.characters.includes(character)) {
+      if (!characters.includes(character)) {
         this.pixiScene.removeChild(healthBar);
         this.healthBars.delete(character);
       }
