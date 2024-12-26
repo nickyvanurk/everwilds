@@ -16,14 +16,26 @@ const keyBindings: { [key: string]: string } = {};
 window.addEventListener('keydown', handleKeyEvent);
 window.addEventListener('keyup', handleKeyEvent);
 
+const releasedActions: { [action: string]: boolean } = {};
+
 function handleKeyEvent(ev: KeyboardEvent) {
   const action = keyBindings[ev.code];
-  if (action) {
-    const previousAction = actions[action];
-    actions[action] = ev.type === 'keydown';
 
-    if (previousAction !== actions[action]) {
-      input.emit(action, actions[action]);
+  if (action) {
+    const isKeyDown = ev.type === 'keydown';
+
+    if (isKeyDown) {
+      const isKeyReleased =
+        releasedActions[action] || releasedActions[action] === undefined;
+      if (!actions[action] && isKeyReleased) {
+        actions[action] = true;
+        input.emit(action, true);
+        releasedActions[action] = false;
+      }
+    } else {
+      actions[action] = false;
+      input.emit(action, false);
+      releasedActions[action] = true;
     }
   }
 }

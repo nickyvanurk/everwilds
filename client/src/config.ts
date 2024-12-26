@@ -14,5 +14,6 @@ export const keyBindings = [
   { action: 'backward', key: 'KeyS' },
   { action: 'left', key: 'KeyA' },
   { action: 'right', key: 'KeyD' },
+  { action: 'jump', key: 'Space' },
   { action: 'toggleNameplates', key: 'KeyV' },
 ];

@@ -7,6 +7,8 @@ export class Character {
   mesh: THREE.Mesh;
   orientation = 0;
   speed = 6;
+  jumpHeight = 1;
+  gravity = -9.81;
   remoteControlled = false;
 
   private deadReckoningPosition = new THREE.Vector3();
@@ -23,6 +25,8 @@ export class Character {
   }
 
   update(dt: number) {
+    this.velocity.y += this.gravity * dt;
+
     if (this.remoteControlled) {
       this.deadReckoningPosition.x += this.velocity.x * dt;
       this.deadReckoningPosition.y += this.velocity.y * dt;
@@ -35,15 +39,13 @@ export class Character {
         this.positionError.setScalar(0);
       }
     } else {
-      this.velocity.y -= 1;
-
       this.position.x += this.velocity.x * dt;
       this.position.z += this.velocity.z * dt;
       this.position.y += this.velocity.y * dt;
+    }
 
-      if (this.position.y < 0) {
-        this.position.y = 0;
-      }
+    if (this.position.y < 0) {
+      this.position.y = 0;
     }
 
     this.mesh.position.copy(this.position);
@@ -59,6 +61,7 @@ export class Character {
     const isStrafeRight = flags & 8;
     const isForward = flags & 1;
     const isBackward = flags & 2;
+    const isJumping = flags & 16;
 
     const input = new THREE.Vector3();
     input.x = isStrafeLeft ? -1 : isStrafeRight ? 1 : 0;
@@ -68,6 +71,10 @@ export class Character {
 
     this.velocity.x = this.speed * input.x;
     this.velocity.z = this.speed * input.z;
+
+    if (isJumping) {
+      this.jump();
+    }
   }
 
   setPosition(x: number, y: number, z: number) {
@@ -92,8 +99,16 @@ export class Character {
     this.orientation = orientation;
   }
 
-  setVelocity(x: number, y: number, z: number) {
-    this.velocity.set(x, y, z);
+  isGrounded() {
+    return this.position.y === 0;
+  }
+
+  jump() {
+    if (this.isGrounded() && this.velocity.y < 0) {
+      this.velocity.y = 0;
+    }
+
+    this.velocity.y = Math.sqrt(this.jumpHeight * -2 * this.gravity);
   }
 }
 
