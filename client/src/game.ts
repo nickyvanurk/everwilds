@@ -36,8 +36,11 @@ export class Game {
 
     this.networkManager.connect(this, 'Balthazar');
 
-    input.on('pointerDown', pointer => {
-      const target = this.sceneManager.getTargetEntityFromMouse(pointer.x, pointer.y);
+    input.on('leftMouseButton', pointer => {
+      const target = this.sceneManager.getTargetEntityFromMouse(
+        pointer.x,
+        pointer.y,
+      );
       if (target) {
         const targetedEntity = this.entityManager.getEntity(target.id);
         if (targetedEntity) {

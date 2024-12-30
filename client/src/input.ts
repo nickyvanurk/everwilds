@@ -44,7 +44,10 @@ function handleKeyEvent(ev: KeyboardEvent) {
 window.onpointerdown = (ev: PointerEvent) => {
   pointer.x = (ev.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(ev.clientY / window.innerHeight) * 2 + 1;
-  input.emit('pointerDown', pointer);
+
+  if (ev.pointerType !== 'mouse' || ev.button === 0) {
+    input.emit('leftMouseButton', pointer);
+  }
 };
 
 type KeyBinding = {
