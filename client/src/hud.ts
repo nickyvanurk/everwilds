@@ -37,6 +37,8 @@ export class HUD {
     input.on('toggleNameplates', isDown => {
       if (!isDown) return;
 
+      this.nameplatesVisible = !this.nameplatesVisible;
+
       for (const [_, name] of this.names) {
         name.visible = !name.visible;
       }
@@ -110,6 +112,8 @@ export class HUD {
 
       const name = this.names.get(character);
       if (name) {
+        name.visible = character.targeted ? false : !this.nameplatesVisible;
+
         name.position.copy(anchor);
         name.rotation.setFromRotationMatrix(
           this.game.sceneManager.camera.matrix,
@@ -137,6 +141,9 @@ export class HUD {
 
       const label = this.labels.get(character);
       if (label) {
+        label.visible = character.targeted ? true : this.nameplatesVisible;
+        label.alpha = character.targeted ? 1 : 0.5;
+
         const labelX = x - label.width / 2;
         const labelY = y - label.height / 2 - label.height;
         label.position.set(labelX, labelY);
@@ -155,6 +162,9 @@ export class HUD {
 
       const healthBar = this.healthBars.get(character);
       if (healthBar) {
+        healthBar.visible = character.targeted ? true : this.nameplatesVisible;
+        healthBar.alpha = character.targeted ? 1 : 0.5;
+
         const healthBarX = x - healthBar.width / 2;
         const healthBarY = y - healthBar.height / 2;
         healthBar.position.set(healthBarX, healthBarY);

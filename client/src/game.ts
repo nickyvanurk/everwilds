@@ -6,6 +6,7 @@ import { setKeyBindings } from './input';
 import { HUD } from './hud';
 import { UI } from './ui';
 import { Player } from './player';
+import { input } from './input';
 
 export class Game {
   sceneManager = new SceneManager();
@@ -34,6 +35,18 @@ export class Game {
     this.sceneManager.startRenderLoop(this.update.bind(this));
 
     this.networkManager.connect(this, 'Balthazar');
+
+    input.on('pointerDown', pointer => {
+      const target = this.sceneManager.getTargetEntityFromMouse(pointer.x, pointer.y);
+      if (target) {
+        const targetedEntity = this.entityManager.getEntity(target.id);
+        if (targetedEntity) {
+          this.player.setTarget(targetedEntity);
+        }
+      } else {
+        this.player.clearTarget();
+      }
+    });
   }
 
   update() {

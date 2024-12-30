@@ -3,6 +3,7 @@ import EventEmitter from 'eventemitter3';
 export const input = new EventEmitter();
 
 export const actions: { [action: string]: boolean } = {};
+export const pointer = { x: 0, y: 0 };
 
 export function setKeyBindings(bindings: KeyBinding[]) {
   for (const binding of bindings) {
@@ -39,6 +40,12 @@ function handleKeyEvent(ev: KeyboardEvent) {
     }
   }
 }
+
+window.onpointerdown = (ev: PointerEvent) => {
+  pointer.x = (ev.clientX / window.innerWidth) * 2 - 1;
+  pointer.y = -(ev.clientY / window.innerHeight) * 2 + 1;
+  input.emit('pointerDown', pointer);
+};
 
 type KeyBinding = {
   action: string;
