@@ -9,6 +9,7 @@ import type { SceneManager } from './scene-manager';
 export class Player {
   socket: Socket | null = null;
   character!: Character;
+  target?: Character;
 
   private timeSinceLastMovePacket = 0;
 
@@ -76,6 +77,22 @@ export class Player {
 
     if (resetTimer) {
       this.timeSinceLastMovePacket = 0;
+    }
+  }
+
+  setTarget(target: Character) {
+    if (this.target) {
+      this.target.targeted = false;
+    }
+
+    this.target = target;
+    this.target.targeted = true;
+  }
+
+  clearTarget() {
+    if (this.target) {
+      this.target.targeted = false;
+      this.target = undefined;
     }
   }
 }

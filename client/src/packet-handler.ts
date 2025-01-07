@@ -10,7 +10,7 @@ export function handleWelcome(this: Game, data: Packet.Welcome) {
   this.player.socket = this.networkManager.socket;
 
   const playerCharacter = new Character(name);
-  playerCharacter.id = id;
+  playerCharacter.setId(id);
   playerCharacter.setFlags(flags);
   playerCharacter.setPosition(x, y, z);
   playerCharacter.setOrientation(orientation);
@@ -28,8 +28,8 @@ export function handleSpawn(this: Game, data: Packet.Spawn) {
   log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
 
   const character = new Character(name);
-  character.id = id;
   character.remoteControlled = true;
+  character.setId(id);
   character.setFlags(flags);
   character.setPosition(x, y, z);
   character.setOrientation(orientation);

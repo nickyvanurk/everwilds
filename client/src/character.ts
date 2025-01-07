@@ -10,6 +10,7 @@ export class Character {
   jumpHeight = 1;
   gravity = -9.81;
   remoteControlled = false;
+  targeted = false;
 
   private deadReckoningPosition = new THREE.Vector3();
   private positionError = new THREE.Vector3();
@@ -21,6 +22,7 @@ export class Character {
     geometry.computeBoundingBox();
     const material = new THREE.MeshNormalMaterial();
     const cube = new THREE.Mesh(geometry, material);
+    cube.userData.id = this.id;
     this.mesh = cube;
   }
 
@@ -54,6 +56,11 @@ export class Character {
 
   getHeight() {
     return this.mesh.geometry.boundingBox!.max.y;
+  }
+
+  setId(id: number) {
+    this.id = id;
+    this.mesh.userData.id = id;
   }
 
   setFlags(flags: number) {

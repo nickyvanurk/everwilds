@@ -11,6 +11,7 @@ export class SceneManager extends EventEmitter {
   private clock: THREE.Clock;
   private controls: OrbitControls;
   private cameraTarget: Character | null = null;
+  private raycaster = new THREE.Raycaster();
 
   constructor() {
     super();
@@ -103,5 +104,22 @@ export class SceneManager extends EventEmitter {
 
   setCameraTarget(target: Character) {
     this.cameraTarget = target;
+  }
+
+  getTargetEntityFromMouse(x: number, y: number) {
+    this.raycaster.setFromCamera(new THREE.Vector2(x, y), this.camera);
+
+    const intersects = this.raycaster.intersectObjects(this.scene.children, false);
+    if (!intersects.length) return;
+
+    const entities = intersects.filter(({ object }) => object.userData.id !== undefined);
+    if (!entities.length) return;
+
+    const { object: entity, point } = entities[0];
+
+    return {
+      id: entity.userData.id,
+      position: { x: point.x, y: point.y, z: point.z },
+    }
   }
 }
