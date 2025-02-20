@@ -33,6 +33,11 @@ export class HUD {
       resolution: window.devicePixelRatio,
     });
 
+    addEventListener('resize', () => {
+      this.pixiRenderer.resize(window.innerWidth, window.innerHeight);
+      this.render();
+    });
+
     input.on('toggleNameplates', isDown => {
       if (!isDown) return;
 
