@@ -143,9 +143,21 @@ export class HUD {
         label.visible = this.nameplatesVisible;
       }
 
+      const cameraDirection = this.game.sceneManager.camera.getWorldDirection(
+        new THREE.Vector3(),
+      );
+
       const label = this.labels.get(character);
       if (label) {
-        label.visible = character.targeted ? true : this.nameplatesVisible;
+        const labelDirection = character.position
+          .clone()
+          .sub(this.game.sceneManager.camera.position)
+          .normalize();
+        const isBehindCamera = cameraDirection.dot(labelDirection) < 0;
+
+        label.visible = character.targeted
+          ? true
+          : this.nameplatesVisible && !isBehindCamera;
         label.alpha = character.targeted ? 1 : 0.5;
 
         const labelX = x - label.width / 2;
@@ -166,7 +178,15 @@ export class HUD {
 
       const healthBar = this.healthBars.get(character);
       if (healthBar) {
-        healthBar.visible = character.targeted ? true : this.nameplatesVisible;
+        const labelDirection = character.position
+          .clone()
+          .sub(this.game.sceneManager.camera.position)
+          .normalize();
+        const isBehindCamera = cameraDirection.dot(labelDirection) < 0;
+
+        healthBar.visible = character.targeted
+          ? true
+          : this.nameplatesVisible && !isBehindCamera;
         healthBar.alpha = character.targeted ? 1 : 0.5;
 
         const healthBarX = x - healthBar.width / 2;
