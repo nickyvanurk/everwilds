@@ -2,6 +2,7 @@ import type { Game } from './game';
 import { NetworkSimulator } from './network-simulator';
 import { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
+import { isDebug } from './utils';
 
 export class NetworkManager {
   socket: Socket;
@@ -29,6 +30,6 @@ export class NetworkManager {
   }
 
   update(dt: number) {
-    this.netsim.update(dt);
+    if (isDebug()) this.netsim.update(dt);
   }
 }
