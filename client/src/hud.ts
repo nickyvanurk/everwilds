@@ -16,18 +16,17 @@ export class HUD {
   private healthBars = new Map<Character, PIXI.Graphics>();
 
   constructor(private game: Game) {
-    const pixiRenderer = new PIXI.WebGLRenderer();
-    this.pixiRenderer = pixiRenderer;
-
-    const pStage = new PIXI.Container();
-    this.pixiScene = pStage;
+    this.pixiRenderer = new PIXI.WebGLRenderer();
+    this.pixiScene = new PIXI.Container();
   }
 
   async init() {
     await this.pixiRenderer.init({
       width: window.innerWidth,
       height: window.innerHeight,
-      canvas: this.game.sceneManager.renderer.domElement,
+      context:
+        this.game.sceneManager.renderer.getContext() as WebGL2RenderingContext,
+      clearBeforeRender: false, // Prevent pixijs from clearing the threejs renderer
       backgroundAlpha: 0,
       antialias: true,
       autoDensity: true,
@@ -194,7 +193,7 @@ export class HUD {
   }
 
   render() {
-    this.pixiRenderer.runners.contextChange.emit(this.pixiRenderer.gl);
+    this.pixiRenderer.resetState();
     this.pixiRenderer.render({ container: this.pixiScene, clear: false });
   }
 }

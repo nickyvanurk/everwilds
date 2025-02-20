@@ -16,7 +16,10 @@ export class SceneManager extends EventEmitter {
   constructor() {
     super();
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      stencil: true, // so masks work in pixijs
+    });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(this.renderer.domElement);
 
@@ -109,10 +112,15 @@ export class SceneManager extends EventEmitter {
   getTargetEntityFromMouse(x: number, y: number) {
     this.raycaster.setFromCamera(new THREE.Vector2(x, y), this.camera);
 
-    const intersects = this.raycaster.intersectObjects(this.scene.children, false);
+    const intersects = this.raycaster.intersectObjects(
+      this.scene.children,
+      false,
+    );
     if (!intersects.length) return;
 
-    const entities = intersects.filter(({ object }) => object.userData.id !== undefined);
+    const entities = intersects.filter(
+      ({ object }) => object.userData.id !== undefined,
+    );
     if (!entities.length) return;
 
     const { object: entity, point } = entities[0];
@@ -120,6 +128,6 @@ export class SceneManager extends EventEmitter {
     return {
       id: entity.userData.id,
       position: { x: point.x, y: point.y, z: point.z },
-    }
+    };
   }
 }
