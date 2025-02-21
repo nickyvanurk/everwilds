@@ -22,6 +22,7 @@ export class SceneManager extends EventEmitter {
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(this.renderer.domElement);
+    this.renderer.setClearColor(0x3e3e3e);
 
     this.camera = new THREE.PerspectiveCamera(
       75,
