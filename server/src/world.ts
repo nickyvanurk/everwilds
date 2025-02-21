@@ -72,4 +72,8 @@ export class World {
       this.pushToPlayer(this.players[playerId], packet);
     }
   }
+
+  getPlayerCount() {
+    return Object.keys(this.players).length;
+  }
 }

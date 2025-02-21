@@ -29,6 +29,7 @@ export class GameServer {
       let player: Player | null = null;
 
       socket.on('hello', ({ playerName }) => {
+        playerName = `Guest${ this.world.getPlayerCount() + 1}`;
         player = new Player(socket, playerName);
         this.world.addPlayer(player);
 
