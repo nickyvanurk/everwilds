@@ -2,9 +2,52 @@ import * as TWEAK from 'tweakpane';
 import type { Game } from './game';
 import type { PresetKey } from './network-simulator';
 import { isDebug } from './utils';
+import * as Packet from '../../shared/src/packets';
 
 export class UI {
+  private maxChatMessages = 100;
+
   constructor(private game: Game) {
+    const chatbox = document.getElementById('chatbox')!;
+    chatbox.addEventListener('mousedown', e => e.stopPropagation());
+    chatbox.addEventListener('touchstart', e => e.stopPropagation());
+    chatbox.addEventListener('pointerdown', e => e.stopPropagation());
+    chatbox.addEventListener('click', e => e.stopPropagation());
+    chatbox.addEventListener('contextmenu', e => e.stopPropagation());
+    chatbox.addEventListener('wheel', e => e.stopPropagation());
+    chatbox.addEventListener('pointermove', e => e.stopPropagation());
+    chatbox.addEventListener('keydown', e => e.stopPropagation());
+    chatbox.addEventListener('keyup', e => e.stopPropagation());
+
+    const chatlog = document.getElementById('chatlog')!;
+    chatlog.scrollTop = chatlog.scrollHeight;
+
+    const chatinput = document.getElementById('chatinput')! as HTMLInputElement;
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (chatinput.style.display === 'none') {
+          chatinput.style.display = 'block';
+          chatinput.focus();
+        } else {
+          chatinput.style.display = 'none';
+        }
+      }
+    });
+
+    chatbox.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        chatinput.style.display = 'none';
+
+        const playerName = this.game.player.character?.name ?? 'Unknown';
+        this.game.networkManager.socket.send(
+          Packet.ChatMessage.serialize(playerName, chatinput.value),
+        );
+
+        chatinput.value = '';
+      }
+    });
+
     if (isDebug()) {
       const pane = new TWEAK.Pane({ title: 'Debug Settings' });
       const parent = pane.element.parentElement!;
@@ -69,6 +112,18 @@ export class UI {
           this.game.networkManager.netsim.setPreset(value as PresetKey);
           networkFolder.refresh();
         });
+    }
+  }
+
+  addChatMessage(playerName: string, message: string) {
+    const chatlog = document.getElementById('chatlog')!;
+    const chatMessage = document.createElement('div');
+    chatMessage.innerHTML = `<span>${playerName}</span>: ${message}`;
+    chatlog.appendChild(chatMessage);
+    chatlog.scrollTop = chatlog.scrollHeight;
+
+    while (chatlog.children.length > this.maxChatMessages) {
+      chatlog.removeChild(chatlog.children[0]);
     }
   }
 }

@@ -57,3 +57,10 @@ export function handleMove(this: Game, data: Packet.MoveUpdate) {
     entity.setOrientation(orientation);
   }
 }
+
+export function handleChatMessage(
+  this: Game,
+  { playerName, message }: Packet.ChatMessage,
+) {
+  this.ui.addChatMessage(playerName, message);
+}
