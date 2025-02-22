@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "client": "vite",
+    "client": "vite --port 3000",
     "server": "tsx server/src/main.ts",
     "build": "tsc && vite build",
     "preview": "vite preview",
