@@ -29,7 +29,7 @@ export class GameServer {
       let player: Player | null = null;
 
       socket.on('hello', ({ playerName }) => {
-        playerName = `Guest${ this.world.getPlayerCount() + 1}`;
+        playerName = `Player${this.world.getPlayerCount() + 1}`;
         player = new Player(socket, playerName);
         this.world.addPlayer(player);
 
@@ -85,6 +85,16 @@ export class GameServer {
         delete this.sockets[this.socketIdCounter];
 
         log.info(`Player ${player.name} left the game`);
+      });
+
+      socket.on('chatMessage', ({ message }) => {
+        if (!player) return;
+
+        message = (message || '').replace(/(<([^>]+)>)/gi, '');
+
+        this.world.broadcast(
+          Packet.ChatMessage.serialize(player.name, message),
+        );
       });
     });
 

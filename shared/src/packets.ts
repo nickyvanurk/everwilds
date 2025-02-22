@@ -7,6 +7,7 @@ export enum Opcode {
   Despawn,
   Move,
   MoveUpdate,
+  ChatMessage,
 }
 
 export type Serialized = (string | number)[];
@@ -191,9 +192,31 @@ export const Move = {
   },
 };
 
+export type ChatMessage = {
+  opcode: Opcode;
+  playerName: string;
+  message: string;
+};
+
+export const ChatMessage = {
+  serialize(playerName: string, message: string) {
+    return [Opcode.ChatMessage, playerName, message];
+  },
+
+  deserialize(data: Serialized) {
+    let i = 0;
+    return {
+      opcode: data[i++] as number,
+      playerName: data[i++] as string,
+      message: data[i++] as string,
+    };
+  },
+};
+
 export const clientHandlers = {
   welcome: handlers.handleWelcome,
   spawn: handlers.handleSpawn,
   despawn: handlers.handleDespawn,
   move: handlers.handleMove,
+  chatMessage: handlers.handleChatMessage,
 };

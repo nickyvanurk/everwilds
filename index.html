@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Spellforge</title>
     <style>
+
+      @font-face {
+        font-family: 'Gill Sans';
+        src: url('assets/fonts/gili-sans/Gill\ Sans.otf') format('opentype');
+      }
+
       html, body {
         overflow: hidden;
         margin: 0px;
@@ -16,9 +22,68 @@
         width: 100%;
         height: 100%;
       }
+
+      #chatbox {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        margin-left: 20px;
+        margin-bottom: 20px;
+        width: 500px;
+        font-size: 18px;
+        height: 236px;
+      }
+
+      #chatlog {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 10px;
+        padding: 6px 10px 4px 10px;
+        border-radius: 2px;
+        background: rgba(0, 0, 0, 0.1);
+        font-family: 'Gill Sans';
+        max-height: 185px;
+        overflow: scroll;
+        scrollbar-width: none;
+        overflow-x: hidden;
+      }
+
+      #chatlog span {
+        color: #3db3ec;
+      }
+
+      #chatlog div {
+        margin-bottom: 2px;
+      }
+
+      #chatinput {
+        padding: 5px;
+        border: none;
+        border-radius: 2px;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        font-family: 'Gill Sans';
+        font-size: 18px;
+        padding: 5px 9px;
+      }
+
+      #chatinput:focus {
+        outline: none;
+      }
     </style>
   </head>
   <body>
+
+    <div id="chatbox">
+      <div id="chatlog">
+        <div>Welcome to Everwilds!</div>
+      </div>
+      <input type="text" id="chatinput" style="display: none;" />
+    </div>
+
     <script type="module" src="client/src/main.ts"></script>
   </body>
 </html>
