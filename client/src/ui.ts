@@ -39,6 +39,8 @@ export class UI {
       if (e.key === 'Enter') {
         chatinput.style.display = 'none';
 
+        if (!chatinput.value) return;
+
         const playerName = this.game.player.character?.name ?? 'Unknown';
         this.game.networkManager.socket.send(
           Packet.ChatMessage.serialize(playerName, chatinput.value),

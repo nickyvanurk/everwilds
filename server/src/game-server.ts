@@ -90,6 +90,8 @@ export class GameServer {
 
         message = (message || '').replace(/(<([^>]+)>)/gi, '');
 
+        if (!message) return;
+
         this.world.broadcast(
           Packet.ChatMessage.serialize(player.name, message),
         );
