@@ -3,5 +3,10 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   base: "./",
-  plugins: [glsl()]
+  plugins: [glsl()],
+  build: {
+    outDir: "dist",
+    emptyOutDir: true,
+    sourcemap: false,
+  },
 });

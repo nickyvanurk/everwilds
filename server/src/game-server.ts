@@ -1,4 +1,4 @@
-import { WebSocketServer } from 'ws';
+import type { WebSocketServer } from 'ws';
 import { World } from './world';
 import { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
@@ -12,11 +12,9 @@ export class GameServer {
   private sockets: { [key: number]: Socket } = {};
   private socketIdCounter = 0;
 
-  constructor(port: number) {
-    this.server = new WebSocketServer({ port });
+  constructor(wss: WebSocketServer) {
+    this.server = wss;
     this.world = new World();
-
-    log.info(`Spellforge game server started on port ${port}`);
 
     this.server.on('connection', ws => {
       log.info('New connection established');

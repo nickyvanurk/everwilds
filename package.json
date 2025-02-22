@@ -4,15 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "client": "vite --port 3000",
+    "client": "vite",
     "server": "tsx server/src/main.ts",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && cp -r assets/* dist/assets/ && tsc -b server",
     "preview": "vite preview",
     "cpd": "jscpd --min-tokens 50 --min-lines 5 --min-tokens 100 ./*/src"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@tweakpane/core": "^2.0.5",
+    "@types/express": "^5.0.0",
     "@types/three": "^0.170.0",
     "@types/ws": "^8.5.13",
     "jscpd": "^4.0.5",
@@ -22,6 +23,7 @@
   },
   "dependencies": {
     "eventemitter3": "^5.0.1",
+    "express": "^4.21.2",
     "pixi.js": "^8.8.0",
     "three": "^0.170.0",
     "tweakpane": "^4.0.5",
