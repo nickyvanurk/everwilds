@@ -26,7 +26,8 @@ export class Character {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     geometry.translate(0, 0.5, 0);
     geometry.computeBoundingBox();
-    const material = new THREE.MeshNormalMaterial();
+    const material = new THREE.MeshBasicMaterial();
+    material.color.setHSL(Math.random(), 0.9, 0.5);
     const body = new THREE.Mesh(geometry, material);
     body.userData.id = this.id;
     this.meshBody = body;
