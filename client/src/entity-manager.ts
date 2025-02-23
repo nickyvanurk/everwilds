@@ -16,7 +16,7 @@ export class EntityManager {
     }
 
     this.entities.set(entity.id, entity);
-    this.sceneManager.addObject(entity.mesh);
+    this.sceneManager.addObject(entity.object3d);
   }
 
   removeEntity(id: number) {
@@ -26,7 +26,7 @@ export class EntityManager {
       return;
     }
 
-    this.sceneManager.removeObject(entity.mesh);
+    this.sceneManager.removeObject(entity.object3d);
     this.entities.delete(id);
   }
 

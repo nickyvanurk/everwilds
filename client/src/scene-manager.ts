@@ -115,7 +115,7 @@ export class SceneManager extends EventEmitter {
 
     const intersects = this.raycaster.intersectObjects(
       this.scene.children,
-      false,
+      true,
     );
     if (!intersects.length) return;
 

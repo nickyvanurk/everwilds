@@ -42,7 +42,7 @@ export function handleDespawn(this: Game, { id }: Packet.Despawn) {
 
   const entity = this.entityManager.getEntity(id);
   if (entity) {
-    this.sceneManager.removeObject(entity.mesh);
+    this.sceneManager.removeObject(entity.object3d);
     this.entityManager.removeEntity(id);
   }
 }
