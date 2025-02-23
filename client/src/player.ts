@@ -28,6 +28,11 @@ export class Player {
   update(dt: number) {
     if (!this.character) return;
 
+    this.character.isStrafeLeft = actions.left;
+    this.character.isStrafeRight = actions.right;
+    this.character.isForward = actions.forward;
+    this.character.isBackward = actions.backward;
+
     const input = new THREE.Vector3();
     input.x = actions.left ? -1 : actions.right ? 1 : 0;
     input.z = actions.forward ? -1 : actions.backward ? 1 : 0;

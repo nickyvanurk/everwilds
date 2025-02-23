@@ -80,7 +80,7 @@ export class HUD {
 
     for (const character of characters) {
       const anchor = character.position.clone();
-      anchor.y += character.getHeight() + 0.5;
+      anchor.y += character.getHeight() + 0.75;
 
       const screenPosition = anchor
         .clone()
