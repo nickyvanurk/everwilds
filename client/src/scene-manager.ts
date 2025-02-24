@@ -80,6 +80,7 @@ export class SceneManager extends EventEmitter {
       const target = this.controls.target;
       const diff = this.camera.position.sub(target);
       target.x = this.cameraTarget.position.x;
+      target.y = this.cameraTarget.position.y + 1;
       target.z = this.cameraTarget.position.z;
       this.camera.position.set(
         target.x + diff.x,
