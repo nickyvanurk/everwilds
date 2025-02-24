@@ -53,11 +53,11 @@ export class Character {
     eyeGeometry.rotateX(Math.PI);
     const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x000 });
     const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    leftEye.position.set(-0.2, 1, -0.501);
+    leftEye.position.set(-0.2, 1, -0.51);
     root.add(leftEye);
     this.meshLeftEye = leftEye;
     const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    rightEye.position.set(0.2, 1, -0.501);
+    rightEye.position.set(0.2, 1, -0.51);
     root.add(rightEye);
     this.meshRightEye = rightEye;
 
