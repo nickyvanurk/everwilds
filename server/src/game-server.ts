@@ -27,15 +27,16 @@ export class GameServer {
       let player: Player | null = null;
 
       socket.on('hello', ({ playerName }) => {
-        playerName = `Player${this.world.getPlayerCount() + 1}`;
+        playerName = `Player`;
         player = new Player(socket, playerName);
+        player.name += `${player.id}`;
         this.world.addPlayer(player);
 
         socket.send(
           Packet.Welcome.serialize(
             player.id,
             player.flags,
-            playerName,
+            player.name,
             player.x,
             player.y,
             player.z,
@@ -48,7 +49,7 @@ export class GameServer {
           Packet.Spawn.serialize(
             player!.id,
             player!.flags,
-            playerName,
+            player!.name,
             player!.x,
             player!.y,
             player!.z,
@@ -57,7 +58,7 @@ export class GameServer {
           player!.id,
         );
 
-        log.info(`Player ${playerName} joined the game`);
+        log.info(`Player ${ player.name} joined the game`);
         this.sockets[this.socketIdCounter] = socket;
       });
 

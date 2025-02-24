@@ -8,11 +8,14 @@ export class Player {
   z = 0;
   orientation = 0;
 
+  static assignedIds = new Set<number>();
+  static nextId = 1;
+
   constructor(
     public socket: Socket,
     public name: string,
   ) {
-    this.id = Number.parseInt(`5${Math.floor(Math.random() * 1000)}`);
+    this.id = Number.parseInt(`${Player.getNextId()}`);
   }
 
   getState(): (string | number)[] {
@@ -25,5 +28,22 @@ export class Player {
       this.z,
       this.orientation,
     ];
+  }
+
+  static getNextId() {
+    while (Player.assignedIds.has(Player.nextId)) {
+      Player.nextId++;
+    }
+
+    Player.assignedIds.add(Player.nextId);
+    return Player.nextId;
+  }
+
+  static releaseId(id: number) {
+    Player.assignedIds.delete(id);
+
+    if (id < Player.nextId) {
+      Player.nextId = id;
+    }
   }
 }

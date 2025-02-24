@@ -1,4 +1,4 @@
-import type { Player } from './player';
+import { Player } from './player';
 import * as Packet from '../../shared/src/packets';
 
 export class World {
@@ -27,6 +27,7 @@ export class World {
   removePlayer(player: Player) {
     this.broadcast(Packet.Despawn.serialize(player.id), player.id);
 
+    Player.releaseId(player.id);
     delete this.players[player.id];
 
     log.debug(`Removed player: ${player.id}`);
@@ -71,9 +72,5 @@ export class World {
 
       this.pushToPlayer(this.players[playerId], packet);
     }
-  }
-
-  getPlayerCount() {
-    return Object.keys(this.players).length;
   }
 }
