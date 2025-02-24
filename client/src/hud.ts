@@ -155,9 +155,9 @@ export class HUD {
           .normalize();
         const isBehindCamera = cameraDirection.dot(labelDirection) < 0;
 
-        label.visible = character.targeted
-          ? true
-          : this.nameplatesVisible && !isBehindCamera;
+        label.visible =
+          !isBehindCamera &&
+          (character.targeted ? true : this.nameplatesVisible);
         label.alpha = character.targeted ? 1 : 0.5;
 
         const labelX = x - label.width / 2;
@@ -184,9 +184,9 @@ export class HUD {
           .normalize();
         const isBehindCamera = cameraDirection.dot(labelDirection) < 0;
 
-        healthBar.visible = character.targeted
-          ? true
-          : this.nameplatesVisible && !isBehindCamera;
+        healthBar.visible =
+          !isBehindCamera &&
+          (character.targeted ? true : this.nameplatesVisible);
         healthBar.alpha = character.targeted ? 1 : 0.5;
 
         const healthBarX = x - healthBar.width / 2;
