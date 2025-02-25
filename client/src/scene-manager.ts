@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import EventEmitter from 'eventemitter3';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { TrackballControls } from 'three/addons/controls/TrackballControls';
+import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import type { Character } from './character';
 
 export class SceneManager extends EventEmitter {
@@ -57,8 +57,10 @@ export class SceneManager extends EventEmitter {
     this.trackballControls.noPan = true;
     this.trackballControls.noZoom = false;
     this.trackballControls.zoomSpeed = 1;
-    this.trackballControls.keys = [];
+    this.trackballControls.keys = ['', '', ''];
     this.trackballControls.dynamicDampingFactor = 0.2;
+    this.trackballControls.minDistance = 0.01;
+    this.trackballControls.maxDistance = 60;
 
     addEventListener('resize', () => {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
