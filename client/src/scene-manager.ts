@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import EventEmitter from 'eventemitter3';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { TrackballControls } from 'three/addons/controls/TrackballControls';
 import type { Character } from './character';
 
 export class SceneManager extends EventEmitter {
@@ -10,6 +11,7 @@ export class SceneManager extends EventEmitter {
   private scene: THREE.Scene;
   private clock: THREE.Clock;
   private controls: OrbitControls;
+  private trackballControls: TrackballControls;
   private cameraTarget: Character | null = null;
   private raycaster = new THREE.Raycaster();
 
@@ -44,10 +46,19 @@ export class SceneManager extends EventEmitter {
     this.clock = new THREE.Clock();
 
     this.controls = new OrbitControls(this.camera, document.body);
+    this.controls.enableZoom = false;
     this.controls.enablePan = false;
     this.controls.mouseButtons.LEFT = undefined;
     this.controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
     this.camera.userData.prevAzimuthAngle = this.controls.getAzimuthalAngle();
+
+    this.trackballControls = new TrackballControls(this.camera, document.body);
+    this.trackballControls.noRotate = true;
+    this.trackballControls.noPan = true;
+    this.trackballControls.noZoom = false;
+    this.trackballControls.zoomSpeed = 1;
+    this.trackballControls.keys = [];
+    this.trackballControls.dynamicDampingFactor = 0.2;
 
     addEventListener('resize', () => {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -97,7 +108,10 @@ export class SceneManager extends EventEmitter {
       );
     }
 
+    const target = this.controls.target;
     this.controls.update();
+    this.trackballControls.target.set(target.x, target.y, target.z);
+    this.trackballControls.update();
 
     this.camera.userData.prevAzimuthAngle = this.controls.getAzimuthalAngle();
   }
