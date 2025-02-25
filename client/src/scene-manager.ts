@@ -24,9 +24,17 @@ export class SceneManager extends EventEmitter {
     document.body.appendChild(this.renderer.domElement);
     this.renderer.setClearColor(0x3e3e3e);
 
+    const aspect = window.innerWidth / window.innerHeight;
+    const horizontalFovToVerticalFov = (hFov: number) => {
+      return (
+        (2 * Math.atan(Math.tan((hFov * Math.PI) / 180 / 2) / aspect) * 180) /
+        Math.PI
+      );
+    };
+
     this.camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
+      horizontalFovToVerticalFov(90),
+      aspect,
       0.1,
       1000,
     );
