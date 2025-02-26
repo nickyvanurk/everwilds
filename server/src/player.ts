@@ -8,8 +8,16 @@ export class Player {
   z = 0;
   orientation = 0;
 
+  onAttack: (() => void) | null = null;
+
   static assignedIds = new Set<number>();
   static nextId = 1;
+
+  private timeSinceLastMoveAttack = 0;
+  private attackCooldown = 1;
+  private isAttacking = false;
+  private attackRange = 2.5;
+  private attackTarget?: Player;
 
   constructor(
     public socket: Socket,
@@ -28,6 +36,42 @@ export class Player {
       this.z,
       this.orientation,
     ];
+  }
+
+  update(dt: number) {
+    if (this.isAttacking && this.attackTarget) {
+      const distance = Math.sqrt(
+        (this.x - this.attackTarget.x) ** 2 +
+          (this.y - this.attackTarget.y) ** 2 +
+          (this.z - this.attackTarget.z) ** 2,
+      );
+
+      if (distance > this.attackRange) {
+        this.timeSinceLastMoveAttack = 0;
+        return;
+      }
+
+      if (this.timeSinceLastMoveAttack === 0) {
+        this.onAttack?.();
+      }
+
+      this.timeSinceLastMoveAttack += dt / 1000;
+
+      if (this.timeSinceLastMoveAttack > this.attackCooldown) {
+        this.timeSinceLastMoveAttack = 0;
+      }
+    }
+  }
+
+  startAttack(target: Player) {
+    this.attackTarget = target;
+    this.isAttacking = true;
+  }
+
+  stopAttack() {
+    this.attackTarget = undefined;
+    this.timeSinceLastMoveAttack = 0;
+    this.isAttacking = false;
   }
 
   static getNextId() {

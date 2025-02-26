@@ -8,7 +8,11 @@ export class World {
     log.debug('World created');
   }
 
-  update(_dt: number) {}
+  update(dt: number) {
+    for (const player of Object.values(this.players)) {
+      player.update(dt);
+    }
+  }
 
   getPlayerById(id: number) {
     if (id in this.players) {

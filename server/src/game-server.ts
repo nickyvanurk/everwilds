@@ -27,7 +27,7 @@ export class GameServer {
       let player: Player | null = null;
 
       socket.on('hello', ({ playerName }) => {
-        playerName = `Player`;
+        playerName = 'Player';
         player = new Player(socket, playerName);
         player.name += `${player.id}`;
         this.world.addPlayer(player);
@@ -58,7 +58,7 @@ export class GameServer {
           player!.id,
         );
 
-        log.info(`Player ${ player.name} joined the game`);
+        log.info(`Player ${player.name} joined the game`);
         this.sockets[this.socketIdCounter] = socket;
       });
 
@@ -96,6 +96,29 @@ export class GameServer {
         this.world.broadcast(
           Packet.ChatMessage.serialize(player.name, message),
         );
+      });
+
+      socket.on('attackStart', ({ targetId }) => {
+        if (!player) return;
+
+        const targetEntity = this.world.getPlayerById(targetId);
+        if (!targetEntity) return;
+
+        if (player.id === targetId) return;
+
+        player.startAttack(targetEntity);
+
+        player.onAttack = () => {
+          this.world.broadcast(
+            Packet.AttackSwing.serialize(player!.id, targetId),
+          );
+        };
+      });
+
+      socket.on('attackStop', () => {
+        if (!player) return;
+
+        player.stopAttack();
       });
     });
 

@@ -64,3 +64,10 @@ export function handleChatMessage(
 ) {
   this.ui.addChatMessage(playerName, message);
 }
+
+export function handleAttackSwing(
+  this: Game,
+  { attackerId, targetId }: Packet.AttackSwing,
+) {
+  console.log(`Received attack swing: ${attackerId} -> ${targetId}`);
+}

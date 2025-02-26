@@ -7,6 +7,7 @@ import { HUD } from './hud';
 import { UI } from './ui';
 import { Player } from './player';
 import { input } from './input';
+import * as Packet from '../../shared/src/packets';
 
 export class Game {
   sceneManager = new SceneManager();
@@ -36,7 +37,7 @@ export class Game {
 
     this.networkManager.connect(this, 'Balthazar');
 
-    input.on('mouseClick', ({ pointer }) => {
+    input.on('mouseClick', ({ pointer, button }) => {
       const target = this.sceneManager.getTargetEntityFromMouse(
         pointer.x,
         pointer.y,
@@ -46,9 +47,17 @@ export class Game {
         const targetedEntity = this.entityManager.getEntity(target.id);
         if (targetedEntity) {
           this.player.setTarget(targetedEntity);
+
+          if (button === 'right') {
+            this.player.startAttack(targetedEntity);
+          }
         }
       } else {
         this.player.clearTarget();
+
+        if (this.player.isAttacking) {
+          this.player.stopAttack();
+        }
       }
     });
   }
