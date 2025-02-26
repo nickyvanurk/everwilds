@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { actions, input } from './input';
+import { actions, input, mouseState } from './input';
 import type { Character } from './character';
 import type { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
@@ -20,8 +20,10 @@ export class Player {
     input.on('right', this.sendMovementPacket.bind(this));
 
     sceneManager.on('cameraYawChanged', (yaw: number) => {
-      this.character.setOrientation(yaw);
-      this.sendMovementPacket();
+      if (mouseState.rmb) {
+        this.character.setOrientation(yaw);
+        this.sendMovementPacket();
+      }
     });
   }
 
