@@ -48,7 +48,6 @@ export class SceneManager extends EventEmitter {
     this.controls = new OrbitControls(this.camera, document.body);
     this.controls.enableZoom = false;
     this.controls.enablePan = false;
-    this.controls.mouseButtons.LEFT = undefined;
     this.controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
     this.camera.userData.prevAzimuthAngle = this.controls.getAzimuthalAngle();
 

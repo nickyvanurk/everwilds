@@ -2,8 +2,8 @@ import EventEmitter from 'eventemitter3';
 
 export const input = new EventEmitter();
 
+export const mouseState: { [button: string]: boolean } = {};
 export const actions: { [action: string]: boolean } = {};
-export const pointer = { x: 0, y: 0 };
 
 export function setKeyBindings(bindings: KeyBinding[]) {
   for (const binding of bindings) {
@@ -13,11 +13,10 @@ export function setKeyBindings(bindings: KeyBinding[]) {
 }
 
 const keyBindings: { [key: string]: string } = {};
+const releasedActions: { [action: string]: boolean } = {};
 
 window.addEventListener('keydown', handleKeyEvent);
 window.addEventListener('keyup', handleKeyEvent);
-
-const releasedActions: { [action: string]: boolean } = {};
 
 function handleKeyEvent(ev: KeyboardEvent) {
   const action = keyBindings[ev.code];
@@ -41,12 +40,91 @@ function handleKeyEvent(ev: KeyboardEvent) {
   }
 }
 
-window.onpointerdown = (ev: PointerEvent) => {
-  pointer.x = (ev.clientX / window.innerWidth) * 2 - 1;
-  pointer.y = -(ev.clientY / window.innerHeight) * 2 + 1;
+let isDragging = false;
+const prevPointer = { x: 0, y: 0 };
+const pointer = { x: 0, y: 0 };
+const dragThreshold = 2; // Minimum pixels moved to be considered a drag
 
-  if (ev.pointerType !== 'mouse' || ev.button === 0) {
-    input.emit('leftMouseButton', pointer);
+function pointerToClipSpace(pointer: { x: number; y: number }) {
+  return {
+    x: (pointer.x / window.innerWidth) * 2 - 1,
+    y: -(pointer.y / window.innerHeight) * 2 + 1,
+  };
+}
+
+window.onpointerdown = ev => {
+  pointer.x = ev.clientX;
+  pointer.y = ev.clientY;
+  prevPointer.x = pointer.x;
+  prevPointer.y = pointer.y;
+  isDragging = false;
+
+  if (ev.pointerType === 'mouse') {
+    mouseState.lmb = !!(ev.buttons & 1);
+    mouseState.rmb = !!(ev.buttons & 2);
+    mouseState.mmb = !!(ev.buttons & 4);
+  }
+};
+
+window.onpointerup = ev => {
+  pointer.x = ev.clientX;
+  pointer.y = ev.clientY;
+
+  if (ev.pointerType === 'mouse') {
+    mouseState.lmb = !!(ev.buttons & 1);
+    mouseState.rmb = !!(ev.buttons & 2);
+    mouseState.mmb = !!(ev.buttons & 4);
+
+    const pointerClip = pointerToClipSpace(pointer);
+    const prevPointerClip = pointerToClipSpace(prevPointer);
+
+    if (isDragging) {
+      input.emit('mouseDragEnd', {
+        pointer: pointerClip,
+        prevPointer: prevPointerClip,
+      });
+    } else {
+      input.emit('mouseClick', {
+        pointer: pointerClip,
+        button: ev.button === 0 ? 'left' : ev.button === 2 ? 'right' : 'middle',
+      });
+    }
+    isDragging = false;
+  }
+};
+
+window.onpointermove = (ev: PointerEvent) => {
+  if (ev.pointerType === 'mouse') {
+    mouseState.lmb = !!(ev.buttons & 1);
+    mouseState.rmb = !!(ev.buttons & 2);
+    mouseState.mmb = !!(ev.buttons & 4);
+
+    if (ev.buttons & 1 || ev.buttons & 2) {
+      pointer.x = ev.clientX;
+      pointer.y = ev.clientY;
+
+      const dx = pointer.x - prevPointer.x;
+      const dy = pointer.y - prevPointer.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > dragThreshold) {
+        const pointerClip = pointerToClipSpace(pointer);
+        const prevPointerClip = pointerToClipSpace(prevPointer);
+
+        if (!isDragging) {
+          input.emit('mouseDragStart', {
+            pointer: pointerClip,
+            prevPointer: prevPointerClip,
+          });
+          isDragging = true;
+        }
+
+        input.emit('mouseDragging', {
+          pointer: pointerClip,
+          prevPointer: prevPointerClip,
+        });
+      }
+    }
   }
 };
 
