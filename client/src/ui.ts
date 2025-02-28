@@ -8,6 +8,17 @@ export class UI {
   private maxChatMessages = 100;
 
   constructor(private game: Game) {
+    const discord = document.getElementById('discord')!;
+    discord.addEventListener('mousedown', e => e.stopPropagation());
+    discord.addEventListener('touchstart', e => e.stopPropagation());
+    discord.addEventListener('pointerdown', e => e.stopPropagation());
+    discord.addEventListener('click', e => e.stopPropagation());
+    discord.addEventListener('contextmenu', e => e.stopPropagation());
+    discord.addEventListener('wheel', e => e.stopPropagation());
+    discord.addEventListener('pointermove', e => e.stopPropagation());
+    discord.addEventListener('keydown', e => e.stopPropagation());
+    discord.addEventListener('keyup', e => e.stopPropagation());
+
     const chatbox = document.getElementById('chatbox')!;
     chatbox.addEventListener('mousedown', e => e.stopPropagation());
     chatbox.addEventListener('touchstart', e => e.stopPropagation());
