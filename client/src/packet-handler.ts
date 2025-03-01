@@ -12,7 +12,7 @@ export function handleWelcome(this: Game, data: Packet.Welcome) {
   const playerCharacter = new Character(name);
   playerCharacter.setId(id);
   playerCharacter.setFlags(flags);
-  playerCharacter.setPosition(x, y, z);
+  playerCharacter.setPosition(x, y, z, true);
   playerCharacter.setOrientation(orientation);
 
   this.entityManager.addEntity(playerCharacter);
@@ -20,6 +20,7 @@ export function handleWelcome(this: Game, data: Packet.Welcome) {
   this.player.character = playerCharacter;
 
   this.sceneManager.setCameraTarget(playerCharacter);
+  this.sceneManager.setCameraYaw(orientation);
 }
 
 export function handleSpawn(this: Game, data: Packet.Spawn) {
@@ -31,7 +32,7 @@ export function handleSpawn(this: Game, data: Packet.Spawn) {
   character.remoteControlled = true;
   character.setId(id);
   character.setFlags(flags);
-  character.setPosition(x, y, z);
+  character.setPosition(x, y, z, true);
   character.setOrientation(orientation);
 
   this.entityManager.addEntity(character);
@@ -63,4 +64,46 @@ export function handleChatMessage(
   { playerName, message }: Packet.ChatMessage,
 ) {
   this.ui.addChatMessage(playerName, message);
+}
+
+export function handleAttackSwing(
+  this: Game,
+  { attackerId, targetId, damage, targetHealth }: Packet.AttackSwing,
+) {
+  const attacker = this.entityManager.getEntity(attackerId);
+  if (!attacker) {
+    log.error(`Received attack swing for unknown attacker: ${attackerId}`);
+    return;
+  }
+
+  const target = this.entityManager.getEntity(targetId);
+  if (!target) {
+    log.error(`Received attack swing for unknown target: ${targetId}`);
+    return;
+  }
+
+  target.health.current = targetHealth;
+
+  const attackerName =
+    attacker.id === this.player.character.id ? 'Your' : `${attacker.name}'s`;
+
+  log.info(
+    `${attackerName} melee swing hits ${target.name} for ${damage} damage`,
+  );
+}
+
+export function handleRespawn(
+  this: Game,
+  { id, x, y, z, orientation }: Packet.Respawn,
+) {
+  const entity = this.entityManager.getEntity(id);
+  if (entity) {
+    entity.setPosition(x, y, z, true);
+    entity.setOrientation(orientation);
+    entity.health.current = entity.health.max;
+
+    if (id === this.player.character.id) {
+      this.sceneManager.setCameraYaw(orientation);
+    }
+  }
 }

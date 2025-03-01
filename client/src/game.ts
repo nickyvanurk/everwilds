@@ -36,7 +36,7 @@ export class Game {
 
     this.networkManager.connect(this, 'Balthazar');
 
-    input.on('mouseClick', ({ pointer }) => {
+    input.on('mouseClick', ({ pointer, button }) => {
       const target = this.sceneManager.getTargetEntityFromMouse(
         pointer.x,
         pointer.y,
@@ -46,9 +46,17 @@ export class Game {
         const targetedEntity = this.entityManager.getEntity(target.id);
         if (targetedEntity) {
           this.player.setTarget(targetedEntity);
+
+          if (button === 'right') {
+            this.player.startAttack(targetedEntity);
+          }
         }
       } else {
         this.player.clearTarget();
+
+        if (this.player.isAttacking) {
+          this.player.stopAttack();
+        }
       }
     });
   }

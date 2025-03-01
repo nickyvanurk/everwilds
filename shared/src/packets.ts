@@ -8,6 +8,10 @@ export enum Opcode {
   Move,
   MoveUpdate,
   ChatMessage,
+  AttackStart,
+  AttackSwing,
+  AttackStop,
+  Respawn,
 }
 
 export type Serialized = (string | number)[];
@@ -213,10 +217,105 @@ export const ChatMessage = {
   },
 };
 
+export type AttackStart = {
+  opcode: Opcode;
+  targetId: number;
+};
+
+export const AttackStart = {
+  serialize(targetId: number) {
+    return [Opcode.AttackStart, targetId];
+  },
+
+  deserialize(data: Serialized) {
+    let i = 0;
+    return {
+      opcode: data[i++] as number,
+      targetId: data[i++] as number,
+    };
+  },
+};
+
+export type AttackSwing = {
+  opcode: Opcode;
+  attackerId: number;
+  targetId: number;
+  damage: number;
+  targetHealth: number;
+};
+
+export const AttackSwing = {
+  serialize(
+    attackerId: number,
+    targetId: number,
+    damage: number,
+    targetHealth: number,
+  ) {
+    return [Opcode.AttackSwing, attackerId, targetId, damage, targetHealth];
+  },
+
+  deserialize(data: Serialized) {
+    let i = 0;
+    return {
+      opcode: data[i++] as number,
+      attackerId: data[i++] as number,
+      targetId: data[i++] as number,
+      damage: data[i++] as number,
+      targetHealth: data[i++] as number,
+    };
+  },
+};
+
+export type AttackStop = {
+  opcode: Opcode;
+};
+
+export const AttackStop = {
+  serialize() {
+    return [Opcode.AttackStop];
+  },
+
+  deserialize(data: Serialized) {
+    let i = 0;
+    return {
+      opcode: data[i++] as number,
+    };
+  },
+};
+
+export type Respawn = {
+  opcode: Opcode;
+  id: number;
+  x: number;
+  y: number;
+  z: number;
+  orientation: number;
+};
+
+export const Respawn = {
+  serialize(id: number, x: number, y: number, z: number, orientation: number) {
+    return [Opcode.Respawn, id, x, y, z, orientation];
+  },
+
+  deserialize(data: Serialized) {
+    let i = 0;
+    return {
+      opcode: data[i++] as number,
+      id: data[i++] as number,
+      x: data[i++] as number,
+      y: data[i++] as number,
+      z: data[i++] as number,
+      orientation: data[i++] as number,
+    };
+  },
+};
+
 export const clientHandlers = {
   welcome: handlers.handleWelcome,
   spawn: handlers.handleSpawn,
   despawn: handlers.handleDespawn,
   move: handlers.handleMove,
   chatMessage: handlers.handleChatMessage,
+  attackSwing: handlers.handleAttackSwing,
+  respawn: handlers.handleRespawn,
 };

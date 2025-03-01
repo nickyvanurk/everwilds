@@ -20,6 +20,12 @@ export class Socket extends EventEmitter {
         case Packet.Opcode.ChatMessage:
           this.emit('chatMessage', Packet.ChatMessage.deserialize(data));
           break;
+        case Packet.Opcode.AttackStart:
+          this.emit('attackStart', Packet.AttackStart.deserialize(data));
+          break;
+        case Packet.Opcode.AttackStop:
+          this.emit('attackStop', Packet.AttackStop.deserialize(data));
+          break;
         default:
           log.error(`No handler found for opcode: ${opcode}`);
       }

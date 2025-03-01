@@ -27,9 +27,14 @@ export class GameServer {
       let player: Player | null = null;
 
       socket.on('hello', ({ playerName }) => {
-        playerName = `Player`;
+        playerName = 'Player';
         player = new Player(socket, playerName);
         player.name += `${player.id}`;
+        player.x = Math.random() * 15;
+        player.y = 0;
+        player.z = Math.random() * 15;
+        player.orientation = Math.random() * Math.PI * 2;
+
         this.world.addPlayer(player);
 
         socket.send(
@@ -58,7 +63,7 @@ export class GameServer {
           player!.id,
         );
 
-        log.info(`Player ${ player.name} joined the game`);
+        log.info(`Player ${player.name} joined the game`);
         this.sockets[this.socketIdCounter] = socket;
       });
 
@@ -96,6 +101,61 @@ export class GameServer {
         this.world.broadcast(
           Packet.ChatMessage.serialize(player.name, message),
         );
+      });
+
+      socket.on('attackStart', ({ targetId }) => {
+        if (!player) return;
+
+        const targetEntity = this.world.getPlayerById(targetId);
+        if (!targetEntity) return;
+
+        if (player.id === targetId) return;
+
+        player.startAttack(targetEntity);
+
+        player.onAttack = () => {
+          if (!player || !targetEntity) {
+            log.error('Player or target entity is missing');
+            return;
+          }
+
+          if (targetEntity.isAlive()) {
+            const damage = 20;
+            targetEntity.damage(damage);
+
+            this.world.broadcast(
+              Packet.AttackSwing.serialize(
+                player.id,
+                targetId,
+                damage,
+                targetEntity.health.current,
+              ),
+            );
+
+            if (!targetEntity.isAlive()) {
+              targetEntity.x = Math.random() * 15;
+              targetEntity.y = 0;
+              targetEntity.z = Math.random() * 15;
+              targetEntity.health.current = targetEntity.health.max;
+              targetEntity.orientation = Math.random() * Math.PI * 2;
+              this.world.broadcast(
+                Packet.Respawn.serialize(
+                  targetEntity.id,
+                  targetEntity.x,
+                  targetEntity.y,
+                  targetEntity.z,
+                  targetEntity.orientation,
+                ),
+              );
+            }
+          }
+        };
+      });
+
+      socket.on('attackStop', () => {
+        if (!player) return;
+
+        player.stopAttack();
       });
     });
 

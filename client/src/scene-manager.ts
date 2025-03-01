@@ -155,4 +155,10 @@ export class SceneManager extends EventEmitter {
       position: { x: point.x, y: point.y, z: point.z },
     };
   }
+
+  setCameraYaw(yaw: number) {
+    //@ts-ignore
+    this.controls._sphericalDelta.theta = yaw - this.controls._spherical.theta;
+    this.controls.update();
+  }
 }

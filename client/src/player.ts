@@ -10,6 +10,7 @@ export class Player {
   socket: Socket | null = null;
   character!: Character;
   target?: Character;
+  isAttacking = false;
 
   private timeSinceLastMovePacket = 0;
 
@@ -101,5 +102,15 @@ export class Player {
       this.target.targeted = false;
       this.target = undefined;
     }
+  }
+
+  startAttack(target: Character) {
+    this.isAttacking = true;
+    this.socket?.send(Packet.AttackStart.serialize(target.id));
+  }
+
+  stopAttack() {
+    this.isAttacking = false;
+    this.socket?.send(Packet.AttackStop.serialize());
   }
 }
