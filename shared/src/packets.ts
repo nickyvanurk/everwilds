@@ -11,6 +11,7 @@ export enum Opcode {
   AttackStart,
   AttackSwing,
   AttackStop,
+  Respawn,
 }
 
 export type Serialized = (string | number)[];
@@ -244,7 +245,12 @@ export type AttackSwing = {
 };
 
 export const AttackSwing = {
-  serialize(attackerId: number, targetId: number, damage: number, targetHealth: number) {
+  serialize(
+    attackerId: number,
+    targetId: number,
+    damage: number,
+    targetHealth: number,
+  ) {
     return [Opcode.AttackSwing, attackerId, targetId, damage, targetHealth];
   },
 
@@ -277,6 +283,33 @@ export const AttackStop = {
   },
 };
 
+export type Respawn = {
+  opcode: Opcode;
+  id: number;
+  x: number;
+  y: number;
+  z: number;
+  orientation: number;
+};
+
+export const Respawn = {
+  serialize(id: number, x: number, y: number, z: number, orientation: number) {
+    return [Opcode.Respawn, id, x, y, z, orientation];
+  },
+
+  deserialize(data: Serialized) {
+    let i = 0;
+    return {
+      opcode: data[i++] as number,
+      id: data[i++] as number,
+      x: data[i++] as number,
+      y: data[i++] as number,
+      z: data[i++] as number,
+      orientation: data[i++] as number,
+    };
+  },
+};
+
 export const clientHandlers = {
   welcome: handlers.handleWelcome,
   spawn: handlers.handleSpawn,
@@ -284,4 +317,5 @@ export const clientHandlers = {
   move: handlers.handleMove,
   chatMessage: handlers.handleChatMessage,
   attackSwing: handlers.handleAttackSwing,
+  respawn: handlers.handleRespawn,
 };

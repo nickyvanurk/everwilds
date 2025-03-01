@@ -246,7 +246,7 @@ export class Character {
     }
   }
 
-  setPosition(x: number, y: number, z: number) {
+  setPosition(x: number, y: number, z: number, skipDeadReckoning = false) {
     if (this.remoteControlled) {
       this.deadReckoningPosition.set(x, y, z);
 
@@ -259,6 +259,10 @@ export class Character {
       const len = this.positionError.length();
       const t = len < 0.25 ? 0 : len > 1 ? 1 : len - 0.25 / 0.75;
       this.errorCorrectionFactor = lerp(0.85, 0.2, t);
+
+      if (skipDeadReckoning) {
+        this.positionError.setScalar(0);
+      }
     } else {
       this.position.set(x, y, z);
     }

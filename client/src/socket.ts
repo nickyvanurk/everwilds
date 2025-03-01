@@ -95,6 +95,9 @@ export class Socket extends EventEmitter {
       case Packet.Opcode.AttackSwing:
         this.emit('attackSwing', Packet.AttackSwing.deserialize(data));
         break;
+      case Packet.Opcode.Respawn:
+        this.emit('respawn', Packet.Respawn.deserialize(data));
+        break;
       default:
         log.error(`No handler found for opcode: ${opcode}`);
     }

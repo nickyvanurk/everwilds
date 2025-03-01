@@ -7,7 +7,6 @@ import { HUD } from './hud';
 import { UI } from './ui';
 import { Player } from './player';
 import { input } from './input';
-import * as Packet from '../../shared/src/packets';
 
 export class Game {
   sceneManager = new SceneManager();

@@ -30,6 +30,11 @@ export class GameServer {
         playerName = 'Player';
         player = new Player(socket, playerName);
         player.name += `${player.id}`;
+        player.x = Math.random() * 15;
+        player.y = 0;
+        player.z = Math.random() * 15;
+        player.orientation = Math.random() * Math.PI * 2;
+
         this.world.addPlayer(player);
 
         socket.send(
@@ -117,6 +122,7 @@ export class GameServer {
           if (targetEntity.isAlive()) {
             const damage = 20;
             targetEntity.damage(damage);
+
             this.world.broadcast(
               Packet.AttackSwing.serialize(
                 player.id,
@@ -125,6 +131,23 @@ export class GameServer {
                 targetEntity.health.current,
               ),
             );
+
+            if (!targetEntity.isAlive()) {
+              targetEntity.x = Math.random() * 15;
+              targetEntity.y = 0;
+              targetEntity.z = Math.random() * 15;
+              targetEntity.health.current = targetEntity.health.max;
+              targetEntity.orientation = Math.random() * Math.PI * 2;
+              this.world.broadcast(
+                Packet.Respawn.serialize(
+                  targetEntity.id,
+                  targetEntity.x,
+                  targetEntity.y,
+                  targetEntity.z,
+                  targetEntity.orientation,
+                ),
+              );
+            }
           }
         };
       });
