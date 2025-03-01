@@ -239,11 +239,12 @@ export type AttackSwing = {
   opcode: Opcode;
   attackerId: number;
   targetId: number;
+  damage: number;
 };
 
 export const AttackSwing = {
-  serialize(attackerId: number, targetId: number) {
-    return [Opcode.AttackSwing, attackerId, targetId];
+  serialize(attackerId: number, targetId: number, damage: number) {
+    return [Opcode.AttackSwing, attackerId, targetId, damage];
   },
 
   deserialize(data: Serialized) {
@@ -252,6 +253,7 @@ export const AttackSwing = {
       opcode: data[i++] as number,
       attackerId: data[i++] as number,
       targetId: data[i++] as number,
+      damage: data[i++] as number,
     };
   },
 };

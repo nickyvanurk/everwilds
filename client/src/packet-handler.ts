@@ -67,7 +67,7 @@ export function handleChatMessage(
 
 export function handleAttackSwing(
   this: Game,
-  { attackerId, targetId }: Packet.AttackSwing,
+  { attackerId, targetId, damage }: Packet.AttackSwing,
 ) {
-  console.log(`Received attack swing: ${attackerId} -> ${targetId}`);
+  console.log(`Received attack swing: ${attackerId} -> ${targetId} for ${damage} damage`);
 }

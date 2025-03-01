@@ -110,7 +110,7 @@ export class GameServer {
 
         player.onAttack = () => {
           this.world.broadcast(
-            Packet.AttackSwing.serialize(player!.id, targetId),
+            Packet.AttackSwing.serialize(player!.id, targetId, 20),
           );
         };
       });
