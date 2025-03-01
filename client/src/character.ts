@@ -45,9 +45,13 @@ export class Character {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     geometry.translate(0, 1, 0);
     geometry.computeBoundingBox();
-    const material = new THREE.MeshBasicMaterial();
+    const material = new THREE.MeshPhongMaterial();
     material.color.setHex(color);
+    material.emissive.setHex(color);
+    material.emissiveIntensity = 1;
     const body = new THREE.Mesh(geometry, material);
+    body.castShadow = true;
+    body.receiveShadow = true;
     body.userData.id = this.id;
     this.meshBody = body;
     root.add(body);
@@ -79,10 +83,12 @@ export class Character {
     const footMaterial = new THREE.MeshBasicMaterial({ color: 0x212222 });
     const leftFoot = new THREE.Mesh(footGeometry, footMaterial);
     leftFoot.position.set(-0.5, 0.15, 0);
+    leftFoot.castShadow = true;
     this.feetRoot.add(leftFoot);
     this.meshLeftFoot = leftFoot;
     const rightFoot = new THREE.Mesh(footGeometry, footMaterial);
     rightFoot.position.set(0.5, 0.15, 0);
+    rightFoot.castShadow = true;
     this.feetRoot.add(rightFoot);
     this.meshRightFoot = rightFoot;
     root.add(this.feetRoot);

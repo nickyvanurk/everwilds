@@ -7,6 +7,7 @@ import type { Character } from './character';
 export class SceneManager extends EventEmitter {
   renderer: THREE.WebGLRenderer;
   camera: THREE.PerspectiveCamera;
+  directionalLight!: THREE.DirectionalLight;
 
   private scene: THREE.Scene;
   private clock: THREE.Clock;
@@ -14,6 +15,7 @@ export class SceneManager extends EventEmitter {
   private trackballControls: TrackballControls;
   private cameraTarget: Character | null = null;
   private raycaster = new THREE.Raycaster();
+  private shadowFloor!: THREE.Mesh;
 
   constructor() {
     super();
@@ -22,9 +24,12 @@ export class SceneManager extends EventEmitter {
       antialias: true,
       stencil: true, // so masks work in pixijs
     });
+    this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.toneMapping = THREE.ReinhardToneMapping;
     document.body.appendChild(this.renderer.domElement);
     this.renderer.setClearColor(0x3e3e3e);
+    this.renderer.shadowMap.enabled = true;
 
     const horizontalFovToVerticalFov = (hFov: number) => {
       // NOTE(nick): Uses the aspect ratio of the screen to convert the horizontal
@@ -64,6 +69,8 @@ export class SceneManager extends EventEmitter {
     this.trackballControls.minDistance = 0.01;
     this.trackballControls.maxDistance = 60;
 
+    this.setCameraPitch((60 * Math.PI) / 180);
+
     addEventListener('resize', () => {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -75,8 +82,39 @@ export class SceneManager extends EventEmitter {
   }
 
   private setupTestScene() {
-    const gridHelper = new THREE.GridHelper(10, 10);
+    const gridHelper = new THREE.GridHelper(1000, 1000, 0x4e4e4e, 0x4e4e4e);
     this.scene.add(gridHelper);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    ambientLight.intensity = 1.5;
+    this.scene.add(ambientLight);
+
+    this.scene.fog = new THREE.Fog(0x3e3e3e, 10, 150);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
+    directionalLight.position.set(20, 100, 20);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.shadow.camera.near = 0.5;
+    directionalLight.shadow.camera.far = 500;
+    directionalLight.shadow.camera.left = -20;
+    directionalLight.shadow.camera.right = 20;
+    directionalLight.shadow.camera.top = 20;
+    directionalLight.shadow.camera.bottom = -20;
+    this.scene.add(directionalLight);
+    this.scene.add(directionalLight.target);
+    this.directionalLight = directionalLight;
+
+    const geometry = new THREE.PlaneGeometry(100, 100);
+    geometry.rotateX(-Math.PI / 2);
+    const floor = new THREE.Mesh(
+      geometry,
+      new THREE.ShadowMaterial({ opacity: 0.2 }),
+    );
+    floor.receiveShadow = true;
+    this.shadowFloor = floor;
+    this.scene.add(floor);
   }
 
   startRenderLoop(updateCallback: () => void) {
@@ -121,6 +159,15 @@ export class SceneManager extends EventEmitter {
   }
 
   render() {
+    // Move shadow floor with camera
+    this.shadowFloor.position.x = this.controls.target.x;
+    this.shadowFloor.position.z = this.controls.target.z;
+    this.directionalLight.target.position.x = this.controls.target.x;
+    this.directionalLight.target.position.z = this.controls.target.z;
+    this.directionalLight.position.x = this.controls.target.x + 20;
+    this.directionalLight.position.y = this.controls.target.y + 100;
+    this.directionalLight.position.z = this.controls.target.z + 20;
+
     this.renderer.resetState();
     this.renderer.render(this.scene, this.camera);
   }
@@ -162,6 +209,12 @@ export class SceneManager extends EventEmitter {
   setCameraYaw(yaw: number) {
     //@ts-ignore
     this.controls._sphericalDelta.theta = yaw - this.controls._spherical.theta;
+    this.controls.update();
+  }
+
+  setCameraPitch(pitch: number) {
+    //@ts-ignore
+    this.controls._sphericalDelta.phi = pitch - this.controls._spherical.phi;
     this.controls.update();
   }
 }

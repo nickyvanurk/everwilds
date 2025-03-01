@@ -30,7 +30,7 @@ export class GameServer {
 
       socket.on('hello', ({ playerName }) => {
         playerName = 'Player';
-        const color = this.color.setHSL(Math.random(), 0.9, 0.5).getHex();
+        const color = this.color.setHSL(Math.random(), 0.96, 0.5).getHex();
         player = new Player(socket, playerName, color);
         player.name += `${player.id}`;
         player.x = Math.random() * 15;
