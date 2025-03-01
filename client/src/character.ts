@@ -35,7 +35,10 @@ export class Character {
   isForward = false;
   isBackward = false;
 
-  constructor(public name: string) {
+  constructor(
+    public name: string,
+    public color: number,
+  ) {
     const root = new THREE.Object3D();
 
     // Body
@@ -43,7 +46,7 @@ export class Character {
     geometry.translate(0, 1, 0);
     geometry.computeBoundingBox();
     const material = new THREE.MeshBasicMaterial();
-    material.color.setHSL(Math.random(), 0.9, 0.5);
+    material.color.setHex(color);
     const body = new THREE.Mesh(geometry, material);
     body.userData.id = this.id;
     this.meshBody = body;

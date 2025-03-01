@@ -63,6 +63,7 @@ export class World {
           other.y,
           other.z,
           other.orientation,
+          other.color,
         ),
       );
     }

@@ -39,6 +39,7 @@ export type Welcome = {
   y: number;
   z: number;
   orientation: number;
+  color: number;
 };
 
 export const Welcome = {
@@ -50,8 +51,9 @@ export const Welcome = {
     y: number,
     z: number,
     orientation: number,
+    color: number,
   ) {
-    return [Opcode.Welcome, id, flags, name, x, y, z, orientation];
+    return [Opcode.Welcome, id, flags, name, x, y, z, orientation, color];
   },
 
   deserialize(data: Serialized) {
@@ -65,6 +67,7 @@ export const Welcome = {
       y: data[i++] as number,
       z: data[i++] as number,
       orientation: data[i++] as number,
+      color: data[i++] as number,
     };
   },
 };
@@ -78,6 +81,7 @@ export type Spawn = {
   y: number;
   z: number;
   orientation: number;
+  color: number;
 };
 
 export const Spawn = {
@@ -89,8 +93,9 @@ export const Spawn = {
     y: number,
     z: number,
     orientation: number,
+    color: number,
   ) {
-    return [Opcode.Spawn, id, flags, name, x, y, z, orientation];
+    return [Opcode.Spawn, id, flags, name, x, y, z, orientation, color];
   },
 
   deserialize(data: Serialized) {
@@ -104,6 +109,7 @@ export const Spawn = {
       y: data[i++] as number,
       z: data[i++] as number,
       orientation: data[i++] as number,
+      color: data[i++] as number,
     };
   },
 };

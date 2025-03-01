@@ -23,6 +23,7 @@ export class Player {
   constructor(
     public socket: Socket,
     public name: string,
+    public color: number,
   ) {
     this.id = Number.parseInt(`${Player.getNextId()}`);
   }

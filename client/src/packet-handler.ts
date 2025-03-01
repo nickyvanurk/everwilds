@@ -3,13 +3,13 @@ import { Character } from './character';
 import type { Game } from './game';
 
 export function handleWelcome(this: Game, data: Packet.Welcome) {
-  const { id, flags, name, x, y, z, orientation } = data;
+  const { id, flags, name, x, y, z, orientation, color } = data;
 
   log.debug(`Received player ID from server: ${id}`);
 
   this.player.socket = this.networkManager.socket;
 
-  const playerCharacter = new Character(name);
+  const playerCharacter = new Character(name, color);
   playerCharacter.setId(id);
   playerCharacter.setFlags(flags);
   playerCharacter.setPosition(x, y, z, true);
@@ -24,11 +24,11 @@ export function handleWelcome(this: Game, data: Packet.Welcome) {
 }
 
 export function handleSpawn(this: Game, data: Packet.Spawn) {
-  const { id, flags, name, x, y, z, orientation } = data;
+  const { id, flags, name, x, y, z, orientation, color } = data;
 
   log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
 
-  const character = new Character(name);
+  const character = new Character(name, color);
   character.remoteControlled = true;
   character.setId(id);
   character.setFlags(flags);

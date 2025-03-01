@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import type { WebSocketServer } from 'ws';
 import { World } from './world';
 import { Socket } from './socket';
@@ -11,6 +12,7 @@ export class GameServer {
 
   private sockets: { [key: number]: Socket } = {};
   private socketIdCounter = 0;
+  private color = new THREE.Color();
 
   constructor(wss: WebSocketServer) {
     this.server = wss;
@@ -28,7 +30,8 @@ export class GameServer {
 
       socket.on('hello', ({ playerName }) => {
         playerName = 'Player';
-        player = new Player(socket, playerName);
+        const color = this.color.setHSL(Math.random(), 0.9, 0.5).getHex();
+        player = new Player(socket, playerName, color);
         player.name += `${player.id}`;
         player.x = Math.random() * 15;
         player.y = 0;
@@ -46,6 +49,7 @@ export class GameServer {
             player.y,
             player.z,
             player.orientation,
+            player.color,
           ),
         );
 
@@ -59,6 +63,7 @@ export class GameServer {
             player!.y,
             player!.z,
             player!.orientation,
+            player.color,
           ),
           player!.id,
         );
