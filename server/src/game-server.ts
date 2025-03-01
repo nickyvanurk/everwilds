@@ -147,6 +147,8 @@ export class GameServer {
                   targetEntity.orientation,
                 ),
               );
+
+              player.stopAttack();
             }
           }
         };

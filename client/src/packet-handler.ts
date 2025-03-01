@@ -104,6 +104,11 @@ export function handleRespawn(
 
     if (id === this.player.character.id) {
       this.sceneManager.setCameraYaw(orientation);
+      this.player.clearTarget();
+    }
+
+    if (this.player.target === entity) {
+      this.player.clearTarget();
     }
   }
 }

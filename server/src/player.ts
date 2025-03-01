@@ -8,6 +8,7 @@ export class Player {
   z = 0;
   orientation = 0;
   health = { current: 100, max: 100, min: 0 };
+  attackTarget?: Player;
 
   onAttack: (() => void) | null = null;
 
@@ -18,7 +19,6 @@ export class Player {
   private attackCooldown = 1;
   private isAttacking = false;
   private attackRange = 2.5;
-  private attackTarget?: Player;
 
   constructor(
     public socket: Socket,
@@ -70,6 +70,10 @@ export class Player {
   }
 
   damage(amount: number) {
+    if (this.health.current - amount <= 0) {
+      this.stopAttack();
+    }
+
     this.health.current = Math.max(
       this.health.min,
       this.health.current - amount,
