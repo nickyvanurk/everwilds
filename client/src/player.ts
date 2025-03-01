@@ -31,14 +31,16 @@ export class Player {
   update(dt: number) {
     if (!this.character) return;
 
+    const isForward = actions.forward || (mouseState.lmb && mouseState.rmb);
+
     this.character.isStrafeLeft = actions.left;
     this.character.isStrafeRight = actions.right;
-    this.character.isForward = actions.forward;
+    this.character.isForward = isForward;
     this.character.isBackward = actions.backward;
 
     const input = new THREE.Vector3();
     input.x = actions.left ? -1 : actions.right ? 1 : 0;
-    input.z = actions.forward ? -1 : actions.backward ? 1 : 0;
+    input.z = isForward ? -1 : actions.backward ? 1 : 0;
     input.applyAxisAngle(
       new THREE.Vector3(0, 1, 0),
       this.character.orientation,
