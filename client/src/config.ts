@@ -17,3 +17,5 @@ export const keyBindings = [
   { action: 'jump', key: 'Space' },
   { action: 'toggleNameplates', key: 'KeyV' },
 ];
+
+export const nameplatesVisibleByDefault = true;

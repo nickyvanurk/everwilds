@@ -5,12 +5,13 @@ import * as PIXI from 'pixi.js';
 import type { Game } from './game';
 import type { Character } from './character';
 import { input } from './input';
+import * as config from './config';
 
 export class HUD {
   private pixiRenderer: PIXI.WebGLRenderer;
   private pixiScene = new PIXI.Container();
 
-  private nameplatesVisible = false;
+  private nameplatesVisible = config.nameplatesVisibleByDefault;
   private names = new Map<Character, THREE.Mesh>();
   private labels = new Map<Character, PIXI.Text>();
   private healthBars = new Map<Character, PIXI.Graphics>();
