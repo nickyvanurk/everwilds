@@ -8,7 +8,7 @@ import type { SceneManager } from './scene-manager';
 
 export class Player {
   socket: Socket | null = null;
-  character!: Character;
+  character?: Character; // TODO: Don't make it optional
   target?: Character;
   isAttacking = false;
 
@@ -21,7 +21,7 @@ export class Player {
     input.on('right', this.sendMovementPacket.bind(this));
 
     sceneManager.on('cameraYawChanged', (yaw: number) => {
-      if (mouseState.rmb) {
+      if (mouseState.rmb && this.character) {
         this.character.setOrientation(yaw);
         this.sendMovementPacket();
       }
@@ -63,6 +63,8 @@ export class Player {
   }
 
   sendMovementPacket(resetTimer = true, jumping = false) {
+    if (!this.character) return;
+
     let movementFlags = 0;
     if (actions.forward) movementFlags |= 1;
     if (actions.backward) movementFlags |= 2;

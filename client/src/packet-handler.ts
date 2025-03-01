@@ -85,7 +85,7 @@ export function handleAttackSwing(
   target.health.current = targetHealth;
 
   const attackerName =
-    attacker.id === this.player.character.id ? 'Your' : `${attacker.name}'s`;
+    attacker.id === this.player.character?.id ? 'Your' : `${attacker.name}'s`;
 
   log.info(
     `${attackerName} melee swing hits ${target.name} for ${damage} damage`,
@@ -102,7 +102,7 @@ export function handleRespawn(
     entity.setOrientation(orientation);
     entity.health.current = entity.health.max;
 
-    if (id === this.player.character.id) {
+    if (id === this.player.character?.id) {
       this.sceneManager.setCameraYaw(orientation);
       this.player.clearTarget();
     }
