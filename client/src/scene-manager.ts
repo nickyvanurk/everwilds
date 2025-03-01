@@ -26,8 +26,11 @@ export class SceneManager extends EventEmitter {
     document.body.appendChild(this.renderer.domElement);
     this.renderer.setClearColor(0x3e3e3e);
 
-    const aspect = window.innerWidth / window.innerHeight;
     const horizontalFovToVerticalFov = (hFov: number) => {
+      // NOTE(nick): Uses the aspect ratio of the screen to convert the horizontal
+      // fov to vertical fov. This keeps the game looking consistent no matter the
+      // size of the window when the game was loaded.
+      const aspect = window.screen.width / window.screen.height;
       return (
         (2 * Math.atan(Math.tan((hFov * Math.PI) / 180 / 2) / aspect) * 180) /
         Math.PI
@@ -36,7 +39,7 @@ export class SceneManager extends EventEmitter {
 
     this.camera = new THREE.PerspectiveCamera(
       horizontalFovToVerticalFov(90),
-      aspect,
+      window.innerWidth / window.innerHeight,
       0.1,
       1000,
     );
