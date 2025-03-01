@@ -109,9 +109,23 @@ export class GameServer {
         player.startAttack(targetEntity);
 
         player.onAttack = () => {
-          this.world.broadcast(
-            Packet.AttackSwing.serialize(player!.id, targetId, 20),
-          );
+          if (!player || !targetEntity) {
+            log.error('Player or target entity is missing');
+            return;
+          }
+
+          if (targetEntity.isAlive()) {
+            const damage = 20;
+            targetEntity.damage(damage);
+            this.world.broadcast(
+              Packet.AttackSwing.serialize(
+                player.id,
+                targetId,
+                damage,
+                targetEntity.health.current,
+              ),
+            );
+          }
         };
       });
 

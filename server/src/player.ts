@@ -7,6 +7,7 @@ export class Player {
   y = 0;
   z = 0;
   orientation = 0;
+  health = { current: 100, max: 100, min: 0 };
 
   onAttack: (() => void) | null = null;
 
@@ -40,25 +41,19 @@ export class Player {
 
   update(dt: number) {
     if (this.isAttacking && this.attackTarget) {
-      const distance = Math.sqrt(
-        (this.x - this.attackTarget.x) ** 2 +
-          (this.y - this.attackTarget.y) ** 2 +
-          (this.z - this.attackTarget.z) ** 2,
-      );
-
-      if (distance > this.attackRange) {
-        this.timeSinceLastMoveAttack = 0;
-        return;
-      }
-
-      if (this.timeSinceLastMoveAttack === 0) {
-        this.onAttack?.();
-      }
-
       this.timeSinceLastMoveAttack += dt / 1000;
 
       if (this.timeSinceLastMoveAttack > this.attackCooldown) {
-        this.timeSinceLastMoveAttack = 0;
+        const distance = Math.sqrt(
+          (this.x - this.attackTarget.x) ** 2 +
+            (this.y - this.attackTarget.y) ** 2 +
+            (this.z - this.attackTarget.z) ** 2,
+        );
+
+        if (distance <= this.attackRange) {
+          this.timeSinceLastMoveAttack = 0;
+          this.onAttack?.();
+        }
       }
     }
   }
@@ -72,6 +67,17 @@ export class Player {
     this.attackTarget = undefined;
     this.timeSinceLastMoveAttack = 0;
     this.isAttacking = false;
+  }
+
+  damage(amount: number) {
+    this.health.current = Math.max(
+      this.health.min,
+      this.health.current - amount,
+    );
+  }
+
+  isAlive() {
+    return this.health.current > 0;
   }
 
   static getNextId() {

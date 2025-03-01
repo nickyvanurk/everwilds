@@ -11,6 +11,7 @@ export class Character {
   gravity = -9.81;
   remoteControlled = false;
   targeted = false;
+  health = { current: 100, max: 100, min: 0 };
 
   private deadReckoningPosition = new THREE.Vector3();
   private positionError = new THREE.Vector3();
@@ -160,7 +161,6 @@ export class Character {
       const moveDirAngle = Math.atan2(moveZ, moveX);
       const isMoving = moveX !== 0 || moveZ !== 0;
       this.feetRoot.rotation.y = isMoving ? -(moveDirAngle + Math.PI / 2) : 0;
-
 
       const stepSpeed = (this.speed / this.stepLength) * Math.PI;
 

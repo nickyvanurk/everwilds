@@ -67,7 +67,26 @@ export function handleChatMessage(
 
 export function handleAttackSwing(
   this: Game,
-  { attackerId, targetId, damage }: Packet.AttackSwing,
+  { attackerId, targetId, damage, targetHealth }: Packet.AttackSwing,
 ) {
-  console.log(`Received attack swing: ${attackerId} -> ${targetId} for ${damage} damage`);
+  const attacker = this.entityManager.getEntity(attackerId);
+  if (!attacker) {
+    log.error(`Received attack swing for unknown attacker: ${attackerId}`);
+    return;
+  }
+
+  const target = this.entityManager.getEntity(targetId);
+  if (!target) {
+    log.error(`Received attack swing for unknown target: ${targetId}`);
+    return;
+  }
+
+  target.health.current = targetHealth;
+
+  const attackerName =
+    attacker.id === this.player.character.id ? 'Your' : `${attacker.name}'s`;
+
+  log.info(
+    `${attackerName} melee swing hits ${target.name} for ${damage} damage`,
+  );
 }

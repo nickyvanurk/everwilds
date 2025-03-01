@@ -192,6 +192,14 @@ export class HUD {
         const healthBarX = x - healthBar.width / 2;
         const healthBarY = y - healthBar.height / 2;
         healthBar.position.set(healthBarX, healthBarY);
+
+        const healthFraction = character.health.current / character.health.max;
+
+        healthBar.rect(0, 0, 100, 10);
+        healthBar.fill(0xff0000);
+
+        healthBar.rect(0, 0, 100 * healthFraction, 10);
+        healthBar.fill(0x00ff00);
       }
     }
 
