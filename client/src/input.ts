@@ -8,7 +8,14 @@ export const actions: { [action: string]: boolean } = {};
 export function setKeyBindings(bindings: KeyBinding[]) {
   for (const binding of bindings) {
     actions[binding.action] = false;
-    keyBindings[binding.key] = binding.action;
+
+    if (Array.isArray(binding.key)) {
+      for (const key of binding.key) {
+        keyBindings[key] = binding.action;
+      }
+    } else {
+      keyBindings[binding.key] = binding.action;
+    }
   }
 }
 
@@ -130,5 +137,5 @@ window.onpointermove = (ev: PointerEvent) => {
 
 type KeyBinding = {
   action: string;
-  key: string;
+  key: string | string[];
 };

@@ -10,10 +10,10 @@ export const assets = [
 ];
 
 export const keyBindings = [
-  { action: 'forward', key: 'KeyW' },
-  { action: 'backward', key: 'KeyS' },
-  { action: 'left', key: 'KeyA' },
-  { action: 'right', key: 'KeyD' },
+  { action: 'forward', key: ['KeyW', 'ArrowUp'] },
+  { action: 'backward', key: ['KeyS', 'ArrowDown'] },
+  { action: 'left', key: ['KeyA', 'ArrowLeft'] },
+  { action: 'right', key: ['KeyD', 'ArrowRight'] },
   { action: 'jump', key: 'Space' },
   { action: 'toggleNameplates', key: 'KeyV' },
 ];
