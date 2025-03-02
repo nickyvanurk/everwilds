@@ -5,7 +5,32 @@ export const assets = [
   {
     type: 'font',
     name: 'helvetiker',
-    src: 'fonts/helvetiker_regular.typeface.json',
+    src: 'helvetiker_regular.typeface.json',
+  },
+  {
+    type: 'sound',
+    name: 'background',
+    src: 'background.ogg',
+  },
+  {
+    type: 'sound',
+    name: 'footsteps',
+    src: 'footsteps2.wav',
+  },
+  {
+    type: 'sound',
+    name: 'prejump',
+    src: 'prejump6.wav',
+  },
+  {
+    type: 'sound',
+    name: 'postjump',
+    src: 'postjump.wav',
+  },
+  {
+    type: 'sound',
+    name: 'birds',
+    src: 'birds.wav',
   },
 ];
 

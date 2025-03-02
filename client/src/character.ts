@@ -10,7 +10,6 @@ export class Character {
   speed = 8;
   jumpHeight = 2.25;
   gravity = -9.81;
-  remoteControlled = false;
   targeted = false;
   health = { current: 100, max: 100, min: 0 };
 
@@ -38,9 +37,14 @@ export class Character {
 
   private floorHeight = 0;
 
+  private prejump?: THREE.PositionalAudio;
+  // private postjump: THREE.Audio;
+  // private footsteps: THREE.Audio;
+
   constructor(
     public name: string,
     public color: number,
+    public remoteControlled = false,
   ) {
     const root = new THREE.Object3D();
 
@@ -97,10 +101,43 @@ export class Character {
     root.add(this.feetRoot);
 
     this.object3d = root;
+
+    if (this.remoteControlled) {
+      gAssetManager.getSound('prejump', (buffer: AudioBuffer) => {
+        const prejump = new THREE.PositionalAudio(
+          game.sceneManager.audioListener,
+        );
+        prejump.setBuffer(buffer);
+        prejump.setVolume(0.1);
+        prejump.setRefDistance(1);
+        prejump.setMaxDistance(40);
+        prejump.setDistanceModel('linear');
+
+        this.prejump = prejump;
+        this.meshBody.add(prejump);
+      });
+    }
+
+    // gAssetManager.getSound('postjump', (buffer: AudioBuffer) => {
+    //   const postjump = new THREE.Audio(game.sceneManager.audioListener);
+    //   postjump.setBuffer(buffer);
+    //   postjump.setVolume(0.1);
+    //   postjump.playbackRate = 1;
+    //   this.postjump = postjump;
+    // });
+
+    // gAssetManager.getSound('footsteps', (buffer: AudioBuffer) => {
+    //   const footsteps = new THREE.Audio(game.sceneManager.audioListener);
+    //   footsteps.setBuffer(buffer);
+    //   footsteps.setVolume(0.1);
+    //   footsteps.playbackRate = 1;
+    //   this.footsteps = footsteps;
+    // });
   }
 
   update(dt: number) {
     this.velocity.y += this.gravity * dt;
+    const wasGrounded = this.isGrounded();
 
     if (this.remoteControlled) {
       this.deadReckoningPosition.x += this.velocity.x * dt;
@@ -147,6 +184,16 @@ export class Character {
       this.velocity.y = 0;
     }
 
+    if (this.isGrounded() && !wasGrounded) {
+      // if (this.footsteps.isPlaying) {
+      //   this.footsteps.stop();
+      // }
+      // if (this.postjump.isPlaying) {
+      //   this.postjump.stop();
+      // }
+      // this.postjump.play();
+    }
+
     this.object3d.position.copy(this.position);
     this.object3d.rotation.y = this.orientation;
 
@@ -188,6 +235,7 @@ export class Character {
       this.meshLeftFoot.rotation.x = -stepOffsetZ + rotOffset;
       this.meshRightFoot.rotation.x = stepOffsetZ + rotOffset;
     } else if (this.isWalking()) {
+      const prevElapsedWalkTime = this.elapsedWalkTime;
       this.elapsedWalkTime += dt;
       this.elapsedIdleTime = 0;
 
@@ -199,6 +247,9 @@ export class Character {
       this.feetRoot.rotation.y = isMoving ? -(moveDirAngle + Math.PI / 2) : 0;
 
       const stepSpeed = (this.speed / this.stepLength) * Math.PI;
+
+      const prevStepOffsetY =
+        Math.sin((prevElapsedWalkTime + 0.5) * stepSpeed) * this.stepAmplitude;
 
       const stepOffsetY =
         Math.sin((this.elapsedWalkTime + 0.5) * stepSpeed) * this.stepAmplitude;
@@ -226,6 +277,17 @@ export class Character {
         Math.abs(Math.sin((this.elapsedWalkTime + 0.5) * stepSpeed)) * 0.1;
       this.meshLeftEye.position.y = 1 + this.meshBody.position.y;
       this.meshRightEye.position.y = 1 + this.meshBody.position.y;
+
+      // Left or right foot just hit the ground
+      if (
+        (prevStepOffsetY > 0 && stepOffsetY < 0) ||
+        (prevStepOffsetY < 0 && stepOffsetY > 0)
+      ) {
+        // if (this.footsteps.isPlaying) {
+        // this.footsteps.stop();
+        // }
+        // this.footsteps.play();
+      }
     } else {
       this.elapsedWalkTime = 0;
       this.elapsedIdleTime += dt;
@@ -323,6 +385,8 @@ export class Character {
     }
 
     this.velocity.y = Math.sqrt(this.jumpHeight * -2 * this.gravity);
+
+    this.prejump?.play();
   }
 
   isWalking() {

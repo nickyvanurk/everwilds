@@ -1,3 +1,4 @@
+import EventEmitter from 'eventemitter3';
 import * as THREE from 'three';
 import { type Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 
@@ -7,20 +8,27 @@ export type AssetSource = {
   src: string;
 };
 
-type Asset = THREE.Texture | Font;
+type Asset = THREE.Texture | Font | AudioBuffer;
 
-export class AssetManager {
-  private loaders: Map<string, FontLoader | THREE.TextureLoader> = new Map();
+export class AssetManager extends EventEmitter {
+  private loaders: Map<
+    string,
+    FontLoader | THREE.TextureLoader | THREE.AudioLoader
+  > = new Map();
   private assets: Map<string, Asset> = new Map();
   private textures: Map<string, THREE.Texture> = new Map();
   private fonts: Map<string, Font> = new Map();
+  private sounds: Map<string, AudioBuffer> = new Map();
 
   constructor(dir = '') {
+    super();
+
     this.loaders.set('font', new FontLoader());
     this.loaders.set('texture', new THREE.TextureLoader());
+    this.loaders.set('sound', new THREE.AudioLoader());
 
-    for (const loader of this.loaders.values()) {
-      loader.setPath(dir);
+    for (const [key, loader] of this.loaders) {
+      loader.setPath(`${dir}/${key}s/`);
     }
   }
 
@@ -39,6 +47,8 @@ export class AssetManager {
             this.textures.set(source.name, asset as THREE.Texture);
           } else if (source.type === 'font') {
             this.fonts.set(source.name, asset as Font);
+          } else if (source.type === 'sound') {
+            this.sounds.set(source.name, asset as AudioBuffer);
           }
 
           loadedAssets.push(asset);
@@ -50,6 +60,8 @@ export class AssetManager {
           if (numLoadedAssets === totalAssets) {
             cb?.(loadedAssets);
           }
+
+          this.emit(`load:${source.name}`, asset);
         },
         undefined,
         error => {
@@ -69,5 +81,17 @@ export class AssetManager {
 
   getFont(name: string) {
     return this.fonts.get(name);
+  }
+
+  getSound(name: string, cb?: (buffer: AudioBuffer) => void) {
+    if (this.sounds.has(name)) {
+      const sound = this.sounds.get(name)!;
+      cb?.(sound);
+      return sound;
+    }
+
+    this.on(`load:${name}`, (buffer: AudioBuffer) => {
+      cb?.(buffer);
+    });
   }
 }

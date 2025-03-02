@@ -28,8 +28,7 @@ export function handleSpawn(this: Game, data: Packet.Spawn) {
 
   log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
 
-  const character = new Character(name, color);
-  character.remoteControlled = true;
+  const character = new Character(name, color, true);
   character.setId(id);
   character.setFlags(flags);
   character.setPosition(x, y, z, true);
