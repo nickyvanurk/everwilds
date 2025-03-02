@@ -33,10 +33,11 @@ export class GameServer {
         const color = this.color.setHSL(Math.random(), 0.96, 0.5).getHex();
         player = new Player(socket, playerName, color);
         player.name += `${player.id}`;
-        player.x = Math.random() * 15;
-        player.y = 0;
-        player.z = Math.random() * 15;
-        player.orientation = Math.random() * Math.PI * 2;
+
+        player.x = -50;
+        player.y = 32;
+        player.z = 3;
+        player.orientation = -Math.PI / 2;
 
         this.world.addPlayer(player);
 
@@ -138,11 +139,12 @@ export class GameServer {
             );
 
             if (!targetEntity.isAlive()) {
-              targetEntity.x = Math.random() * 15;
-              targetEntity.y = 0;
-              targetEntity.z = Math.random() * 15;
+              targetEntity.x = -50;
+              targetEntity.y = 32;
+              targetEntity.z = 3;
+              targetEntity.orientation = -Math.PI / 2;
+
               targetEntity.health.current = targetEntity.health.max;
-              targetEntity.orientation = Math.random() * Math.PI * 2;
               this.world.broadcast(
                 Packet.Respawn.serialize(
                   targetEntity.id,

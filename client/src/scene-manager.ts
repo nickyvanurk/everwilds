@@ -3,6 +3,7 @@ import EventEmitter from 'eventemitter3';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import type { Character } from './character';
+import { chunkData, chunkConfig } from './chunk-data';
 
 export class SceneManager extends EventEmitter {
   renderer: THREE.WebGLRenderer;
@@ -113,8 +114,50 @@ export class SceneManager extends EventEmitter {
       new THREE.ShadowMaterial({ opacity: 0.2 }),
     );
     floor.receiveShadow = true;
+    floor.visible = false;
     this.shadowFloor = floor;
     this.scene.add(floor);
+
+    const renderChunk = (
+      x: number,
+      y: number,
+      z: number,
+      data: { [key: number]: number },
+    ) => {
+      const voxelSize = chunkConfig.voxelSize;
+      const chunkSize = chunkConfig.chunkSize;
+      const chunk = new THREE.Group();
+      chunk.position.set(
+        x * chunkSize * voxelSize,
+        y * chunkSize * voxelSize,
+        z * chunkSize * voxelSize,
+      );
+      for (let x = 0; x < chunkSize; x++) {
+        for (let z = 0; z < chunkSize; z++) {
+          for (let y = 0; y < chunkSize; y++) {
+            const key = x + z * chunkSize + y * chunkSize * chunkSize;
+            if (!data[key]) continue;
+            const voxel = new THREE.Mesh(
+              new THREE.BoxGeometry(voxelSize, voxelSize, voxelSize),
+              new THREE.MeshPhongMaterial({ color: 0xffffff }),
+            );
+            voxel.receiveShadow = true;
+            voxel.position.set(
+              x * voxelSize + voxelSize / 2,
+              y * voxelSize - voxelSize / 2,
+              z * voxelSize + voxelSize / 2 + 1,
+            );
+            chunk.add(voxel);
+          }
+        }
+      }
+      this.scene.add(chunk);
+    };
+
+    for (const [key, data] of Object.entries(chunkData)) {
+      const [x, y, z] = key.split(',').map(Number);
+      renderChunk(x, y, z, data);
+    }
   }
 
   startRenderLoop(updateCallback: () => void) {
