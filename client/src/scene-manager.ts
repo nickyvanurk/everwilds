@@ -9,6 +9,7 @@ export class SceneManager extends EventEmitter {
   renderer: THREE.WebGLRenderer;
   camera: THREE.PerspectiveCamera;
   directionalLight!: THREE.DirectionalLight;
+  audioListener = new THREE.AudioListener();
 
   private scene: THREE.Scene;
   private clock: THREE.Clock;
@@ -78,6 +79,9 @@ export class SceneManager extends EventEmitter {
       this.camera.updateProjectionMatrix();
       this.renderer.render(this.scene, this.camera);
     });
+
+    this.audioListener.context.suspend();
+    this.camera.add(this.audioListener);
 
     this.setupTestScene();
   }

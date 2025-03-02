@@ -13,6 +13,7 @@ export class Player {
   isAttacking = false;
 
   private timeSinceLastMovePacket = 0;
+  private prejump?: THREE.Audio;
 
   constructor(sceneManager: SceneManager) {
     input.on('forward', this.sendMovementPacket.bind(this));
@@ -25,6 +26,13 @@ export class Player {
         this.character.setOrientation(yaw);
         this.sendMovementPacket();
       }
+    });
+
+    gAssetManager.getSound('prejump', (buffer: AudioBuffer) => {
+      const prejump = new THREE.Audio(game.sceneManager.audioListener);
+      prejump.setBuffer(buffer);
+      prejump.setVolume(0.1);
+      this.prejump = prejump;
     });
   }
 
@@ -61,6 +69,7 @@ export class Player {
       this.character.jump();
       this.sendMovementPacket(true, true);
       actions.jump = false;
+      this.prejump?.play();
     }
   }
 

@@ -1,4 +1,5 @@
 import * as config from './config';
+import * as THREE from 'three';
 import { SceneManager } from './scene-manager';
 import { EntityManager } from './entity-manager';
 import { NetworkManager } from './network-manager';
@@ -23,6 +24,22 @@ export class Game {
     this.ui = new UI(this);
 
     gAssetManager.load(config.assets);
+
+    gAssetManager.getSound('background', (buffer: AudioBuffer) => {
+      const background = new THREE.Audio(this.sceneManager.audioListener);
+      background.setBuffer(buffer);
+      background.setVolume(0.1);
+      background.setLoop(true);
+      background.play();
+    });
+
+    gAssetManager.getSound('birds', (buffer: AudioBuffer) => {
+      const birds = new THREE.Audio(this.sceneManager.audioListener);
+      birds.setBuffer(buffer);
+      birds.setVolume(0.3);
+      birds.setLoop(true);
+      birds.play();
+    });
 
     this.player = new Player(this.sceneManager);
   }
