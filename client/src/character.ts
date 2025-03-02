@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { chunkData, chunkConfig } from './chunk-data';
 
 export class Character {
   id = -1;
@@ -6,8 +7,8 @@ export class Character {
   velocity = new THREE.Vector3();
   object3d: THREE.Object3D;
   orientation = 0;
-  speed = 6;
-  jumpHeight = 1;
+  speed = 8;
+  jumpHeight = 2.25;
   gravity = -9.81;
   remoteControlled = false;
   targeted = false;
@@ -34,6 +35,8 @@ export class Character {
   isStrafeRight = false;
   isForward = false;
   isBackward = false;
+
+  private floorHeight = 0;
 
   constructor(
     public name: string,
@@ -116,8 +119,32 @@ export class Character {
       this.position.y += this.velocity.y * dt;
     }
 
-    if (this.position.y < 0) {
-      this.position.y = 0;
+    if (this.position.y < this.floorHeight) {
+      this.position.y = this.floorHeight;
+      this.velocity.y = 0;
+    }
+
+    // Chunk collision detection
+    const voxelSize = chunkConfig.voxelSize;
+    const chunkSize = chunkConfig.chunkSize;
+    const cy = Math.floor((this.position.y + 1) / (chunkSize * voxelSize));
+    const currentChunkKey = `${Math.floor(this.position.x / (chunkSize * voxelSize))},${cy},${Math.floor((this.position.z - 1) / (chunkSize * voxelSize))}`;
+    const data = chunkData[currentChunkKey];
+    if (data) {
+      const x = ((Math.floor(this.position.x / voxelSize) % 16) + 16) % 16;
+      const y =
+        ((Math.floor((this.position.y + 1) / voxelSize) % 16) + 16) % 16;
+      const z =
+        ((Math.floor((this.position.z - 1) / voxelSize) % 16) + 16) % 16;
+      const key = x + z * chunkSize + y * chunkSize * chunkSize;
+      this.floorHeight = data[key]
+        ? y * voxelSize + cy * chunkSize * voxelSize
+        : 0;
+    }
+
+    if (this.position.y < this.floorHeight) {
+      this.position.y = this.floorHeight;
+      this.velocity.y = 0;
     }
 
     this.object3d.position.copy(this.position);
@@ -282,7 +309,7 @@ export class Character {
   }
 
   isGrounded() {
-    return this.position.y === 0;
+    return this.position.y === this.floorHeight;
   }
 
   move(x: number, z: number) {
