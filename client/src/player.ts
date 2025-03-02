@@ -29,7 +29,7 @@ export class Player {
     });
 
     gAssetManager.getSound('prejump', (buffer: AudioBuffer) => {
-      const prejump = new THREE.Audio(game.sceneManager.audioListener);
+      const prejump = new THREE.Audio(sceneManager.audioListener);
       prejump.setBuffer(buffer);
       prejump.setVolume(0.1);
       this.prejump = prejump;

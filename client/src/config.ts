@@ -14,18 +14,8 @@ export const assets = [
   },
   {
     type: 'sound',
-    name: 'footsteps',
-    src: 'footsteps2.wav',
-  },
-  {
-    type: 'sound',
     name: 'prejump',
-    src: 'prejump6.wav',
-  },
-  {
-    type: 'sound',
-    name: 'postjump',
-    src: 'postjump.wav',
+    src: 'prejump.wav',
   },
   {
     type: 'sound',
