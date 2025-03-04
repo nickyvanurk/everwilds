@@ -12,6 +12,7 @@ export class Character {
   gravity = -9.81;
   targeted = false;
   health = { current: 100, max: 100, min: 0 };
+  hasGravity = true;
 
   private deadReckoningPosition = new THREE.Vector3();
   private positionError = new THREE.Vector3();
@@ -136,7 +137,10 @@ export class Character {
   }
 
   update(dt: number) {
-    this.velocity.y += this.gravity * dt;
+    if (this.hasGravity) {
+      this.velocity.y += this.gravity * dt;
+    }
+
     const wasGrounded = this.isGrounded();
 
     if (this.remoteControlled) {
@@ -391,6 +395,12 @@ export class Character {
 
   isWalking() {
     return this.velocity.x !== 0 || this.velocity.z !== 0;
+  }
+
+  fly(x: number, z: number, flyUp: boolean, flyDown: boolean) {
+    this.velocity.x = this.speed * x;
+    this.velocity.z = this.speed * z;
+    this.velocity.y = flyUp ? this.speed : flyDown ? -this.speed : 0;
   }
 }
 
