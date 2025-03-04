@@ -5,12 +5,14 @@ import type { Character } from './character';
 import type { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
 import type { SceneManager } from './scene-manager';
+import { chunkData, pos2voxel } from './chunk-data';
 
 export class Player {
   socket: Socket | null = null;
   character?: Character; // TODO: Don't make it optional
   target?: Character;
   isAttacking = false;
+  traversalMode: 'walk' | 'fly' = 'walk';
 
   private timeSinceLastMovePacket = 0;
   private prejump?: THREE.Audio;
@@ -20,6 +22,30 @@ export class Player {
     input.on('backward', this.sendMovementPacket.bind(this));
     input.on('left', this.sendMovementPacket.bind(this));
     input.on('right', this.sendMovementPacket.bind(this));
+    input.on('toggleFlyMode', (isDown: boolean) => {
+      if (!isDown) return;
+      this.traversalMode = this.traversalMode === 'walk' ? 'fly' : 'walk';
+      if (this.character) {
+        this.character.hasGravity = this.traversalMode === 'walk';
+      }
+    });
+    input.on('printVoxel', (isDown: boolean) => {
+      if (!isDown || !this.character || this.traversalMode !== 'fly') return;
+      const { cx, cy, cz, idx } = pos2voxel(
+        this.character.position.x,
+        this.character.position.y,
+        this.character.position.z,
+      );
+      const chunkId = `${cx},${cy},${cz}`;
+
+      if (chunkData[chunkId][idx]) {
+        delete chunkData[chunkId][idx];
+      } else {
+        chunkData[chunkId][idx] = 1;
+      }
+
+      game.sceneManager.renderChunk(cx, cy, cz, chunkData[chunkId]);
+    });
 
     sceneManager.on('cameraYawChanged', (yaw: number) => {
       if (mouseState.rmb && this.character) {
@@ -63,13 +89,17 @@ export class Player {
       }
     }
 
-    this.character.move(input.x, input.z);
+    if (this.traversalMode === 'walk') {
+      this.character.move(input.x, input.z);
 
-    if (actions.jump && this.character.isGrounded()) {
-      this.character.jump();
-      this.sendMovementPacket(true, true);
-      actions.jump = false;
-      this.prejump?.play();
+      if (actions.jump && this.character.isGrounded()) {
+        this.character.jump();
+        this.sendMovementPacket(true, true);
+        actions.jump = false;
+        this.prejump?.play();
+      }
+    } else {
+      this.character.fly(input.x, input.z, actions.jump, actions.flyDown);
     }
   }
 
