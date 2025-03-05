@@ -9,26 +9,10 @@ export class UI {
 
   constructor(private game: Game) {
     const discord = document.getElementById('discord')!;
-    discord.addEventListener('mousedown', e => e.stopPropagation());
-    discord.addEventListener('touchstart', e => e.stopPropagation());
-    discord.addEventListener('pointerdown', e => e.stopPropagation());
-    discord.addEventListener('click', e => e.stopPropagation());
-    discord.addEventListener('contextmenu', e => e.stopPropagation());
-    discord.addEventListener('wheel', e => e.stopPropagation());
-    discord.addEventListener('pointermove', e => e.stopPropagation());
-    discord.addEventListener('keydown', e => e.stopPropagation());
-    discord.addEventListener('keyup', e => e.stopPropagation());
+    this.stopElementPropagation(discord);
 
     const chatbox = document.getElementById('chatbox')!;
-    chatbox.addEventListener('mousedown', e => e.stopPropagation());
-    chatbox.addEventListener('touchstart', e => e.stopPropagation());
-    chatbox.addEventListener('pointerdown', e => e.stopPropagation());
-    chatbox.addEventListener('click', e => e.stopPropagation());
-    chatbox.addEventListener('contextmenu', e => e.stopPropagation());
-    chatbox.addEventListener('wheel', e => e.stopPropagation());
-    chatbox.addEventListener('pointermove', e => e.stopPropagation());
-    chatbox.addEventListener('keydown', e => e.stopPropagation());
-    chatbox.addEventListener('keyup', e => e.stopPropagation());
+    this.stopElementPropagation(chatbox);
 
     const chatlog = document.getElementById('chatlog')!;
     chatlog.scrollTop = chatlog.scrollHeight;
@@ -53,7 +37,7 @@ export class UI {
         if (!chatinput.value) return;
 
         const playerName = this.game.player.character?.name ?? 'Unknown';
-        this.game.networkManager.socket.send(
+        this.game.socket.send(
           Packet.ChatMessage.serialize(playerName, chatinput.value),
         );
 
@@ -67,41 +51,21 @@ export class UI {
       parent.style.top = '8px';
       parent.style.left = '8px';
       parent.style.width = '400px';
-      parent.addEventListener('mousedown', e => e.stopPropagation());
-      parent.addEventListener('touchstart', e => e.stopPropagation());
-      parent.addEventListener('pointerdown', e => e.stopPropagation());
-      parent.addEventListener('click', e => e.stopPropagation());
-      parent.addEventListener('contextmenu', e => e.stopPropagation());
-      parent.addEventListener('wheel', e => e.stopPropagation());
-      parent.addEventListener('pointermove', e => e.stopPropagation());
-      parent.addEventListener('keydown', e => e.stopPropagation());
-      parent.addEventListener('keyup', e => e.stopPropagation());
+      this.stopElementPropagation(parent);
 
       // Network folder
       const networkFolder = pane.addFolder({ title: 'Network Simulator' });
-      networkFolder.addBinding(
-        this.game.networkManager.netsim.config,
-        'latency',
-        {
-          label: 'Latency (ms)',
-        },
-      );
-      networkFolder.addBinding(
-        this.game.networkManager.netsim.config,
-        'jitter',
-        {
-          label: 'Jitter (ms)',
-        },
-      );
-      networkFolder.addBinding(
-        this.game.networkManager.netsim.config,
-        'packetLoss',
-        {
-          label: 'Packet Loss (%)',
-        },
-      );
+      networkFolder.addBinding(this.game.socket.netsim.config, 'latency', {
+        label: 'Latency (ms)',
+      });
+      networkFolder.addBinding(this.game.socket.netsim.config, 'jitter', {
+        label: 'Jitter (ms)',
+      });
+      networkFolder.addBinding(this.game.socket.netsim.config, 'packetLoss', {
+        label: 'Packet Loss (%)',
+      });
       networkFolder
-        .addBinding(this.game.networkManager.netsim.config, 'preset', {
+        .addBinding(this.game.socket.netsim.config, 'preset', {
           label: 'Preset',
           options: {
             'Home Broadband [WIFI, Cable, Console, PC]': 'broadband',
@@ -122,7 +86,7 @@ export class UI {
           },
         })
         .on('change', ({ value }) => {
-          this.game.networkManager.netsim.setPreset(value as PresetKey);
+          this.game.socket.netsim.setPreset(value as PresetKey);
           networkFolder.refresh();
         });
     }
@@ -138,5 +102,17 @@ export class UI {
     while (chatlog.children.length > this.maxChatMessages) {
       chatlog.removeChild(chatlog.children[0]);
     }
+  }
+
+  private stopElementPropagation(element: HTMLElement) {
+    element.addEventListener('mousedown', e => e.stopPropagation());
+    element.addEventListener('touchstart', e => e.stopPropagation());
+    element.addEventListener('pointerdown', e => e.stopPropagation());
+    element.addEventListener('click', e => e.stopPropagation());
+    element.addEventListener('contextmenu', e => e.stopPropagation());
+    element.addEventListener('wheel', e => e.stopPropagation());
+    element.addEventListener('pointermove', e => e.stopPropagation());
+    element.addEventListener('keydown', e => e.stopPropagation());
+    element.addEventListener('keyup', e => e.stopPropagation());
   }
 }

@@ -56,51 +56,6 @@ export class HUD {
         healthBar.visible = !healthBar.visible;
       }
     });
-
-    this.game.on('attackHit', (_attacker, target, damage) => {
-      const text = new PIXI.Text({
-        text: damage.toString(),
-        style: {
-          fontFamily: 'Arial',
-          fontSize: 24,
-          fill: 0xffffff,
-          align: 'center',
-          fontWeight: 'bold',
-        },
-      });
-
-      const anchor = target.position.clone();
-      anchor.y += target.getHeight() + 0.75;
-
-      const screenPosition = anchor
-        .clone()
-        .project(this.game.sceneManager.camera);
-
-      const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
-      const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
-
-      text.position.set(
-        x - text.width / 2,
-        y - text.height / 2 - text.height * 1.5,
-      );
-
-      this.pixiScene.addChild(text);
-
-      if (!this.damageTexts.has(target)) {
-        this.damageTexts.set(target, []);
-      }
-
-      const value = { time: performance.now(), text, anchor };
-      this.damageTexts.get(target)!.push(value);
-
-      setTimeout(() => {
-        this.pixiScene.removeChild(text);
-        this.damageTexts.set(
-          target,
-          this.damageTexts.get(target)!.filter(v => v !== value),
-        );
-      }, 1000);
-    });
   }
 
   update(_dt: number) {
@@ -292,5 +247,50 @@ export class HUD {
   render() {
     this.pixiRenderer.resetState();
     this.pixiRenderer.render({ container: this.pixiScene });
+  }
+
+  spawnDamageText(target: Character, damage: number) {
+    const text = new PIXI.Text({
+      text: damage.toString(),
+      style: {
+        fontFamily: 'Arial',
+        fontSize: 24,
+        fill: 0xffffff,
+        align: 'center',
+        fontWeight: 'bold',
+      },
+    });
+
+    const anchor = target.position.clone();
+    anchor.y += target.getHeight() + 0.75;
+
+    const screenPosition = anchor
+      .clone()
+      .project(this.game.sceneManager.camera);
+
+    const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
+    const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
+
+    text.position.set(
+      x - text.width / 2,
+      y - text.height / 2 - text.height * 1.5,
+    );
+
+    this.pixiScene.addChild(text);
+
+    if (!this.damageTexts.has(target)) {
+      this.damageTexts.set(target, []);
+    }
+
+    const value = { time: performance.now(), text, anchor };
+    this.damageTexts.get(target)!.push(value);
+
+    setTimeout(() => {
+      this.pixiScene.removeChild(text);
+      this.damageTexts.set(
+        target,
+        this.damageTexts.get(target)!.filter(v => v !== value),
+      );
+    }, 1000);
   }
 }

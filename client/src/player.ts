@@ -96,7 +96,14 @@ export class Player {
         this.character.jump();
         this.sendMovementPacket(true, true);
         actions.jump = false;
-        this.prejump?.play();
+
+        if (this.prejump) {
+          if (this.prejump.isPlaying) {
+            this.prejump.stop();
+          }
+
+          this.prejump.play();
+        }
       }
     } else {
       this.character.fly(input.x, input.z, actions.jump, actions.flyDown);
