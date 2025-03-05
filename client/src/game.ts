@@ -2,7 +2,7 @@ import * as config from './config';
 import { SceneManager } from './scene-manager';
 import { EntityManager } from './entity-manager';
 import { Socket } from './socket';
-import { setKeyBindings } from './input';
+import { inputEvents, setKeyBindings } from './input';
 import { HUD } from './hud';
 import { UI } from './ui';
 import { Player } from './player';
@@ -32,32 +32,7 @@ export class Game {
 
   run() {
     this.sceneManager.startRenderLoop(this.update.bind(this));
-
     this.socket.connect('Balthazar');
-
-    input.on('mouseClick', ({ pointer, button }) => {
-      const target = this.sceneManager.getTargetEntityFromMouse(
-        pointer.x,
-        pointer.y,
-      );
-
-      if (target) {
-        const targetedEntity = this.entityManager.getEntity(target.id);
-        if (targetedEntity) {
-          this.player.setTarget(targetedEntity);
-
-          if (button === 'right') {
-            this.player.startAttack(targetedEntity);
-          }
-        }
-      } else {
-        this.player.clearTarget();
-
-        if (this.player.isAttacking) {
-          this.player.stopAttack();
-        }
-      }
-    });
   }
 
   update() {
@@ -70,7 +45,43 @@ export class Game {
     this.socket.update(dt);
     this.hud.update(dt);
 
+    const eventsToHandle = inputEvents.slice();
+    inputEvents.length = 0;
+
+    for (const inputEvent of eventsToHandle) {
+      if (inputEvent.type === 'mouseClick') {
+        this.handleMouseClick(inputEvent.data);
+      }
+    }
+
     this.sceneManager.render();
     this.hud.render();
+  }
+
+  handleMouseClick({
+    pointer,
+    button,
+  }: { pointer: { x: number; y: number }; button: string }) {
+    const target = this.sceneManager.getTargetEntityFromMouse(
+      pointer.x,
+      pointer.y,
+    );
+
+    if (target) {
+      const targetedEntity = this.entityManager.getEntity(target.id);
+      if (targetedEntity) {
+        this.player.setTarget(targetedEntity);
+
+        if (button === 'right') {
+          this.player.startAttack(targetedEntity);
+        }
+      }
+    } else {
+      this.player.clearTarget();
+
+      if (this.player.isAttacking) {
+        this.player.stopAttack();
+      }
+    }
   }
 }

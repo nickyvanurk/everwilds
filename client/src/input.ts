@@ -4,6 +4,10 @@ export const input = new EventEmitter();
 
 export const mouseState: { [button: string]: boolean } = {};
 export const actions: { [action: string]: boolean } = {};
+export const inputEvents = [] as {
+  type: string;
+  data: { pointer: { x: number; y: number }; button: string };
+}[];
 
 export function setKeyBindings(bindings: KeyBinding[]) {
   for (const binding of bindings) {
@@ -91,9 +95,13 @@ window.onpointerup = ev => {
         prevPointer: prevPointerClip,
       });
     } else {
-      input.emit('mouseClick', {
-        pointer: pointerClip,
-        button: ev.button === 0 ? 'left' : ev.button === 2 ? 'right' : 'middle',
+      inputEvents.push({
+        type: 'mouseClick',
+        data: {
+          pointer: pointerClip,
+          button:
+            ev.button === 0 ? 'left' : ev.button === 2 ? 'right' : 'middle',
+        },
       });
     }
     isDragging = false;
