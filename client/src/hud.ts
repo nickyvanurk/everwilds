@@ -15,6 +15,10 @@ export class HUD {
   private names = new Map<Character, THREE.Mesh>();
   private labels = new Map<Character, PIXI.Text>();
   private healthBars = new Map<Character, PIXI.Graphics>();
+  private damageTexts = new Map<
+    Character,
+    { time: number; text: PIXI.Text; anchor: THREE.Vector3 }[]
+  >();
 
   constructor(private game: Game) {
     this.pixiRenderer = new PIXI.WebGLRenderer();
@@ -23,14 +27,10 @@ export class HUD {
 
   async init() {
     await this.pixiRenderer.init({
+      canvas: this.game.sceneManager.renderer.domElement,
       width: window.innerWidth,
       height: window.innerHeight,
-      context:
-        this.game.sceneManager.renderer.getContext() as WebGL2RenderingContext,
       clearBeforeRender: false, // Prevent pixijs from clearing the threejs renderer
-      backgroundAlpha: 0,
-      antialias: true,
-      autoDensity: true,
       resolution: window.devicePixelRatio,
     });
 
@@ -55,6 +55,51 @@ export class HUD {
       for (const [_, healthBar] of this.healthBars) {
         healthBar.visible = !healthBar.visible;
       }
+    });
+
+    this.game.on('attackHit', (_attacker, target, damage) => {
+      const text = new PIXI.Text({
+        text: damage.toString(),
+        style: {
+          fontFamily: 'Arial',
+          fontSize: 24,
+          fill: 0xffffff,
+          align: 'center',
+          fontWeight: 'bold',
+        },
+      });
+
+      const anchor = target.position.clone();
+      anchor.y += target.getHeight() + 0.75;
+
+      const screenPosition = anchor
+        .clone()
+        .project(this.game.sceneManager.camera);
+
+      const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
+      const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
+
+      text.position.set(
+        x - text.width / 2,
+        y - text.height / 2 - text.height * 1.5,
+      );
+
+      this.pixiScene.addChild(text);
+
+      if (!this.damageTexts.has(target)) {
+        this.damageTexts.set(target, []);
+      }
+
+      const value = { time: performance.now(), text, anchor };
+      this.damageTexts.get(target)!.push(value);
+
+      setTimeout(() => {
+        this.pixiScene.removeChild(text);
+        this.damageTexts.set(
+          target,
+          this.damageTexts.get(target)!.filter(v => v !== value),
+        );
+      }, 1000);
     });
   }
 
@@ -89,10 +134,10 @@ export class HUD {
       const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
       const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
 
-      // === Three.js ===
-
-      // Names
       if (!this.names.has(character)) {
+        // === Three.js ===
+
+        // Names
         const font = gAssetManager.getFont('helvetiker');
         if (!font) continue;
 
@@ -125,10 +170,10 @@ export class HUD {
         );
       }
 
-      // === Pixi.js ===
-
-      // Labels
       if (!this.labels.has(character)) {
+        // === Pixi.js ===
+
+        // Labels
         const label = new PIXI.Text({
           text: character.name,
           style: {
@@ -166,8 +211,8 @@ export class HUD {
         label.position.set(labelX, labelY);
       }
 
-      // Health bar
       if (!this.healthBars.has(character)) {
+        // Health bar
         const healthBar = new PIXI.Graphics();
         healthBar.rect(0, 0, 100, 10);
         healthBar.fill(0x00ff00);
@@ -202,6 +247,24 @@ export class HUD {
         healthBar.rect(0, 0, 100 * healthFraction, 10);
         healthBar.fill(0x00ff00);
       }
+
+      // Floating damage numbers
+      for (const { time, text, anchor } of this.damageTexts.get(character) ??
+        []) {
+        const screenPosition = anchor
+          .clone()
+          .project(this.game.sceneManager.camera);
+        const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
+        const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
+
+        text.position.set(
+          x - text.width / 2,
+          y - text.height / 2 - text.height * 1.5,
+        );
+
+        const delta = performance.now() - time;
+        text.position.y -= delta / 10;
+      }
     }
 
     for (const [character, name] of this.names) {
@@ -228,6 +291,6 @@ export class HUD {
 
   render() {
     this.pixiRenderer.resetState();
-    this.pixiRenderer.render({ container: this.pixiScene, clear: false });
+    this.pixiRenderer.render({ container: this.pixiScene });
   }
 }

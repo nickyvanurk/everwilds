@@ -8,8 +8,9 @@ import { HUD } from './hud';
 import { UI } from './ui';
 import { Player } from './player';
 import { input } from './input';
+import EventEmitter from 'eventemitter3';
 
-export class Game {
+export class Game extends EventEmitter {
   sceneManager = new SceneManager();
   entityManager = new EntityManager(this.sceneManager);
   networkManager = new NetworkManager(config.host, config.port);
@@ -18,6 +19,8 @@ export class Game {
   player: Player;
 
   constructor() {
+    super();
+
     setKeyBindings(config.keyBindings);
 
     this.hud = new HUD(this);

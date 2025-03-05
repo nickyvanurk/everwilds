@@ -86,6 +86,8 @@ export function handleAttackSwing(
   const attackerName =
     attacker.id === this.player.character?.id ? 'Your' : `${attacker.name}'s`;
 
+  this.emit('attackHit', attacker, target, damage);
+
   log.info(
     `${attackerName} melee swing hits ${target.name} for ${damage} damage`,
   );
