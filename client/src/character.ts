@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as Utils from './utils';
 import { chunkData, chunkConfig } from './chunk-data';
 
 export class Character {
@@ -77,7 +78,7 @@ export class Character {
     root.add(rightEye);
     this.meshRightEye = rightEye;
 
-    alternateInterval(
+    Utils.alternateInterval(
       { interval: 2, randomness: 10 },
       { interval: 0.1 },
       isEyesClosed => {
@@ -360,7 +361,7 @@ export class Character {
 
       const len = this.positionError.length();
       const t = len < 0.25 ? 0 : len > 1 ? 1 : len - 0.25 / 0.75;
-      this.errorCorrectionFactor = lerp(0.85, 0.2, t);
+      this.errorCorrectionFactor = Utils.lerp(0.85, 0.2, t);
 
       if (skipDeadReckoning) {
         this.positionError.setScalar(0);
@@ -402,27 +403,4 @@ export class Character {
     this.velocity.z = this.speed * z;
     this.velocity.y = flyUp ? this.speed : flyDown ? -this.speed : 0;
   }
-}
-
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t;
-}
-
-function alternateInterval(
-  intervalA: { interval?: number; randomness?: number },
-  intervalB: { interval?: number; randomness?: number },
-  cb: (eyesClosed: boolean) => void,
-) {
-  let isIntervalB = false;
-
-  function tick() {
-    cb(isIntervalB);
-    const delay = isIntervalB
-      ? (intervalB.interval ?? 0) + Math.random() * (intervalB.randomness ?? 0)
-      : (intervalA.interval ?? 0) + Math.random() * (intervalA.randomness ?? 0); // seconds
-    isIntervalB = !isIntervalB;
-    setTimeout(tick, delay * 1000);
-  }
-
-  tick();
 }

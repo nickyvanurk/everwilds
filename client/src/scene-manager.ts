@@ -88,6 +88,22 @@ export class SceneManager extends EventEmitter {
   }
 
   private setupTestScene() {
+    gAssetManager.getSound('background', (buffer: AudioBuffer) => {
+      const background = new THREE.Audio(this.audioListener);
+      background.setBuffer(buffer);
+      background.setVolume(0.1);
+      background.setLoop(true);
+      background.play();
+    });
+
+    gAssetManager.getSound('birds', (buffer: AudioBuffer) => {
+      const birds = new THREE.Audio(this.audioListener);
+      birds.setBuffer(buffer);
+      birds.setVolume(0.3);
+      birds.setLoop(true);
+      birds.play();
+    });
+
     const gridHelper = new THREE.GridHelper(1000, 1000, 0x4e4e4e, 0x4e4e4e);
     this.scene.add(gridHelper);
 

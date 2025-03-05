@@ -1,22 +1,20 @@
-import EventEmitter from 'eventemitter3';
 import * as Packet from '../../shared/src/packets';
-import type { NetworkSimulator } from './network-simulator';
+import { NetworkSimulator } from './network-simulator';
 import { isDebug } from './utils';
+import { Character } from './character';
 
-export class Socket extends EventEmitter {
+export class Socket {
   clockDelta = 0;
+  netsim = new NetworkSimulator();
 
-  private ws: WebSocket | null = null;
+  private ws?: WebSocket;
 
   constructor(
     private host: string,
     private port: number,
-    private netsim: NetworkSimulator,
-  ) {
-    super();
-  }
+  ) {}
 
-  connect() {
+  connect(requestedPlayerName: string) {
     const url = `ws://${this.host}:${this.port}`;
     log.debug(`Connecting to ${url}`);
     this.ws = new WebSocket(url);
@@ -27,7 +25,8 @@ export class Socket extends EventEmitter {
 
     this.ws.onmessage = ev => {
       if (ev.data === 'go') {
-        this.emit('connected');
+        log.debug('Starting client/server handshake');
+        this.send(Packet.Hello.serialize(requestedPlayerName));
         return;
       }
 
@@ -39,7 +38,7 @@ export class Socket extends EventEmitter {
     };
 
     this.ws.onclose = () => {
-      this.emit('disconnected');
+      log.debug('Disconnected from server');
     };
   }
 
@@ -53,53 +52,142 @@ export class Socket extends EventEmitter {
     isDebug() ? this.netsim.enqueue(send) : send();
   }
 
-  receiveMessage(message: string) {
-    const data = JSON.parse(message);
-
-    if (Array.isArray(data)) {
-      if (Array.isArray(data[0])) {
-        this.receiveActionBatch(data);
-      } else {
-        this.receiveAction(data);
-      }
-    }
+  update(dt: number) {
+    if (isDebug()) this.netsim.update(dt);
   }
 
-  receiveActionBatch(data: (string | number)[][]) {
-    for (const action of data) {
+  receiveMessage(message: string) {
+    const data = JSON.parse(message);
+    if (!Array.isArray(data)) return;
+
+    for (const action of Array.isArray(data[0]) ? data : [data]) {
       this.receiveAction(action);
     }
   }
 
   receiveAction(data: (string | number)[]) {
-    const opcode = +data[0];
+    const opcodeString = Packet.Opcode[+data[0]];
 
-    switch (opcode) {
-      case Packet.Opcode.Welcome: {
-        const welcomeData = Packet.Welcome.deserialize(data);
-        this.emit('welcome', welcomeData);
-        break;
+    //@ts-ignore
+    const packetType = Packet[opcodeString];
+    if (!packetType) {
+      log.error(`No packet type found for opcode: ${opcodeString}`);
+      return;
+    }
+
+    //@ts-ignore
+    const packetHandler = this[`handle${opcodeString}`];
+    if (!packetHandler) {
+      log.error(`No packet handler found for opcode: ${opcodeString}`);
+      return;
+    }
+
+    packetHandler(packetType.deserialize(data));
+  }
+
+  handleWelcome(data: ReturnType<typeof Packet.Welcome.deserialize>) {
+    const { id, flags, name, x, y, z, orientation, color } = data;
+
+    log.debug(`Received player ID from server: ${id}`);
+
+    game.player.socket = game.socket;
+
+    const playerCharacter = new Character(name, color);
+    playerCharacter.setId(id);
+    playerCharacter.setFlags(flags);
+    playerCharacter.setPosition(x, y, z, true);
+    playerCharacter.setOrientation(orientation);
+
+    game.entityManager.addEntity(playerCharacter);
+
+    game.player.character = playerCharacter;
+
+    game.sceneManager.setCameraTarget(playerCharacter);
+    game.sceneManager.setCameraYaw(orientation);
+  }
+
+  handleSpawn(data: ReturnType<typeof Packet.Spawn.deserialize>) {
+    const { id, flags, name, x, y, z, orientation, color } = data;
+
+    log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
+
+    const character = new Character(name, color, true);
+    character.setId(id);
+    character.setFlags(flags);
+    character.setPosition(x, y, z, true);
+    character.setOrientation(orientation);
+
+    game.entityManager.addEntity(character);
+  }
+
+  handleDespawn({ id }: ReturnType<typeof Packet.Despawn.deserialize>) {
+    log.debug(`Received despawn entity: ${id}`);
+
+    const entity = game.entityManager.getEntity(id);
+    if (entity) {
+      game.sceneManager.removeObject(entity.object3d);
+      game.entityManager.removeEntity(id);
+    }
+  }
+
+  handleMoveUpdate(data: ReturnType<typeof Packet.MoveUpdate.deserialize>) {
+    const { id, flags, x, y, z, orientation } = data;
+    const entity = game.entityManager.getEntity(id);
+    if (entity) {
+      entity.setFlags(flags);
+      entity.setPosition(x, y, z);
+      entity.setOrientation(orientation);
+    }
+  }
+
+  handleChatMessage(data: ReturnType<typeof Packet.ChatMessage.deserialize>) {
+    const { playerName, message } = data;
+    game.ui.addChatMessage(playerName, message);
+  }
+
+  handleAttackSwing(data: ReturnType<typeof Packet.AttackSwing.deserialize>) {
+    const { attackerId, targetId, damage, targetHealth } = data;
+
+    const attacker = game.entityManager.getEntity(attackerId);
+    if (!attacker) {
+      log.error(`Received attack swing for unknown attacker: ${attackerId}`);
+      return;
+    }
+
+    const target = game.entityManager.getEntity(targetId);
+    if (!target) {
+      log.error(`Received attack swing for unknown target: ${targetId}`);
+      return;
+    }
+
+    target.health.current = targetHealth;
+
+    const attackerName =
+      attacker.id === game.player.character?.id ? 'Your' : `${attacker.name}'s`;
+
+    game.hud.spawnDamageText(target, damage);
+
+    log.info(
+      `${attackerName} melee swing hits ${target.name} for ${damage} damage`,
+    );
+  }
+
+  handleRespawn(data: ReturnType<typeof Packet.Respawn.deserialize>) {
+    const { id, x, y, z, orientation } = data;
+    const entity = game.entityManager.getEntity(id);
+    if (entity) {
+      entity.setPosition(x, y, z, true);
+      entity.setOrientation(orientation);
+      entity.health.current = entity.health.max;
+
+      if (id === game.player.character?.id) {
+        game.sceneManager.setCameraYaw(orientation);
+        game.player.clearTarget();
       }
-      case Packet.Opcode.Spawn:
-        this.emit('spawn', Packet.Spawn.deserialize(data));
-        break;
-      case Packet.Opcode.Despawn:
-        this.emit('despawn', Packet.Despawn.deserialize(data));
-        break;
-      case Packet.Opcode.MoveUpdate:
-        this.emit('move', Packet.MoveUpdate.deserialize(data));
-        break;
-      case Packet.Opcode.ChatMessage:
-        this.emit('chatMessage', Packet.ChatMessage.deserialize(data));
-        break;
-      case Packet.Opcode.AttackSwing:
-        this.emit('attackSwing', Packet.AttackSwing.deserialize(data));
-        break;
-      case Packet.Opcode.Respawn:
-        this.emit('respawn', Packet.Respawn.deserialize(data));
-        break;
-      default:
-        log.error(`No handler found for opcode: ${opcode}`);
+
+      if (game.player.target === entity) {
+        game.player.clearTarget();
+      }
     }
   }
 }

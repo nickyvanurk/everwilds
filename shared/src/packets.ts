@@ -1,5 +1,3 @@
-import * as handlers from '../../client/src/packet-handler';
-
 export enum Opcode {
   Hello,
   Welcome,
@@ -28,18 +26,6 @@ export const Hello = {
       playerName: data[i++] as number,
     };
   },
-};
-
-export type Welcome = {
-  opcode: Opcode;
-  id: number;
-  flags: number;
-  name: string;
-  x: number;
-  y: number;
-  z: number;
-  orientation: number;
-  color: number;
 };
 
 export const Welcome = {
@@ -72,18 +58,6 @@ export const Welcome = {
   },
 };
 
-export type Spawn = {
-  opcode: Opcode;
-  id: number;
-  flags: number;
-  name: string;
-  x: number;
-  y: number;
-  z: number;
-  orientation: number;
-  color: number;
-};
-
 export const Spawn = {
   serialize(
     id: number,
@@ -114,11 +88,6 @@ export const Spawn = {
   },
 };
 
-export type Despawn = {
-  opcode: Opcode;
-  id: number;
-};
-
 export const Despawn = {
   serialize(id: number) {
     return [Opcode.Despawn, id];
@@ -131,16 +100,6 @@ export const Despawn = {
       id: data[i++] as number,
     };
   },
-};
-
-export type MoveUpdate = {
-  opcode: Opcode;
-  id: number;
-  flags: number;
-  x: number;
-  y: number;
-  z: number;
-  orientation: number;
 };
 
 export const MoveUpdate = {
@@ -169,15 +128,6 @@ export const MoveUpdate = {
   },
 };
 
-export type Move = {
-  opcode: Opcode;
-  flags: number;
-  x: number;
-  y: number;
-  z: number;
-  orientation: number;
-};
-
 export const Move = {
   serialize(
     flags: number,
@@ -202,12 +152,6 @@ export const Move = {
   },
 };
 
-export type ChatMessage = {
-  opcode: Opcode;
-  playerName: string;
-  message: string;
-};
-
 export const ChatMessage = {
   serialize(playerName: string, message: string) {
     return [Opcode.ChatMessage, playerName, message];
@@ -223,11 +167,6 @@ export const ChatMessage = {
   },
 };
 
-export type AttackStart = {
-  opcode: Opcode;
-  targetId: number;
-};
-
 export const AttackStart = {
   serialize(targetId: number) {
     return [Opcode.AttackStart, targetId];
@@ -240,14 +179,6 @@ export const AttackStart = {
       targetId: data[i++] as number,
     };
   },
-};
-
-export type AttackSwing = {
-  opcode: Opcode;
-  attackerId: number;
-  targetId: number;
-  damage: number;
-  targetHealth: number;
 };
 
 export const AttackSwing = {
@@ -272,10 +203,6 @@ export const AttackSwing = {
   },
 };
 
-export type AttackStop = {
-  opcode: Opcode;
-};
-
 export const AttackStop = {
   serialize() {
     return [Opcode.AttackStop];
@@ -287,15 +214,6 @@ export const AttackStop = {
       opcode: data[i++] as number,
     };
   },
-};
-
-export type Respawn = {
-  opcode: Opcode;
-  id: number;
-  x: number;
-  y: number;
-  z: number;
-  orientation: number;
 };
 
 export const Respawn = {
@@ -314,14 +232,4 @@ export const Respawn = {
       orientation: data[i++] as number,
     };
   },
-};
-
-export const clientHandlers = {
-  welcome: handlers.handleWelcome,
-  spawn: handlers.handleSpawn,
-  despawn: handlers.handleDespawn,
-  move: handlers.handleMove,
-  chatMessage: handlers.handleChatMessage,
-  attackSwing: handlers.handleAttackSwing,
-  respawn: handlers.handleRespawn,
 };
