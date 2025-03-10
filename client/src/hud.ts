@@ -4,7 +4,7 @@ import * as PIXI from 'pixi.js';
 
 import type { Game } from './game';
 import type { Character } from './character';
-import { input } from './input';
+import { input, inputEvents } from './input';
 import * as config from './config';
 
 export class HUD {
@@ -13,6 +13,7 @@ export class HUD {
 
   private nameplatesVisible = config.nameplatesVisibleByDefault;
   private names = new Map<Character, THREE.Mesh>();
+  private nameplates = new Map<Character, PIXI.Container>();
   private labels = new Map<Character, PIXI.Text>();
   private healthBars = new Map<Character, PIXI.Graphics>();
   private damageTexts = new Map<
@@ -48,36 +49,28 @@ export class HUD {
         name.visible = !name.visible;
       }
 
-      for (const [_, label] of this.labels) {
-        label.visible = !label.visible;
-      }
-
-      for (const [_, healthBar] of this.healthBars) {
-        healthBar.visible = !healthBar.visible;
+      for (const [_, nameplate] of this.nameplates) {
+        nameplate.visible = !nameplate.visible;
       }
     });
   }
 
   update(_dt: number) {
+    const camPos = this.game.sceneManager.camera.position;
     const characters = this.game.entityManager
       .getCharacters()
       .slice()
       .sort((a, b) => {
-        const distA = a.position.distanceTo(
-          this.game.sceneManager.camera.position,
-        );
-        const distB = b.position.distanceTo(
-          this.game.sceneManager.camera.position,
-        );
-        return distA - distB;
+        const distA = a.position.distanceTo(camPos);
+        const distB = b.position.distanceTo(camPos);
+        return distB - distA;
       });
 
-    characters.forEach((character, index) => {
-      const label = this.labels.get(character);
-      if (label) this.pixiScene.setChildIndex(label, index);
-      const healthBar = this.healthBars.get(character);
-      if (healthBar) this.pixiScene.setChildIndex(healthBar, index);
-    });
+    characters
+      .filter(character => this.nameplates.has(character))
+      .forEach((character, index) => {
+        this.pixiScene.setChildIndex(this.nameplates.get(character)!, index);
+      });
 
     for (const character of characters) {
       const anchor = character.position.clone();
@@ -106,9 +99,7 @@ export class HUD {
         const bbox = geometry.boundingBox!;
         const offset = -0.5 * (bbox.max.x - bbox.min.x);
         geometry.translate(offset, 0, 0);
-        const material = new THREE.MeshBasicMaterial({
-          color: 0xffffff,
-        });
+        const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
         const name = new THREE.Mesh(geometry, material);
         this.game.sceneManager.addObject(name);
         this.names.set(character, name);
@@ -118,17 +109,41 @@ export class HUD {
       const name = this.names.get(character);
       if (name) {
         name.visible = character.targeted ? false : !this.nameplatesVisible;
-
         name.position.copy(anchor);
         name.rotation.setFromRotationMatrix(
           this.game.sceneManager.camera.matrix,
         );
       }
 
-      if (!this.labels.has(character)) {
+      if (!this.nameplates.has(character)) {
         // === Pixi.js ===
 
-        // Labels
+        const nameplate = new PIXI.Container();
+        this.pixiScene.addChild(nameplate);
+        this.nameplates.set(character, nameplate);
+
+        const selectCharacter = (ev: PIXI.FederatedPointerEvent) => {
+          const button =
+            ev.button === 0 ? 'left' : ev.button === 2 ? 'right' : 'middle';
+          inputEvents.push({
+            type: 'selectCharacter',
+            data: { character, button, origin: 'hud' },
+          });
+        };
+
+        nameplate.eventMode = 'dynamic';
+        nameplate.on('mouseupoutside', selectCharacter);
+        nameplate.on('rightupoutside', selectCharacter);
+
+        // Use invisible background as hitbox
+        const hitbox = new PIXI.Graphics();
+        hitbox.rect(0, 0, 110, 40);
+        hitbox.fill(0x000000);
+        hitbox.alpha = 0;
+        hitbox.position.set(-hitbox.width / 2, -hitbox.height + 10);
+        nameplate.addChild(hitbox);
+
+        // Create name label
         const label = new PIXI.Text({
           text: character.name,
           style: {
@@ -139,66 +154,53 @@ export class HUD {
             fontWeight: 'bold',
           },
         });
-        this.pixiScene.addChild(label);
+        nameplate.addChild(label);
         this.labels.set(character, label);
         label.visible = this.nameplatesVisible;
+
+        // Create health bar
+        const healthBar = new PIXI.Graphics();
+        healthBar.rect(0, 0, 100, 10);
+        healthBar.fill(0x00ff00);
+        healthBar.position.set(0, 0);
+        nameplate.addChild(healthBar);
+        this.healthBars.set(character, healthBar);
+        healthBar.visible = this.nameplatesVisible;
       }
 
       const cameraDirection = this.game.sceneManager.camera.getWorldDirection(
         new THREE.Vector3(),
       );
 
-      const label = this.labels.get(character);
-      if (label) {
-        const labelDirection = character.position
+      const nameplate = this.nameplates.get(character);
+      if (nameplate) {
+        const nameplateDirection = character.position
           .clone()
-          .sub(this.game.sceneManager.camera.position)
+          .sub(camPos)
           .normalize();
-        const isBehindCamera = cameraDirection.dot(labelDirection) < 0;
+        const isBehindCamera = cameraDirection.dot(nameplateDirection) < 0;
 
-        label.visible =
+        nameplate.visible =
           !isBehindCamera &&
           (character.targeted ? true : this.nameplatesVisible);
-        label.alpha = character.targeted ? 1 : 0.5;
+        nameplate.alpha = character.targeted ? 1 : 0.5;
 
-        const labelX = x - label.width / 2;
-        const labelY = y - label.height / 2 - label.height;
-        label.position.set(labelX, labelY);
+        nameplate.position.set(x, y);
       }
 
-      if (!this.healthBars.has(character)) {
-        // Health bar
-        const healthBar = new PIXI.Graphics();
-        healthBar.rect(0, 0, 100, 10);
-        healthBar.fill(0x00ff00);
-        healthBar.position.set(0, 0);
-        this.pixiScene.addChild(healthBar);
-        this.healthBars.set(character, healthBar);
-        healthBar.visible = this.nameplatesVisible;
+      const label = this.labels.get(character);
+      if (label) {
+        label.position.set(-label.width / 2, -label.height / 2 - label.height);
       }
 
       const healthBar = this.healthBars.get(character);
       if (healthBar) {
-        const labelDirection = character.position
-          .clone()
-          .sub(this.game.sceneManager.camera.position)
-          .normalize();
-        const isBehindCamera = cameraDirection.dot(labelDirection) < 0;
-
-        healthBar.visible =
-          !isBehindCamera &&
-          (character.targeted ? true : this.nameplatesVisible);
-        healthBar.alpha = character.targeted ? 1 : 0.5;
-
-        const healthBarX = x - healthBar.width / 2;
-        const healthBarY = y - healthBar.height / 2;
-        healthBar.position.set(healthBarX, healthBarY);
-
-        const healthFraction = character.health.current / character.health.max;
+        healthBar.position.set(-healthBar.width / 2, -healthBar.height / 2);
 
         healthBar.rect(0, 0, 100, 10);
         healthBar.fill(0xff0000);
 
+        const healthFraction = character.health.current / character.health.max;
         healthBar.rect(0, 0, 100 * healthFraction, 10);
         healthBar.fill(0x00ff00);
       }
@@ -229,17 +231,10 @@ export class HUD {
       }
     }
 
-    for (const [character, label] of this.labels) {
+    for (const [character, container] of this.nameplates) {
       if (!characters.includes(character)) {
-        this.pixiScene.removeChild(label);
-        this.labels.delete(character);
-      }
-    }
-
-    for (const [character, healthBar] of this.healthBars) {
-      if (!characters.includes(character)) {
-        this.pixiScene.removeChild(healthBar);
-        this.healthBars.delete(character);
+        this.pixiScene.removeChild(container);
+        this.names.delete(character);
       }
     }
   }

@@ -1,4 +1,5 @@
 import EventEmitter from 'eventemitter3';
+import type { Character } from './character';
 
 export const input = new EventEmitter();
 
@@ -6,7 +7,12 @@ export const mouseState: { [button: string]: boolean } = {};
 export const actions: { [action: string]: boolean } = {};
 export const inputEvents = [] as {
   type: string;
-  data: { pointer: { x: number; y: number }; button: string };
+  data: {
+    button: string;
+    pointer?: { x: number; y: number };
+    character?: Character;
+    origin?: string;
+  };
 }[];
 
 export function setKeyBindings(bindings: KeyBinding[]) {
@@ -95,15 +101,29 @@ window.onpointerup = ev => {
         prevPointer: prevPointerClip,
       });
     } else {
-      inputEvents.push({
-        type: 'mouseClick',
-        data: {
-          pointer: pointerClip,
-          button:
-            ev.button === 0 ? 'left' : ev.button === 2 ? 'right' : 'middle',
-        },
-      });
+      const button =
+        ev.button === 0 ? 'left' : ev.button === 2 ? 'right' : 'middle';
+
+      const target = game.sceneManager.getTargetEntityFromMouse(
+        pointerClip.x,
+        pointerClip.y,
+      );
+      if (target) {
+        const targetedEntity = game.entityManager.getEntity(target.id);
+        if (targetedEntity) {
+          inputEvents.push({
+            type: 'selectCharacter',
+            data: { character: targetedEntity, button },
+          });
+        }
+      } else {
+        inputEvents.push({
+          type: 'deselectCharacter',
+          data: { button },
+        });
+      }
     }
+
     isDragging = false;
   }
 };
