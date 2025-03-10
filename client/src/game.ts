@@ -2,11 +2,10 @@ import * as config from './config';
 import { SceneManager } from './scene-manager';
 import { EntityManager } from './entity-manager';
 import { Socket } from './socket';
-import { setKeyBindings } from './input';
+import { inputEvents, setKeyBindings } from './input';
 import { HUD } from './hud';
 import { UI } from './ui';
 import { Player } from './player';
-import { input } from './input';
 
 export class Game {
   sceneManager = new SceneManager();
@@ -32,32 +31,7 @@ export class Game {
 
   run() {
     this.sceneManager.startRenderLoop(this.update.bind(this));
-
     this.socket.connect('Balthazar');
-
-    input.on('mouseClick', ({ pointer, button }) => {
-      const target = this.sceneManager.getTargetEntityFromMouse(
-        pointer.x,
-        pointer.y,
-      );
-
-      if (target) {
-        const targetedEntity = this.entityManager.getEntity(target.id);
-        if (targetedEntity) {
-          this.player.setTarget(targetedEntity);
-
-          if (button === 'right') {
-            this.player.startAttack(targetedEntity);
-          }
-        }
-      } else {
-        this.player.clearTarget();
-
-        if (this.player.isAttacking) {
-          this.player.stopAttack();
-        }
-      }
-    });
   }
 
   update() {
@@ -69,6 +43,43 @@ export class Game {
     this.sceneManager.postPlayerMoveUpdate(dt);
     this.socket.update(dt);
     this.hud.update(dt);
+
+    const eventsToHandle = inputEvents.slice();
+    inputEvents.length = 0;
+
+    // Sort events so deselectCharacter events are handled before selectCharacter events.
+    // Otherwise selecting a nameplate can select the character and then immediately
+    // deselect it.
+    eventsToHandle.sort((a, b) => {
+      if (a.type === b.type) return 0;
+      return a.type === 'deselectCharacter' ? -1 : 1;
+    });
+
+    for (const inputEvent of eventsToHandle) {
+      if (inputEvent.type === 'deselectCharacter') {
+        this.player.clearTarget();
+        if (this.player.isAttacking) {
+          this.player.stopAttack();
+        }
+      } else if (inputEvent.type === 'selectCharacter') {
+        if (!inputEvent.data.character) continue;
+
+        // Clear other selected characters if origin is hud
+        if (inputEvent.data.origin === 'hud') {
+          inputEvents.filter(
+            event =>
+              event.type === 'selectCharacter' &&
+              event.data.origin !== 'hud' &&
+              event.data.character !== inputEvent.data.character,
+          );
+        }
+
+        this.player.setTarget(inputEvent.data.character);
+        if (inputEvent.data.button === 'right') {
+          this.player.startAttack(inputEvent.data.character);
+        }
+      }
+    }
 
     this.sceneManager.render();
     this.hud.render();

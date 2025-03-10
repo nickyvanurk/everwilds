@@ -391,6 +391,10 @@ export class Character {
 
     this.velocity.y = Math.sqrt(this.jumpHeight * -2 * this.gravity);
 
+    if (this.prejump?.isPlaying) {
+      this.prejump.stop();
+    }
+
     this.prejump?.play();
   }
 
