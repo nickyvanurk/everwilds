@@ -1,19 +1,10 @@
+import { Unit } from './unit';
 import type { Socket } from './socket';
 
-export class Player {
-  flags = 0;
-  id: number;
-  x = 0;
-  y = 0;
-  z = 0;
-  orientation = 0;
-  health = { current: 100, max: 100, min: 0 };
-  attackTarget?: Player;
+export class Player extends Unit {
+  attackTarget?: Unit;
 
   onAttack: (() => void) | null = null;
-
-  static assignedIds = new Set<number>();
-  static nextId = 1;
 
   private timeSinceLastMoveAttack = 0;
   private attackCooldown = 1;
@@ -25,19 +16,7 @@ export class Player {
     public name: string,
     public color: number,
   ) {
-    this.id = Number.parseInt(`${Player.getNextId()}`);
-  }
-
-  getState(): (string | number)[] {
-    return [
-      this.id,
-      this.flags,
-      this.name,
-      this.x,
-      this.y,
-      this.z,
-      this.orientation,
-    ];
+    super(name, color);
   }
 
   update(dt: number) {
@@ -59,7 +38,7 @@ export class Player {
     }
   }
 
-  startAttack(target: Player) {
+  startAttack(target: Unit) {
     this.attackTarget = target;
     this.isAttacking = true;
   }
@@ -68,37 +47,5 @@ export class Player {
     this.attackTarget = undefined;
     this.timeSinceLastMoveAttack = 0;
     this.isAttacking = false;
-  }
-
-  damage(amount: number) {
-    if (this.health.current - amount <= 0) {
-      this.stopAttack();
-    }
-
-    this.health.current = Math.max(
-      this.health.min,
-      this.health.current - amount,
-    );
-  }
-
-  isAlive() {
-    return this.health.current > 0;
-  }
-
-  static getNextId() {
-    while (Player.assignedIds.has(Player.nextId)) {
-      Player.nextId++;
-    }
-
-    Player.assignedIds.add(Player.nextId);
-    return Player.nextId;
-  }
-
-  static releaseId(id: number) {
-    Player.assignedIds.delete(id);
-
-    if (id < Player.nextId) {
-      Player.nextId = id;
-    }
   }
 }

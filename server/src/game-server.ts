@@ -54,7 +54,7 @@ export class GameServer {
           ),
         );
 
-        this.world.pushPlayersToPlayer(player!);
+        this.world.pushUnitsToPlayer(player!);
         this.world.broadcast(
           Packet.Spawn.serialize(
             player!.id,
@@ -112,46 +112,47 @@ export class GameServer {
       socket.on('attackStart', ({ targetId }) => {
         if (!player) return;
 
-        const targetEntity = this.world.getPlayerById(targetId);
-        if (!targetEntity) return;
+        const targetUnit = this.world.getUnitById(targetId);
+        if (!targetUnit) return;
 
         if (player.id === targetId) return;
 
-        player.startAttack(targetEntity);
+        player.startAttack(targetUnit);
 
         player.onAttack = () => {
-          if (!player || !targetEntity) {
+          if (!player || !targetUnit) {
             log.error('Player or target entity is missing');
             return;
           }
 
-          if (targetEntity.isAlive()) {
+          if (targetUnit.isAlive()) {
             const damage = 20;
-            targetEntity.damage(damage);
+            targetUnit.damage(damage);
 
             this.world.broadcast(
               Packet.AttackSwing.serialize(
                 player.id,
                 targetId,
                 damage,
-                targetEntity.health.current,
+                targetUnit.health.current,
               ),
             );
 
-            if (!targetEntity.isAlive()) {
-              targetEntity.x = -50;
-              targetEntity.y = 32;
-              targetEntity.z = 3;
-              targetEntity.orientation = -Math.PI / 2;
+            // TODO: Implement respawn mechanic for monsters
+            if (!targetUnit.isAlive()) {
+              targetUnit.x = -50;
+              targetUnit.y = 32;
+              targetUnit.z = 3;
+              targetUnit.orientation = -Math.PI / 2;
 
-              targetEntity.health.current = targetEntity.health.max;
+              targetUnit.health.current = targetUnit.health.max;
               this.world.broadcast(
                 Packet.Respawn.serialize(
-                  targetEntity.id,
-                  targetEntity.x,
-                  targetEntity.y,
-                  targetEntity.z,
-                  targetEntity.orientation,
+                  targetUnit.id,
+                  targetUnit.x,
+                  targetUnit.y,
+                  targetUnit.z,
+                  targetUnit.orientation,
                 ),
               );
 
