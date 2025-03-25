@@ -15,7 +15,6 @@ export class World {
     for (let i = 0; i < 10; i++) {
       const mob = new Unit('Monster', 0xff0000);
       mob.x = (Math.random() - 0.5) * 100;
-      mob.y = (Math.random() - 0.5) * 100;
       mob.z = (Math.random() - 0.5) * 100;
       mob.orientation = Math.random() * 360;
       mob.name = `Monster ${i}`;
