@@ -9,7 +9,6 @@ export enum Opcode {
   AttackStart,
   AttackSwing,
   AttackStop,
-  Respawn,
 }
 
 export type Serialized = (string | number)[];
@@ -212,24 +211,6 @@ export const AttackStop = {
     let i = 0;
     return {
       opcode: data[i++] as number,
-    };
-  },
-};
-
-export const Respawn = {
-  serialize(id: number, x: number, y: number, z: number, orientation: number) {
-    return [Opcode.Respawn, id, x, y, z, orientation];
-  },
-
-  deserialize(data: Serialized) {
-    let i = 0;
-    return {
-      opcode: data[i++] as number,
-      id: data[i++] as number,
-      x: data[i++] as number,
-      y: data[i++] as number,
-      z: data[i++] as number,
-      orientation: data[i++] as number,
     };
   },
 };

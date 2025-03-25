@@ -13,6 +13,7 @@ export class Player {
   target?: Character;
   isAttacking = false;
   traversalMode: 'walk' | 'fly' = 'walk';
+  lastCharacterId = 0;
 
   private timeSinceLastMovePacket = 0;
   private prejump?: THREE.Audio;

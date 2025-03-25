@@ -4,6 +4,7 @@ import { World } from './world';
 import { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
 import { Player } from './player';
+import type { Unit } from './unit';
 
 export class GameServer {
   private ups = 20;
@@ -33,12 +34,7 @@ export class GameServer {
         const color = this.color.setHSL(Math.random(), 0.96, 0.5).getHex();
         player = new Player(socket, playerName, color);
         player.name += `${player.id}`;
-
-        player.x = -50;
-        player.y = 32;
-        player.z = 3;
-        player.orientation = -Math.PI / 2;
-
+        player.spawn(-50, 32, 3, -Math.PI / 2);
         this.world.addPlayer(player);
 
         socket.send(
@@ -138,24 +134,7 @@ export class GameServer {
               ),
             );
 
-            // TODO: Implement respawn mechanic for monsters
             if (!targetUnit.isAlive()) {
-              targetUnit.x = -50;
-              targetUnit.y = 32;
-              targetUnit.z = 3;
-              targetUnit.orientation = -Math.PI / 2;
-
-              targetUnit.health.current = targetUnit.health.max;
-              this.world.broadcast(
-                Packet.Respawn.serialize(
-                  targetUnit.id,
-                  targetUnit.x,
-                  targetUnit.y,
-                  targetUnit.z,
-                  targetUnit.orientation,
-                ),
-              );
-
               player.stopAttack();
             }
           }
@@ -176,6 +155,25 @@ export class GameServer {
     setInterval(() => {
       this.update(1000 / this.ups);
     }, 1000 / this.ups);
+
+    eventBus.on('unitDie', (unit: Unit) => {
+      this.world.broadcast(Packet.Despawn.serialize(unit.id));
+    });
+
+    eventBus.on('unitRespawn', (unit: Unit) => {
+      this.world.broadcast(
+        Packet.Spawn.serialize(
+          unit.id,
+          unit.flags,
+          unit.name,
+          unit.x,
+          unit.y,
+          unit.z,
+          unit.orientation,
+          unit.color,
+        ),
+      );
+    });
   }
 
   update(dt: number) {

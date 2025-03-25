@@ -156,7 +156,6 @@ export class HUD {
         });
         nameplate.addChild(label);
         this.labels.set(character, label);
-        label.visible = this.nameplatesVisible;
 
         // Create health bar
         const healthBar = new PIXI.Graphics();
@@ -165,7 +164,6 @@ export class HUD {
         healthBar.position.set(0, 0);
         nameplate.addChild(healthBar);
         this.healthBars.set(character, healthBar);
-        healthBar.visible = this.nameplatesVisible;
       }
 
       const cameraDirection = this.game.sceneManager.camera.getWorldDirection(
@@ -234,7 +232,10 @@ export class HUD {
     for (const [character, container] of this.nameplates) {
       if (!characters.includes(character)) {
         this.pixiScene.removeChild(container);
-        this.names.delete(character);
+        this.nameplates.delete(character);
+        this.labels.delete(character);
+        this.healthBars.delete(character);
+        this.damageTexts.delete(character);
       }
     }
   }
