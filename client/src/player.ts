@@ -5,7 +5,6 @@ import type { Character } from './character';
 import type { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
 import type { SceneManager } from './scene-manager';
-import { chunkData, pos2voxel } from './chunk-data';
 
 export class Player {
   socket: Socket | null = null;
@@ -29,23 +28,6 @@ export class Player {
       if (this.character) {
         this.character.hasGravity = this.traversalMode === 'walk';
       }
-    });
-    input.on('printVoxel', (isDown: boolean) => {
-      if (!isDown || !this.character || this.traversalMode !== 'fly') return;
-      const { cx, cy, cz, idx } = pos2voxel(
-        this.character.position.x,
-        this.character.position.y,
-        this.character.position.z,
-      );
-      const chunkId = `${cx},${cy},${cz}`;
-
-      if (chunkData[chunkId][idx]) {
-        delete chunkData[chunkId][idx];
-      } else {
-        chunkData[chunkId][idx] = 1;
-      }
-
-      game.sceneManager.renderChunk(cx, cy, cz, chunkData[chunkId]);
     });
 
     sceneManager.on('cameraYawChanged', (yaw: number) => {

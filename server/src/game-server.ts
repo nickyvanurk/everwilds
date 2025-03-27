@@ -34,7 +34,12 @@ export class GameServer {
         const color = this.color.setHSL(Math.random(), 0.96, 0.5).getHex();
         player = new Player(socket, playerName, color);
         player.name += `${player.id}`;
-        player.spawn(-50, 32, 3, -Math.PI / 2);
+        player.spawn(
+          (Math.random() - 0.5) * 20,
+          0,
+          (Math.random() - 0.5) * 20,
+          Math.random() * (Math.PI * 2),
+        );
         this.world.addPlayer(player);
 
         socket.send(
