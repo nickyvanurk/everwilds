@@ -373,10 +373,4 @@ export class Character {
   isWalking() {
     return this.velocity.x !== 0 || this.velocity.z !== 0;
   }
-
-  fly(x: number, z: number, flyUp: boolean, flyDown: boolean) {
-    this.velocity.x = this.speed * x;
-    this.velocity.z = this.speed * z;
-    this.velocity.y = flyUp ? this.speed : flyDown ? -this.speed : 0;
-  }
 }

@@ -8,10 +8,9 @@ import type { SceneManager } from './scene-manager';
 
 export class Player {
   socket: Socket | null = null;
-  character?: Character; // TODO: Don't make it optional
+  character?: Character;
   target?: Character;
   isAttacking = false;
-  traversalMode: 'walk' | 'fly' = 'walk';
   lastCharacterId = 0;
 
   private timeSinceLastMovePacket = 0;
@@ -22,13 +21,6 @@ export class Player {
     input.on('backward', this.sendMovementPacket.bind(this));
     input.on('left', this.sendMovementPacket.bind(this));
     input.on('right', this.sendMovementPacket.bind(this));
-    input.on('toggleFlyMode', (isDown: boolean) => {
-      if (!isDown) return;
-      this.traversalMode = this.traversalMode === 'walk' ? 'fly' : 'walk';
-      if (this.character) {
-        this.character.hasGravity = this.traversalMode === 'walk';
-      }
-    });
 
     sceneManager.on('cameraYawChanged', (yaw: number) => {
       if (mouseState.rmb && this.character) {
@@ -72,24 +64,20 @@ export class Player {
       }
     }
 
-    if (this.traversalMode === 'walk') {
-      this.character.move(input.x, input.z);
+    this.character.move(input.x, input.z);
 
-      if (actions.jump && this.character.isGrounded()) {
-        this.character.jump();
-        this.sendMovementPacket(true, true);
-        actions.jump = false;
+    if (actions.jump && this.character.isGrounded()) {
+      this.character.jump();
+      this.sendMovementPacket(true, true);
+      actions.jump = false;
 
-        if (this.prejump) {
-          if (this.prejump.isPlaying) {
-            this.prejump.stop();
-          }
-
-          this.prejump.play();
+      if (this.prejump) {
+        if (this.prejump.isPlaying) {
+          this.prejump.stop();
         }
+
+        this.prejump.play();
       }
-    } else {
-      this.character.fly(input.x, input.z, actions.jump, actions.flyDown);
     }
   }
 
@@ -101,10 +89,7 @@ export class Player {
     if (actions.backward) movementFlags |= 2;
     if (actions.left) movementFlags |= 4;
     if (actions.right) movementFlags |= 8;
-
-    if (jumping) {
-      movementFlags |= 16;
-    }
+    if (jumping) movementFlags |= 16;
 
     this.socket?.send(
       Packet.Move.serialize(

@@ -30,8 +30,6 @@ export const keyBindings = [
   { action: 'left', key: ['KeyA', 'ArrowLeft'] },
   { action: 'right', key: ['KeyD', 'ArrowRight'] },
   { action: 'jump', key: 'Space' },
-  { action: 'flyDown', key: 'ShiftLeft' },
-  { action: 'toggleFlyMode', key: 'Backquote' },
   { action: 'toggleNameplates', key: 'KeyV' },
 ];
 
