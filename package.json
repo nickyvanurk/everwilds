@@ -8,7 +8,8 @@
     "server": "tsx server/src/main.ts",
     "build": "tsc && vite build && cp -r assets/* dist/assets/ && tsc -b server",
     "preview": "vite preview",
-    "cpd": "jscpd --min-tokens 50 --min-lines 5 --min-tokens 100 ./*/src"
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "cpd": "jscpd --min-tokens 50 --min-lines 5 --min-tokens 100 ./client/src ./server/src ./shared/src"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",

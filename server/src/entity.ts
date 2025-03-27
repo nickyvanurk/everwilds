@@ -13,7 +13,7 @@ export class Entity {
     this.id = Number.parseInt(`${Entity.getNextId()}`);
   }
 
-  update(dt: number) {}
+  update(_dt: number) {}
 
   static getNextId() {
     while (Entity.assignedIds.has(Entity.nextId)) {
