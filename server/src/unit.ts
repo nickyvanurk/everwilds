@@ -27,11 +27,13 @@ export class Unit extends Entity {
     }
   }
 
-  damage(amount: number) {
+  damage(amount: number, attacker: Unit) {
     this.health.current = Math.max(
       this.health.min,
       this.health.current - amount,
     );
+
+    eventBus.emit('unitDamage', attacker, this, amount);
 
     if (this.health.current === this.health.min) {
       this.die();

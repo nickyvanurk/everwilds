@@ -16,10 +16,12 @@ export class HUD {
   private nameplates = new Map<Character, PIXI.Container>();
   private labels = new Map<Character, PIXI.Text>();
   private healthBars = new Map<Character, PIXI.Graphics>();
-  private damageTexts = new Map<
-    Character,
-    { time: number; text: PIXI.Text; anchor: THREE.Vector3 }[]
-  >();
+  private damageTexts = [] as {
+    time: number;
+    text: PIXI.Text;
+    anchor: THREE.Vector3;
+    lifetime: number;
+  }[];
 
   constructor(private game: Game) {
     this.pixiRenderer = new PIXI.WebGLRenderer();
@@ -202,25 +204,36 @@ export class HUD {
         healthBar.rect(0, 0, 100 * healthFraction, 10);
         healthBar.fill(0x00ff00);
       }
+    }
 
-      // Floating damage numbers
-      for (const { time, text, anchor } of this.damageTexts.get(character) ??
-        []) {
-        const screenPosition = anchor
-          .clone()
-          .project(this.game.sceneManager.camera);
-        const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
-        const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
+    const damageTextsToRemove = [] as typeof this.damageTexts;
 
-        text.position.set(
-          x - text.width / 2,
-          y - text.height / 2 - text.height * 1.5,
-        );
+    for (const damageText of this.damageTexts) {
+      const { time, text, anchor, lifetime } = damageText;
 
-        const delta = performance.now() - time;
-        text.position.y -= delta / 10;
+      const screenPosition = anchor
+        .clone()
+        .project(this.game.sceneManager.camera);
+      const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
+      const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
+
+      text.position.set(
+        x - text.width / 2,
+        y - text.height / 2 - text.height * 1.5,
+      );
+
+      const delta = performance.now() - time;
+      text.position.y -= delta / 10;
+
+      if (delta > lifetime) {
+        this.pixiScene.removeChild(text);
+        damageTextsToRemove.push(damageText);
       }
     }
+
+    this.damageTexts = this.damageTexts.filter(
+      t => !damageTextsToRemove.includes(t),
+    );
 
     for (const [character, name] of this.names) {
       if (!characters.includes(character)) {
@@ -235,7 +248,6 @@ export class HUD {
         this.nameplates.delete(character);
         this.labels.delete(character);
         this.healthBars.delete(character);
-        this.damageTexts.delete(character);
       }
     }
   }
@@ -274,19 +286,11 @@ export class HUD {
 
     this.pixiScene.addChild(text);
 
-    if (!this.damageTexts.has(target)) {
-      this.damageTexts.set(target, []);
-    }
-
-    const value = { time: performance.now(), text, anchor };
-    this.damageTexts.get(target)!.push(value);
-
-    setTimeout(() => {
-      this.pixiScene.removeChild(text);
-      this.damageTexts.set(
-        target,
-        this.damageTexts.get(target)!.filter(v => v !== value),
-      );
-    }, 1000);
+    this.damageTexts.push({
+      time: performance.now(),
+      text,
+      anchor,
+      lifetime: 1000,
+    });
   }
 }

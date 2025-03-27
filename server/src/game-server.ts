@@ -123,16 +123,7 @@ export class GameServer {
 
           if (targetUnit.isAlive()) {
             const damage = 20;
-            targetUnit.damage(damage);
-
-            this.world.broadcast(
-              Packet.AttackSwing.serialize(
-                player.id,
-                targetId,
-                damage,
-                targetUnit.health.current,
-              ),
-            );
+            targetUnit.damage(damage, player);
 
             if (!targetUnit.isAlive()) {
               player.stopAttack();
@@ -155,6 +146,20 @@ export class GameServer {
     setInterval(() => {
       this.update(1000 / this.ups);
     }, 1000 / this.ups);
+
+    eventBus.on(
+      'unitDamage',
+      (attacker: Unit, victim: Unit, amount: number) => {
+        this.world.broadcast(
+          Packet.AttackSwing.serialize(
+            attacker.id,
+            victim.id,
+            amount,
+            victim.health.current,
+          ),
+        );
+      },
+    );
 
     eventBus.on('unitDie', (unit: Unit) => {
       this.world.broadcast(Packet.Despawn.serialize(unit.id));
