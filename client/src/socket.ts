@@ -101,6 +101,7 @@ export class Socket {
     game.entityManager.addEntity(playerCharacter);
 
     game.player.character = playerCharacter;
+    game.player.lastCharacterId = id;
 
     game.sceneManager.setCameraTarget(playerCharacter);
     game.sceneManager.setCameraYaw(orientation);
@@ -111,13 +112,21 @@ export class Socket {
 
     log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
 
-    const character = new Character(name, color, true);
+    const isPlayerCharacter = id === game.player.lastCharacterId;
+
+    const character = new Character(name, color, !isPlayerCharacter);
     character.setId(id);
     character.setFlags(flags);
     character.setPosition(x, y, z, true);
     character.setOrientation(orientation);
 
     game.entityManager.addEntity(character);
+
+    if (isPlayerCharacter) {
+      game.player.character = character;
+      game.sceneManager.setCameraTarget(character);
+      game.sceneManager.setCameraYaw(orientation);
+    }
   }
 
   handleDespawn({ id }: ReturnType<typeof Packet.Despawn.deserialize>) {
@@ -125,8 +134,15 @@ export class Socket {
 
     const entity = game.entityManager.getEntity(id);
     if (entity) {
-      game.sceneManager.removeObject(entity.object3d);
       game.entityManager.removeEntity(id);
+
+      if (id === game.player.character?.id) {
+        game.player.character = undefined;
+      }
+
+      if (id === game.player.character?.id || game.player.target === entity) {
+        game.player.clearTarget();
+      }
     }
   }
 
@@ -170,24 +186,5 @@ export class Socket {
     log.info(
       `${attackerName} melee swing hits ${target.name} for ${damage} damage`,
     );
-  }
-
-  handleRespawn(data: ReturnType<typeof Packet.Respawn.deserialize>) {
-    const { id, x, y, z, orientation } = data;
-    const entity = game.entityManager.getEntity(id);
-    if (entity) {
-      entity.setPosition(x, y, z, true);
-      entity.setOrientation(orientation);
-      entity.health.current = entity.health.max;
-
-      if (id === game.player.character?.id) {
-        game.sceneManager.setCameraYaw(orientation);
-        game.player.clearTarget();
-      }
-
-      if (game.player.target === entity) {
-        game.player.clearTarget();
-      }
-    }
   }
 }

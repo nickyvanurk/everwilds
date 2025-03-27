@@ -1,7 +1,14 @@
+import EventEmitter from 'eventemitter3';
 import '../../shared/src/globals';
 import { GameServer } from './game-server';
 import express from 'express';
 import { WebSocketServer } from 'ws';
+
+declare global {
+  var eventBus: EventEmitter;
+}
+
+globalThis.eventBus = new EventEmitter();
 
 const app = express();
 app.use(express.static('dist'));
