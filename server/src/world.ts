@@ -14,7 +14,6 @@ export class World {
     // Create 10 monster units
     for (let i = 0; i < 10; i++) {
       const mob = new Unit('Monster', 0xff0000);
-      mob.name = `Monster ${i}`;
       mob.spawn(
         (Math.random() - 0.5) * 100,
         0,
