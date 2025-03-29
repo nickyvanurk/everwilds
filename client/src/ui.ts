@@ -36,7 +36,7 @@ export class UI {
 
         if (!chatinput.value) return;
 
-        const playerName = this.game.player.character?.name ?? 'Unknown';
+        const playerName = this.game.player.unit?.name ?? 'Unknown';
         this.game.socket.send(
           Packet.ChatMessage.serialize(playerName, chatinput.value),
         );

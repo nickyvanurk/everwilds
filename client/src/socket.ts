@@ -1,7 +1,7 @@
 import * as Packet from '../../shared/src/packets';
 import { NetworkSimulator } from './network-simulator';
 import { isDebug } from './utils';
-import { Character } from './character';
+import { Unit } from './unit';
 
 export class Socket {
   clockDelta = 0;
@@ -92,18 +92,18 @@ export class Socket {
 
     game.player.socket = game.socket;
 
-    const playerCharacter = new Character(name, color);
-    playerCharacter.setId(id);
-    playerCharacter.setFlags(flags);
-    playerCharacter.setPosition(x, y, z, true);
-    playerCharacter.setOrientation(orientation);
+    const playerUnit = new Unit(name, color);
+    playerUnit.setId(id);
+    playerUnit.setFlags(flags);
+    playerUnit.setPosition(x, y, z, true);
+    playerUnit.setOrientation(orientation);
 
-    game.entityManager.addEntity(playerCharacter);
+    game.entityManager.addEntity(playerUnit);
 
-    game.player.character = playerCharacter;
-    game.player.lastCharacterId = id;
+    game.player.unit = playerUnit;
+    game.player.lastUnitId = id;
 
-    game.sceneManager.setCameraTarget(playerCharacter);
+    game.sceneManager.setCameraTarget(playerUnit);
     game.sceneManager.setCameraYaw(orientation);
   }
 
@@ -112,19 +112,19 @@ export class Socket {
 
     log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
 
-    const isPlayerCharacter = id === game.player.lastCharacterId;
+    const isPlayerUnit = id === game.player.lastUnitId;
 
-    const character = new Character(name, color, !isPlayerCharacter);
-    character.setId(id);
-    character.setFlags(flags);
-    character.setPosition(x, y, z, true);
-    character.setOrientation(orientation);
+    const unit = new Unit(name, color, !isPlayerUnit);
+    unit.setId(id);
+    unit.setFlags(flags);
+    unit.setPosition(x, y, z, true);
+    unit.setOrientation(orientation);
 
-    game.entityManager.addEntity(character);
+    game.entityManager.addEntity(unit);
 
-    if (isPlayerCharacter) {
-      game.player.character = character;
-      game.sceneManager.setCameraTarget(character);
+    if (isPlayerUnit) {
+      game.player.unit = unit;
+      game.sceneManager.setCameraTarget(unit);
       game.sceneManager.setCameraYaw(orientation);
     }
   }
@@ -136,11 +136,11 @@ export class Socket {
     if (entity) {
       game.entityManager.removeEntity(id);
 
-      if (id === game.player.character?.id) {
-        game.player.character = undefined;
+      if (id === game.player.unit?.id) {
+        game.player.unit = undefined;
       }
 
-      if (id === game.player.character?.id || game.player.target === entity) {
+      if (id === game.player.unit?.id || game.player.target === entity) {
         game.player.clearTarget();
       }
     }
@@ -179,7 +179,7 @@ export class Socket {
     target.health.current = targetHealth;
 
     const attackerName =
-      attacker.id === game.player.character?.id ? 'Your' : `${attacker.name}'s`;
+      attacker.id === game.player.unit?.id ? 'Your' : `${attacker.name}'s`;
 
     game.hud.spawnDamageText(target, damage);
 

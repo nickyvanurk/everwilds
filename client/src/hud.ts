@@ -3,7 +3,7 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import * as PIXI from 'pixi.js';
 
 import type { Game } from './game';
-import type { Character } from './character';
+import type { Unit } from './unit';
 import { input, inputEvents } from './input';
 import * as config from './config';
 
@@ -12,10 +12,10 @@ export class HUD {
   private pixiScene = new PIXI.Container();
 
   private nameplatesVisible = config.nameplatesVisibleByDefault;
-  private names = new Map<Character, THREE.Mesh>();
-  private nameplates = new Map<Character, PIXI.Container>();
-  private labels = new Map<Character, PIXI.Text>();
-  private healthBars = new Map<Character, PIXI.Graphics>();
+  private names = new Map<Unit, THREE.Mesh>();
+  private nameplates = new Map<Unit, PIXI.Container>();
+  private labels = new Map<Unit, PIXI.Text>();
+  private healthBars = new Map<Unit, PIXI.Graphics>();
   private damageTexts = [] as {
     time: number;
     text: PIXI.Text;
@@ -59,8 +59,8 @@ export class HUD {
 
   update(_dt: number) {
     const camPos = this.game.sceneManager.camera.position;
-    const characters = this.game.entityManager
-      .getCharacters()
+    const units = this.game.entityManager
+      .getUnits()
       .slice()
       .sort((a, b) => {
         const distA = a.position.distanceTo(camPos);
@@ -68,15 +68,15 @@ export class HUD {
         return distB - distA;
       });
 
-    characters
-      .filter(character => this.nameplates.has(character))
-      .forEach((character, index) => {
-        this.pixiScene.setChildIndex(this.nameplates.get(character)!, index);
+    units
+      .filter(unit => this.nameplates.has(unit))
+      .forEach((unit, index) => {
+        this.pixiScene.setChildIndex(this.nameplates.get(unit)!, index);
       });
 
-    for (const character of characters) {
-      const anchor = character.position.clone();
-      anchor.y += character.getHeight() + 0.75;
+    for (const unit of units) {
+      const anchor = unit.position.clone();
+      anchor.y += unit.getHeight() + 0.75;
 
       const screenPosition = anchor
         .clone()
@@ -84,14 +84,14 @@ export class HUD {
       const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
       const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
 
-      if (!this.names.has(character)) {
+      if (!this.names.has(unit)) {
         // === Three.js ===
 
         // Names
         const font = gAssetManager.getFont('helvetiker');
         if (!font) continue;
 
-        const geometry = new TextGeometry(character.name, {
+        const geometry = new TextGeometry(unit.name, {
           font: font,
           size: 0.2,
           depth: 0,
@@ -104,38 +104,38 @@ export class HUD {
         const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
         const name = new THREE.Mesh(geometry, material);
         this.game.sceneManager.addObject(name);
-        this.names.set(character, name);
+        this.names.set(unit, name);
         name.visible = !this.nameplatesVisible;
       }
 
-      const name = this.names.get(character);
+      const name = this.names.get(unit);
       if (name) {
-        name.visible = character.targeted ? false : !this.nameplatesVisible;
+        name.visible = unit.targeted ? false : !this.nameplatesVisible;
         name.position.copy(anchor);
         name.rotation.setFromRotationMatrix(
           this.game.sceneManager.camera.matrix,
         );
       }
 
-      if (!this.nameplates.has(character)) {
+      if (!this.nameplates.has(unit)) {
         // === Pixi.js ===
 
         const nameplate = new PIXI.Container();
         this.pixiScene.addChild(nameplate);
-        this.nameplates.set(character, nameplate);
+        this.nameplates.set(unit, nameplate);
 
-        const selectCharacter = (ev: PIXI.FederatedPointerEvent) => {
+        const selectUnit = (ev: PIXI.FederatedPointerEvent) => {
           const button =
             ev.button === 0 ? 'left' : ev.button === 2 ? 'right' : 'middle';
           inputEvents.push({
-            type: 'selectCharacter',
-            data: { character, button, origin: 'hud' },
+            type: 'selectUnit',
+            data: { unit, button, origin: 'hud' },
           });
         };
 
         nameplate.eventMode = 'dynamic';
-        nameplate.on('mouseupoutside', selectCharacter);
-        nameplate.on('rightupoutside', selectCharacter);
+        nameplate.on('mouseupoutside', selectUnit);
+        nameplate.on('rightupoutside', selectUnit);
 
         // Use invisible background as hitbox
         const hitbox = new PIXI.Graphics();
@@ -147,7 +147,7 @@ export class HUD {
 
         // Create name label
         const label = new PIXI.Text({
-          text: character.name,
+          text: unit.name,
           style: {
             fontFamily: 'Arial',
             fontSize: 16,
@@ -157,7 +157,7 @@ export class HUD {
           },
         });
         nameplate.addChild(label);
-        this.labels.set(character, label);
+        this.labels.set(unit, label);
 
         // Create health bar
         const healthBar = new PIXI.Graphics();
@@ -165,16 +165,16 @@ export class HUD {
         healthBar.fill(0x00ff00);
         healthBar.position.set(0, 0);
         nameplate.addChild(healthBar);
-        this.healthBars.set(character, healthBar);
+        this.healthBars.set(unit, healthBar);
       }
 
       const cameraDirection = this.game.sceneManager.camera.getWorldDirection(
         new THREE.Vector3(),
       );
 
-      const nameplate = this.nameplates.get(character);
+      const nameplate = this.nameplates.get(unit);
       if (nameplate) {
-        const nameplateDirection = character.position
+        const nameplateDirection = unit.position
           .clone()
           .sub(camPos)
           .normalize();
@@ -182,25 +182,25 @@ export class HUD {
 
         nameplate.visible =
           !isBehindCamera &&
-          (character.targeted ? true : this.nameplatesVisible);
-        nameplate.alpha = character.targeted ? 1 : 0.5;
+          (unit.targeted ? true : this.nameplatesVisible);
+        nameplate.alpha = unit.targeted ? 1 : 0.5;
 
         nameplate.position.set(x, y);
       }
 
-      const label = this.labels.get(character);
+      const label = this.labels.get(unit);
       if (label) {
         label.position.set(-label.width / 2, -label.height / 2 - label.height);
       }
 
-      const healthBar = this.healthBars.get(character);
+      const healthBar = this.healthBars.get(unit);
       if (healthBar) {
         healthBar.position.set(-healthBar.width / 2, -healthBar.height / 2);
 
         healthBar.rect(0, 0, 100, 10);
         healthBar.fill(0xff0000);
 
-        const healthFraction = character.health.current / character.health.max;
+        const healthFraction = unit.health.current / unit.health.max;
         healthBar.rect(0, 0, 100 * healthFraction, 10);
         healthBar.fill(0x00ff00);
       }
@@ -235,19 +235,19 @@ export class HUD {
       t => !damageTextsToRemove.includes(t),
     );
 
-    for (const [character, name] of this.names) {
-      if (!characters.includes(character)) {
+    for (const [unit, name] of this.names) {
+      if (!units.includes(unit)) {
         this.game.sceneManager.removeObject(name);
-        this.names.delete(character);
+        this.names.delete(unit);
       }
     }
 
-    for (const [character, container] of this.nameplates) {
-      if (!characters.includes(character)) {
+    for (const [unit, container] of this.nameplates) {
+      if (!units.includes(unit)) {
         this.pixiScene.removeChild(container);
-        this.nameplates.delete(character);
-        this.labels.delete(character);
-        this.healthBars.delete(character);
+        this.nameplates.delete(unit);
+        this.labels.delete(unit);
+        this.healthBars.delete(unit);
       }
     }
   }
@@ -257,7 +257,7 @@ export class HUD {
     this.pixiRenderer.render({ container: this.pixiScene });
   }
 
-  spawnDamageText(target: Character, damage: number) {
+  spawnDamageText(target: Unit, damage: number) {
     const text = new PIXI.Text({
       text: damage.toString(),
       style: {

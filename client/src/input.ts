@@ -1,5 +1,5 @@
 import EventEmitter from 'eventemitter3';
-import type { Character } from './character';
+import type { Unit } from './unit';
 
 export const input = new EventEmitter();
 
@@ -10,7 +10,7 @@ export const inputEvents = [] as {
   data: {
     button: string;
     pointer?: { x: number; y: number };
-    character?: Character;
+    unit?: Unit;
     origin?: string;
   };
 }[];
@@ -112,13 +112,13 @@ window.onpointerup = ev => {
         const targetedEntity = game.entityManager.getEntity(target.id);
         if (targetedEntity) {
           inputEvents.push({
-            type: 'selectCharacter',
-            data: { character: targetedEntity, button },
+            type: 'selectUnit',
+            data: { unit: targetedEntity, button },
           });
         }
       } else {
         inputEvents.push({
-          type: 'deselectCharacter',
+          type: 'deselectUnit',
           data: { button },
         });
       }

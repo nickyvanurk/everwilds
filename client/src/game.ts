@@ -47,36 +47,36 @@ export class Game {
     const eventsToHandle = inputEvents.slice();
     inputEvents.length = 0;
 
-    // Sort events so deselectCharacter events are handled before selectCharacter events.
-    // Otherwise selecting a nameplate can select the character and then immediately
+    // Sort events so deselectUnit events are handled before selectUnit events.
+    // Otherwise selecting a nameplate can select the unit and then immediately
     // deselect it.
     eventsToHandle.sort((a, b) => {
       if (a.type === b.type) return 0;
-      return a.type === 'deselectCharacter' ? -1 : 1;
+      return a.type === 'deselectUnit' ? -1 : 1;
     });
 
     for (const inputEvent of eventsToHandle) {
-      if (inputEvent.type === 'deselectCharacter') {
+      if (inputEvent.type === 'deselectUnit') {
         this.player.clearTarget();
         if (this.player.isAttacking) {
           this.player.stopAttack();
         }
-      } else if (inputEvent.type === 'selectCharacter') {
-        if (!inputEvent.data.character) continue;
+      } else if (inputEvent.type === 'selectUnit') {
+        if (!inputEvent.data.unit) continue;
 
-        // Clear other selected characters if origin is hud
+        // Clear other selected units if origin is hud
         if (inputEvent.data.origin === 'hud') {
           inputEvents.filter(
             event =>
-              event.type === 'selectCharacter' &&
+              event.type === 'selectUnit' &&
               event.data.origin !== 'hud' &&
-              event.data.character !== inputEvent.data.character,
+              event.data.unit !== inputEvent.data.unit,
           );
         }
 
-        this.player.setTarget(inputEvent.data.character);
+        this.player.setTarget(inputEvent.data.unit);
         if (inputEvent.data.button === 'right') {
-          this.player.startAttack(inputEvent.data.character);
+          this.player.startAttack(inputEvent.data.unit);
         }
       }
     }

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import EventEmitter from 'eventemitter3';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
-import type { Character } from './character';
+import type { Unit } from './unit';
 
 export class SceneManager extends EventEmitter {
   renderer: THREE.WebGLRenderer;
@@ -14,7 +14,7 @@ export class SceneManager extends EventEmitter {
   private clock: THREE.Clock;
   private controls: OrbitControls;
   private trackballControls: TrackballControls;
-  private cameraTarget: Character | null = null;
+  private cameraTarget: Unit | null = null;
   private raycaster = new THREE.Raycaster();
   private shadowFloor!: THREE.Mesh;
 
@@ -201,7 +201,7 @@ export class SceneManager extends EventEmitter {
     this.scene.remove(object);
   }
 
-  setCameraTarget(target: Character) {
+  setCameraTarget(target: Unit) {
     this.cameraTarget = target;
   }
 

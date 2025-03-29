@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as Utils from './utils';
 
-export class Character {
+export class Unit {
   id = -1;
   position = new THREE.Vector3();
   velocity = new THREE.Vector3();

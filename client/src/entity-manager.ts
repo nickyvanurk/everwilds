@@ -1,15 +1,15 @@
-import type { Character } from './character';
+import type { Unit } from './unit';
 import type { SceneManager } from './scene-manager';
 
 export class EntityManager {
-  private entities: Map<number, Character> = new Map();
+  private entities: Map<number, Unit> = new Map();
   private sceneManager: SceneManager;
 
   constructor(sceneManager: SceneManager) {
     this.sceneManager = sceneManager;
   }
 
-  addEntity(entity: Character) {
+  addEntity(entity: Unit) {
     if (this.entities.has(entity.id)) {
       log.warn(`Entity with ID ${entity.id} already exists`);
       return;
@@ -30,7 +30,7 @@ export class EntityManager {
     this.entities.delete(id);
   }
 
-  getEntity(id: number): Character | undefined {
+  getEntity(id: number): Unit | undefined {
     const entity = this.entities.get(id);
     if (!entity) {
       log.warn(`Entity with ID ${id} not found`);
@@ -46,7 +46,7 @@ export class EntityManager {
     }
   }
 
-  getCharacters() {
+  getUnits() {
     return Array.from(this.entities.values());
   }
 }

@@ -1,17 +1,17 @@
 import * as THREE from 'three';
 
 import { actions, input, mouseState } from './input';
-import type { Character } from './character';
+import type { Unit } from './unit';
 import type { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
 import type { SceneManager } from './scene-manager';
 
 export class Player {
   socket: Socket | null = null;
-  character?: Character;
-  target?: Character;
+  unit?: Unit;
+  target?: Unit;
   isAttacking = false;
-  lastCharacterId = 0;
+  lastUnitId = 0;
 
   private timeSinceLastMovePacket = 0;
   private prejump?: THREE.Audio;
@@ -23,8 +23,8 @@ export class Player {
     input.on('right', this.sendMovementPacket.bind(this));
 
     sceneManager.on('cameraYawChanged', (yaw: number) => {
-      if (mouseState.rmb && this.character) {
-        this.character.setOrientation(yaw);
+      if (mouseState.rmb && this.unit) {
+        this.unit.setOrientation(yaw);
         this.sendMovementPacket();
       }
     });
@@ -38,21 +38,21 @@ export class Player {
   }
 
   update(dt: number) {
-    if (!this.character) return;
+    if (!this.unit) return;
 
     const isForward = actions.forward || (mouseState.lmb && mouseState.rmb);
 
-    this.character.isStrafeLeft = actions.left;
-    this.character.isStrafeRight = actions.right;
-    this.character.isForward = isForward;
-    this.character.isBackward = actions.backward;
+    this.unit.isStrafeLeft = actions.left;
+    this.unit.isStrafeRight = actions.right;
+    this.unit.isForward = isForward;
+    this.unit.isBackward = actions.backward;
 
     const input = new THREE.Vector3();
     input.x = actions.left ? -1 : actions.right ? 1 : 0;
     input.z = isForward ? -1 : actions.backward ? 1 : 0;
     input.applyAxisAngle(
       new THREE.Vector3(0, 1, 0),
-      this.character.orientation,
+      this.unit.orientation,
     );
     input.normalize();
 
@@ -64,10 +64,10 @@ export class Player {
       }
     }
 
-    this.character.move(input.x, input.z);
+    this.unit.move(input.x, input.z);
 
-    if (actions.jump && this.character.isGrounded()) {
-      this.character.jump();
+    if (actions.jump && this.unit.isGrounded()) {
+      this.unit.jump();
       this.sendMovementPacket(true, true);
       actions.jump = false;
 
@@ -82,7 +82,7 @@ export class Player {
   }
 
   sendMovementPacket(resetTimer = true, jumping = false) {
-    if (!this.character) return;
+    if (!this.unit) return;
 
     let movementFlags = 0;
     if (actions.forward) movementFlags |= 1;
@@ -94,10 +94,10 @@ export class Player {
     this.socket?.send(
       Packet.Move.serialize(
         movementFlags,
-        this.character.position.x,
-        this.character.position.y,
-        this.character.position.z,
-        this.character.orientation,
+        this.unit.position.x,
+        this.unit.position.y,
+        this.unit.position.z,
+        this.unit.orientation,
       ),
     );
 
@@ -106,7 +106,7 @@ export class Player {
     }
   }
 
-  setTarget(target: Character) {
+  setTarget(target: Unit) {
     if (this.target) {
       this.target.targeted = false;
     }
@@ -122,7 +122,7 @@ export class Player {
     }
   }
 
-  startAttack(target: Character) {
+  startAttack(target: Unit) {
     this.isAttacking = true;
     this.socket?.send(Packet.AttackStart.serialize(target.id));
   }
