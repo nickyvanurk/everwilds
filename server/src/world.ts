@@ -1,7 +1,7 @@
-import { Player } from './player';
+import type { Player } from './player';
 import * as Packet from '../../shared/src/packets';
 import { Unit } from './unit';
-import type { Entity } from './entity';
+import { Entity } from './entity';
 
 export class World {
   private entities: { [key: number]: Entity } = {};
@@ -51,8 +51,10 @@ export class World {
   removePlayer(player: Player) {
     this.broadcast(Packet.Despawn.serialize(player.id), player.id);
 
-    Player.releaseId(player.id);
+    delete this.entities[player.id];
+    delete this.units[player.id];
     delete this.players[player.id];
+    Entity.releaseId(player.id);
 
     log.debug(`Removed player: ${player.id}`);
   }

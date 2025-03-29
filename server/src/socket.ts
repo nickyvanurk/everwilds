@@ -3,8 +3,15 @@ import type { WebSocket } from 'ws';
 import * as Packet from '../../shared/src/packets';
 
 export class Socket extends EventEmitter {
+  id: number;
+
+  static assignedIds = new Set<number>();
+  static nextId = 1;
+
   constructor(public ws: WebSocket) {
     super();
+
+    this.id = Socket.getNextId();
 
     ws.on('message', (message: (string | number)[]) => {
       const data = JSON.parse(message.toString());
@@ -54,5 +61,22 @@ export class Socket extends EventEmitter {
     if (!this.isOpen()) return;
 
     this.ws.send(JSON.stringify(message));
+  }
+
+  static getNextId() {
+    while (Socket.assignedIds.has(Socket.nextId)) {
+      Socket.nextId++;
+    }
+
+    Socket.assignedIds.add(Socket.nextId);
+    return Socket.nextId;
+  }
+
+  static releaseId(id: number) {
+    Socket.assignedIds.delete(id);
+
+    if (id < Socket.nextId) {
+      Socket.nextId = id;
+    }
   }
 }

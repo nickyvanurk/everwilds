@@ -12,7 +12,6 @@ export class GameServer {
   private world: World;
 
   private sockets: { [key: number]: Socket } = {};
-  private socketIdCounter = 0;
   private color = new THREE.Color();
 
   constructor(wss: WebSocketServer) {
@@ -23,7 +22,6 @@ export class GameServer {
       log.info('New connection established');
 
       const socket = new Socket(ws);
-      this.socketIdCounter++;
 
       socket.initiateHandshake();
 
@@ -71,7 +69,7 @@ export class GameServer {
         );
 
         log.info(`Player ${player.name} joined the game`);
-        this.sockets[this.socketIdCounter] = socket;
+        this.sockets[socket.id] = socket;
       });
 
       socket.on('move', ({ flags, x, y, z, orientation }) => {
@@ -93,7 +91,8 @@ export class GameServer {
         if (!player) return;
 
         this.world.removePlayer(player);
-        delete this.sockets[this.socketIdCounter];
+        delete this.sockets[socket.id];
+        Socket.releaseId(socket.id);
 
         log.info(`Player ${player.name} left the game`);
       });
