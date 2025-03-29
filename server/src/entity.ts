@@ -10,7 +10,7 @@ export class Entity {
   static nextId = 1;
 
   constructor() {
-    this.id = Number.parseInt(`${Entity.getNextId()}`);
+    this.id = Entity.getNextId();
   }
 
   update(_dt: number) {}
