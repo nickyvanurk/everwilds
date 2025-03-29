@@ -102,8 +102,72 @@ export class SceneManager extends EventEmitter {
       birds.play();
     });
 
-    const gridHelper = new THREE.GridHelper(1000, 1000, 0x4e4e4e, 0x4e4e4e);
-    this.scene.add(gridHelper);
+    // Create a grid for future terrain generation
+    const fanGridGeometry = new THREE.BufferGeometry();
+    const fanGridVertices: number[] = [];
+    const fanGridColors: number[] = [];
+    const fanGridSize = 1000;
+    const fanGridSpacing = 1;
+    const fanGridColor = new THREE.Color(0x4e4e4e);
+
+    const fanGridCenter = new THREE.Vector3(
+      (fanGridSize * fanGridSpacing) / 2,
+      0,
+      (fanGridSize * fanGridSpacing) / 2,
+    );
+
+    for (let i = 0; i < fanGridSize; i++) {
+      for (let j = 0; j < fanGridSize; j++) {
+        const x = i * fanGridSpacing - fanGridCenter.x;
+        const z = j * fanGridSpacing - fanGridCenter.z;
+
+        const isEvenCol = (i + j) % 2 === 0;
+
+        if (isEvenCol) {
+          // Diagonal goes top-right to bottom-left
+          fanGridVertices.push(x, 0, z);
+          fanGridVertices.push(x + fanGridSpacing, 0, z + fanGridSpacing);
+          fanGridVertices.push(x, 0, z + fanGridSpacing);
+
+          fanGridVertices.push(x, 0, z);
+          fanGridVertices.push(x + fanGridSpacing, 0, z);
+          fanGridVertices.push(x + fanGridSpacing, 0, z + fanGridSpacing);
+        } else {
+          // Diagonal goes top-left to bottom-right
+          fanGridVertices.push(x, 0, z);
+          fanGridVertices.push(x + fanGridSpacing, 0, z);
+          fanGridVertices.push(x, 0, z + fanGridSpacing);
+
+          fanGridVertices.push(x + fanGridSpacing, 0, z + fanGridSpacing);
+          fanGridVertices.push(x + fanGridSpacing, 0, z);
+          fanGridVertices.push(x, 0, z + fanGridSpacing);
+        }
+
+        fanGridColors.push(fanGridColor.r, fanGridColor.g, fanGridColor.b);
+        fanGridColors.push(fanGridColor.r, fanGridColor.g, fanGridColor.b);
+        fanGridColors.push(fanGridColor.r, fanGridColor.g, fanGridColor.b);
+        fanGridColors.push(fanGridColor.r, fanGridColor.g, fanGridColor.b);
+        fanGridColors.push(fanGridColor.r, fanGridColor.g, fanGridColor.b);
+        fanGridColors.push(fanGridColor.r, fanGridColor.g, fanGridColor.b);
+      }
+    }
+
+    fanGridGeometry.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(fanGridVertices, 3),
+    );
+    fanGridGeometry.setAttribute(
+      'color',
+      new THREE.Float32BufferAttribute(fanGridColors, 3),
+    );
+    fanGridGeometry.computeBoundingSphere();
+    const fanGridMaterial = new THREE.MeshBasicMaterial({
+      vertexColors: true,
+      wireframe: true,
+    });
+    const fanGrid = new THREE.Mesh(fanGridGeometry, fanGridMaterial);
+    fanGrid.position.set(0, 0, 0);
+    this.scene.add(fanGrid);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 1);
     ambientLight.intensity = 1.5;
