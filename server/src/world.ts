@@ -1,7 +1,7 @@
 import type { Player } from './player';
 import * as Packet from '../../shared/src/packets';
 import { Unit } from './unit';
-import { Entity } from './entity';
+import type { Entity } from './entity';
 
 export class World {
   private entities: { [key: number]: Entity } = {};
@@ -54,7 +54,6 @@ export class World {
     delete this.entities[player.id];
     delete this.units[player.id];
     delete this.players[player.id];
-    Entity.releaseId(player.id);
 
     log.debug(`Removed player: ${player.id}`);
   }

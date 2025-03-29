@@ -6,29 +6,11 @@ export class Entity {
   z = 0;
   orientation = 0;
 
-  static assignedIds = new Set<number>();
   static nextId = 1;
 
   constructor() {
-    this.id = Entity.getNextId();
+    this.id = Entity.nextId++;
   }
 
   update(_dt: number) {}
-
-  static getNextId() {
-    while (Entity.assignedIds.has(Entity.nextId)) {
-      Entity.nextId++;
-    }
-
-    Entity.assignedIds.add(Entity.nextId);
-    return Entity.nextId;
-  }
-
-  static releaseId(id: number) {
-    Entity.assignedIds.delete(id);
-
-    if (id < Entity.nextId) {
-      Entity.nextId = id;
-    }
-  }
 }

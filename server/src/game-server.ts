@@ -92,7 +92,6 @@ export class GameServer {
 
         this.world.removePlayer(player);
         delete this.sockets[socket.id];
-        Socket.releaseId(socket.id);
 
         log.info(`Player ${player.name} left the game`);
       });
