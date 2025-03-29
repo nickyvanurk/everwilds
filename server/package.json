@@ -1,0 +1,13 @@
+{
+    "name": "wander",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "client": "vite",
+        "start": "node ../dist/server/src/main.js",
+        "dev": "tsx src/main.ts",
+        "build": "tsc && tsc-alias",
+        "typecheck": "tsc --project tsconfig.json --noEmit"
+    }
+}

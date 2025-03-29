@@ -3,6 +3,8 @@ import '../../shared/src/globals';
 import { GameServer } from './game-server';
 import express from 'express';
 import { WebSocketServer } from 'ws';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 declare global {
   var eventBus: EventEmitter;
@@ -10,8 +12,10 @@ declare global {
 
 globalThis.eventBus = new EventEmitter();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
-app.use(express.static('dist'));
+app.use(express.static(path.join(__dirname, '../../')));
 
 const wss = new WebSocketServer({ noServer: true });
 

@@ -1,4 +1,4 @@
-export const host = 'localhost';
+export const host = window.location.hostname;
 export const port = 3000;
 
 export const assets = [

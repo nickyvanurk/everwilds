@@ -2,11 +2,11 @@ import glsl from 'vite-plugin-glsl';
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "./",
   plugins: [glsl()],
   build: {
-    outDir: "dist",
+    outDir: "../dist",
     emptyOutDir: true,
     sourcemap: false,
+    assetsDir: "client",
   },
 });

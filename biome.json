@@ -5,7 +5,13 @@
 	},
 	"files": {
 		"include": [
-			"src/**"
+			"**/src/**"
+		],
+		"ignore": [
+			"**/node_modules/**",
+			"**/dist/**",
+			"**/.git/**",
+			"**/.vscode/**"
 		]
 	},
 	"linter": {

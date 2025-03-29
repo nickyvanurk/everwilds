@@ -1,0 +1,12 @@
+{
+    "name": "everwilds",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "typecheck": "tsc --project tsconfig.json --noEmit",
+        "cpd": "jscpd --min-tokens 50 --min-lines 5 --min-tokens 100 ./src"
+    }
+}

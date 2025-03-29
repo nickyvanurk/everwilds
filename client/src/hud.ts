@@ -181,8 +181,7 @@ export class HUD {
         const isBehindCamera = cameraDirection.dot(nameplateDirection) < 0;
 
         nameplate.visible =
-          !isBehindCamera &&
-          (unit.targeted ? true : this.nameplatesVisible);
+          !isBehindCamera && (unit.targeted ? true : this.nameplatesVisible);
         nameplate.alpha = unit.targeted ? 1 : 0.5;
 
         nameplate.position.set(x, y);
