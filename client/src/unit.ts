@@ -39,8 +39,6 @@ export class Unit {
   private floorHeight = 0;
 
   private prejump?: THREE.PositionalAudio;
-  // private postjump: THREE.Audio;
-  // private footsteps: THREE.Audio;
 
   constructor(
     public name: string,
@@ -118,22 +116,6 @@ export class Unit {
         this.meshBody.add(prejump);
       });
     }
-
-    // gAssetManager.getSound('postjump', (buffer: AudioBuffer) => {
-    //   const postjump = new THREE.Audio(game.sceneManager.audioListener);
-    //   postjump.setBuffer(buffer);
-    //   postjump.setVolume(0.1);
-    //   postjump.playbackRate = 1;
-    //   this.postjump = postjump;
-    // });
-
-    // gAssetManager.getSound('footsteps', (buffer: AudioBuffer) => {
-    //   const footsteps = new THREE.Audio(game.sceneManager.audioListener);
-    //   footsteps.setBuffer(buffer);
-    //   footsteps.setVolume(0.1);
-    //   footsteps.playbackRate = 1;
-    //   this.footsteps = footsteps;
-    // });
   }
 
   update(dt: number) {
@@ -163,16 +145,6 @@ export class Unit {
     if (this.position.y < this.floorHeight) {
       this.position.y = this.floorHeight;
       this.velocity.y = 0;
-    }
-
-    if (this.isGrounded() && !wasGrounded) {
-      // if (this.footsteps.isPlaying) {
-      //   this.footsteps.stop();
-      // }
-      // if (this.postjump.isPlaying) {
-      //   this.postjump.stop();
-      // }
-      // this.postjump.play();
     }
 
     this.object3d.position.copy(this.position);
@@ -258,17 +230,6 @@ export class Unit {
         Math.abs(Math.sin((this.elapsedWalkTime + 0.5) * stepSpeed)) * 0.1;
       this.meshLeftEye.position.y = 1 + this.meshBody.position.y;
       this.meshRightEye.position.y = 1 + this.meshBody.position.y;
-
-      // Left or right foot just hit the ground
-      if (
-        (prevStepOffsetY > 0 && stepOffsetY < 0) ||
-        (prevStepOffsetY < 0 && stepOffsetY > 0)
-      ) {
-        // if (this.footsteps.isPlaying) {
-        // this.footsteps.stop();
-        // }
-        // this.footsteps.play();
-      }
     } else {
       this.elapsedWalkTime = 0;
       this.elapsedIdleTime += dt;
