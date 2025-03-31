@@ -33,4 +33,4 @@ export const keyBindings = [
   { action: 'toggleNameplates', key: 'KeyV' },
 ];
 
-export const nameplatesVisibleByDefault = true;
+export const nameplatesVisibleByDefault = false;
