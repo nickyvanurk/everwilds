@@ -225,6 +225,7 @@ export class HUD {
       text.position.y -= delta / 10;
 
       if (delta > lifetime) {
+        text.destroy(true);
         this.pixiScene.removeChild(text);
         damageTextsToRemove.push(damageText);
       }
@@ -243,6 +244,9 @@ export class HUD {
 
     for (const [unit, container] of this.nameplates) {
       if (!units.includes(unit)) {
+        container.off('mouseupoutside');
+        container.off('rightupoutside');
+        container.destroy(true);
         this.pixiScene.removeChild(container);
         this.nameplates.delete(unit);
         this.labels.delete(unit);

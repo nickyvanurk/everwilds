@@ -262,6 +262,21 @@ export class SceneManager extends EventEmitter {
   }
 
   removeObject(object: THREE.Object3D) {
+    if (object.children.length) {
+      for (const child of object.children) {
+        this.removeObject(child);
+      }
+    }
+
+    const mesh = object as THREE.Mesh;
+    if (mesh.isMesh) {
+      mesh.geometry.dispose();
+      const mat = Array.isArray(mesh.material)
+        ? mesh.material
+        : [mesh.material];
+      mat.forEach(material => material.dispose());
+    }
+
     this.scene.remove(object);
   }
 
