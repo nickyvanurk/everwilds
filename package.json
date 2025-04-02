@@ -24,7 +24,6 @@
   "dependencies": {
     "eventemitter3": "^5.0.1",
     "express": "^4.21.2",
-    "pixi.js": "^8.9.1",
     "three": "^0.170.0",
     "tweakpane": "^4.0.5",
     "ws": "^8.18.0"

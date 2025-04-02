@@ -1,6 +1,16 @@
 import * as THREE from 'three';
 import * as Utils from './utils';
 
+const boxSize = 1.5;
+const modelHitboxGeometry = new THREE.BoxGeometry(boxSize, 2, boxSize);
+modelHitboxGeometry.translate(0, 1, 0);
+modelHitboxGeometry.computeBoundingBox();
+const modelHitboxMaterial = new THREE.MeshBasicMaterial({
+  color: 0xffffff,
+  opacity: 0,
+  transparent: true,
+});
+
 export class Unit {
   id = -1;
   position = new THREE.Vector3();
@@ -13,6 +23,8 @@ export class Unit {
   targeted = false;
   health = { current: 100, max: 100, min: 0 };
   hasGravity = true;
+
+  modelHitbox: THREE.Mesh;
 
   private deadReckoningPosition = new THREE.Vector3();
   private positionError = new THREE.Vector3();
@@ -47,6 +59,14 @@ export class Unit {
   ) {
     const root = new THREE.Object3D();
 
+    // Create bounding box for raycast collision detection
+    const modelHitbox = new THREE.Mesh(
+      modelHitboxGeometry,
+      modelHitboxMaterial,
+    );
+    this.modelHitbox = modelHitbox;
+    root.add(modelHitbox);
+
     // Body
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     geometry.translate(0, 1, 0);
@@ -58,7 +78,6 @@ export class Unit {
     const body = new THREE.Mesh(geometry, material);
     body.castShadow = true;
     body.receiveShadow = true;
-    body.userData.id = this.id;
     this.meshBody = body;
     root.add(body);
 
@@ -263,7 +282,7 @@ export class Unit {
 
   setId(id: number) {
     this.id = id;
-    this.meshBody.userData.id = id;
+    this.modelHitbox.userData.id = id;
   }
 
   setFlags(flags: number) {

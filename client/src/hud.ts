@@ -1,57 +1,52 @@
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-import * as PIXI from 'pixi.js';
 
 import type { Game } from './game';
 import type { Unit } from './unit';
-import { input, inputEvents } from './input';
+import { input } from './input';
 import * as config from './config';
 
+const nameplateHitboxMaterial = new THREE.MeshBasicMaterial({
+  color: 0x000000,
+  opacity: 0,
+  transparent: true,
+});
+const nameplateHitboxGeometry = new THREE.PlaneGeometry(110, 38);
+nameplateHitboxGeometry.translate(0, 23, 0);
+
+const healthBarGeometry = new THREE.PlaneGeometry(100, 10);
+healthBarGeometry.translate(0, 10, 0);
+
+const whiteMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
 export class HUD {
-  private pixiRenderer: PIXI.WebGLRenderer;
-  private pixiScene = new PIXI.Container();
+  nameplates = new Map<Unit, THREE.Group>();
 
   private nameplatesVisible = config.nameplatesVisibleByDefault;
   private names = new Map<Unit, THREE.Mesh>();
-  private nameplates = new Map<Unit, PIXI.Container>();
-  private labels = new Map<Unit, PIXI.Text>();
-  private healthBars = new Map<Unit, PIXI.Graphics>();
+  private labels = new Map<Unit, THREE.Mesh>();
+  private healthbars = new Map<Unit, THREE.Group>();
   private damageTexts = [] as {
     time: number;
-    text: PIXI.Text;
+    text: THREE.Mesh;
     anchor: THREE.Vector3;
     lifetime: number;
+    speed: number; // units per second
   }[];
 
-  constructor(private game: Game) {
-    this.pixiRenderer = new PIXI.WebGLRenderer();
-    this.pixiScene = new PIXI.Container();
-  }
+  constructor(private game: Game) {}
 
   async init() {
-    await this.pixiRenderer.init({
-      canvas: this.game.sceneManager.renderer.domElement,
-      width: window.innerWidth,
-      height: window.innerHeight,
-      clearBeforeRender: false, // Prevent pixijs from clearing the threejs renderer
-      resolution: window.devicePixelRatio,
-    });
-
-    addEventListener('resize', () => {
-      this.pixiRenderer.resize(window.innerWidth, window.innerHeight);
-      this.render();
-    });
-
     input.on('toggleNameplates', isDown => {
       if (!isDown) return;
 
       this.nameplatesVisible = !this.nameplatesVisible;
 
-      for (const [_, name] of this.names) {
+      for (const name of this.names.values()) {
         name.visible = !name.visible;
       }
 
-      for (const [_, nameplate] of this.nameplates) {
+      for (const nameplate of this.nameplates.values()) {
         nameplate.visible = !nameplate.visible;
       }
     });
@@ -68,26 +63,15 @@ export class HUD {
         return distB - distA;
       });
 
-    units
-      .filter(unit => this.nameplates.has(unit))
-      .forEach((unit, index) => {
-        this.pixiScene.setChildIndex(this.nameplates.get(unit)!, index);
-      });
-
     for (const unit of units) {
       const anchor = unit.position.clone();
       anchor.y += unit.getHeight() + 0.75;
 
-      const screenPosition = anchor
-        .clone()
-        .project(this.game.sceneManager.camera);
-      const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
-      const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
-
+      // Names
       if (!this.names.has(unit)) {
         // === Three.js ===
 
-        // Names
+        // Create name
         const font = gAssetManager.getFont('helvetiker');
         if (!font) continue;
 
@@ -99,15 +83,15 @@ export class HUD {
         });
         geometry.computeBoundingBox();
         const bbox = geometry.boundingBox!;
-        const offset = -0.5 * (bbox.max.x - bbox.min.x);
-        geometry.translate(offset, 0, 0);
-        const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const name = new THREE.Mesh(geometry, material);
+        const offset = (bbox.max.x - bbox.min.x) / 2;
+        geometry.translate(-offset, 0, 0);
+        const name = new THREE.Mesh(geometry, whiteMaterial);
         this.game.sceneManager.addObject(name);
         this.names.set(unit, name);
         name.visible = !this.nameplatesVisible;
       }
 
+      // Update name
       const name = this.names.get(unit);
       if (name) {
         name.visible = unit.targeted ? false : !this.nameplatesVisible;
@@ -117,120 +101,165 @@ export class HUD {
         );
       }
 
+      // Nameplates
       if (!this.nameplates.has(unit)) {
-        // === Pixi.js ===
+        // === Three.js ===
 
-        const nameplate = new PIXI.Container();
-        this.pixiScene.addChild(nameplate);
+        // Create nameplate
+        const nameplate = new THREE.Group();
+        this.game.sceneManager.addObject(nameplate);
         this.nameplates.set(unit, nameplate);
 
-        const selectUnit = (ev: PIXI.FederatedPointerEvent) => {
-          const button =
-            ev.button === 0 ? 'left' : ev.button === 2 ? 'right' : 'middle';
-          inputEvents.push({
-            type: 'selectUnit',
-            data: { unit, button, origin: 'hud' },
+        // Background
+        const hitbox = new THREE.Mesh(
+          nameplateHitboxGeometry,
+          nameplateHitboxMaterial,
+        );
+        hitbox.userData.id = unit.id;
+        hitbox.renderOrder = 2;
+        nameplate.add(hitbox);
+
+        // Name
+        {
+          const font = gAssetManager.getFont('helvetiker_bold');
+          if (!font) continue;
+
+          const geometry = new TextGeometry(unit.name, {
+            font: font,
+            size: 16,
+            depth: 0,
+            curveSegments: 12,
           });
-        };
+          geometry.computeBoundingBox();
+          const bbox = geometry.boundingBox!;
+          const offsetX = -0.5 * (bbox.max.x - bbox.min.x);
+          const offsetY = 0.5 * (bbox.max.y - bbox.min.y);
+          geometry.translate(offsetX, offsetY + 15, 0);
+          const material = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            opacity: 0.5,
+            transparent: true,
+          });
+          const name = new THREE.Mesh(geometry, material);
+          nameplate.add(name);
+          this.labels.set(unit, name);
+        }
 
-        nameplate.eventMode = 'dynamic';
-        nameplate.on('mouseupoutside', selectUnit);
-        nameplate.on('rightupoutside', selectUnit);
+        // Health bar
+        {
+          // TODO: Replace with shader for performance, don't create material
+          // for every healthbar.
 
-        // Use invisible background as hitbox
-        const hitbox = new PIXI.Graphics();
-        hitbox.rect(0, 0, 110, 40);
-        hitbox.fill(0x000000);
-        hitbox.alpha = 0;
-        hitbox.position.set(-hitbox.width / 2, -hitbox.height + 10);
-        nameplate.addChild(hitbox);
+          const healthBar = new THREE.Group();
+          healthBar.position.copy(anchor);
+          healthBar.rotation.setFromRotationMatrix(
+            this.game.sceneManager.camera.matrix,
+          );
+          nameplate.add(healthBar);
 
-        // Create name label
-        const label = new PIXI.Text({
-          text: unit.name,
-          style: {
-            fontFamily: 'Arial',
-            fontSize: 16,
-            fill: 0xffffff,
-            align: 'center',
-            fontWeight: 'bold',
-          },
-        });
-        nameplate.addChild(label);
-        this.labels.set(unit, label);
+          const healthBarBackgroundMaterial = new THREE.MeshBasicMaterial({
+            color: 0xff0000,
+            opacity: 1,
+            transparent: true,
+          });
+          const healthBarBackground = new THREE.Mesh(
+            healthBarGeometry,
+            healthBarBackgroundMaterial,
+          );
+          healthBarBackground.renderOrder = 0;
+          healthBar.add(healthBarBackground);
 
-        // Create health bar
-        const healthBar = new PIXI.Graphics();
-        healthBar.rect(0, 0, 100, 10);
-        healthBar.fill(0x00ff00);
-        healthBar.position.set(0, 0);
-        nameplate.addChild(healthBar);
-        this.healthBars.set(unit, healthBar);
+          const healthBarForegroundMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00ff00,
+            opacity: 1,
+            transparent: true,
+          });
+          const healthBarForeground = new THREE.Mesh(
+            healthBarGeometry,
+            healthBarForegroundMaterial,
+          );
+          healthBarForeground.renderOrder = 1;
+          healthBar.add(healthBarForeground);
+
+          this.healthbars.set(unit, healthBar);
+        }
       }
 
-      const cameraDirection = this.game.sceneManager.camera.getWorldDirection(
-        new THREE.Vector3(),
+      const fov = this.game.sceneManager.camera.fov * (Math.PI / 180);
+      const cameraToNameplate = new THREE.Vector3().subVectors(
+        anchor,
+        this.game.sceneManager.camera.position,
       );
+      const forwardDistance = cameraToNameplate.dot(
+        this.game.sceneManager.camera.getWorldDirection(new THREE.Vector3()),
+      );
+      const scale = (4 * forwardDistance * Math.tan(fov)) / 10000; // so 1 unit = 1 pixel
 
+      // Update nameplate
       const nameplate = this.nameplates.get(unit);
       if (nameplate) {
-        const nameplateDirection = unit.position
-          .clone()
-          .sub(camPos)
-          .normalize();
-        const isBehindCamera = cameraDirection.dot(nameplateDirection) < 0;
+        nameplate.visible = unit.targeted || this.nameplatesVisible;
 
-        nameplate.visible =
-          !isBehindCamera && (unit.targeted ? true : this.nameplatesVisible);
-        nameplate.alpha = unit.targeted ? 1 : 0.5;
+        nameplate.children.forEach((child: THREE.Mesh) => {
+          child.position.copy(anchor);
+          child.rotation.setFromRotationMatrix(
+            this.game.sceneManager.camera.matrix,
+          );
+          child.scale.setScalar(scale);
+        });
 
-        nameplate.position.set(x, y);
-      }
+        const healthbar = this.healthbars.get(unit);
+        if (healthbar) {
+          const foreground = healthbar.children[1] as THREE.Mesh;
+          const healthFraction = unit.health.current / unit.health.max;
+          foreground.scale.set(healthFraction, 1, 1);
+          foreground.position.set(-50 * (1 - healthFraction), 0, 0);
 
-      const label = this.labels.get(unit);
-      if (label) {
-        label.position.set(-label.width / 2, -label.height / 2 - label.height);
-      }
+          healthbar.children.forEach((child: THREE.Mesh) => {
+            (child.material as THREE.Material).opacity = unit.targeted
+              ? 1
+              : 0.5;
+          });
+        }
 
-      const healthBar = this.healthBars.get(unit);
-      if (healthBar) {
-        healthBar.position.set(-healthBar.width / 2, -healthBar.height / 2);
-
-        healthBar.rect(0, 0, 100, 10);
-        healthBar.fill(0xff0000);
-
-        const healthFraction = unit.health.current / unit.health.max;
-        healthBar.rect(0, 0, 100 * healthFraction, 10);
-        healthBar.fill(0x00ff00);
+        // Name
+        const name = this.labels.get(unit);
+        if (name) {
+          (name.material as THREE.MeshBasicMaterial).opacity = unit.targeted
+            ? 1
+            : 0.5;
+        }
       }
     }
 
     const damageTextsToRemove = [] as typeof this.damageTexts;
+    const currentTime = performance.now(); // Store the current time once
 
     for (const damageText of this.damageTexts) {
-      const { time, text, anchor, lifetime } = damageText;
+      const { time, text, anchor, lifetime, speed } = damageText;
 
-      const screenPosition = anchor
-        .clone()
-        .project(this.game.sceneManager.camera);
-      const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
-      const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
-
-      text.position.set(
-        x - text.width / 2,
-        y - text.height / 2 - text.height * 1.5,
+      const fov = this.game.sceneManager.camera.fov * (Math.PI / 180);
+      const cameraToDamageText = new THREE.Vector3().subVectors(
+        anchor,
+        this.game.sceneManager.camera.position,
       );
+      const forwardDistance = cameraToDamageText.dot(
+        this.game.sceneManager.camera.getWorldDirection(new THREE.Vector3()),
+      );
+      const scale = (4 * forwardDistance * Math.tan(fov)) / 10000; // so 1 unit = 1 pixel
 
-      const delta = performance.now() - time;
-      text.position.y -= delta / 10;
+      text.position.copy(anchor);
+      text.rotation.setFromRotationMatrix(this.game.sceneManager.camera.matrix);
+      text.scale.setScalar(scale);
+
+      const delta = currentTime - time; // Use the stored current time
+      text.position.y += speed * (delta / 1000); // units per second
 
       if (delta > lifetime) {
-        text.destroy(true);
-        this.pixiScene.removeChild(text);
+        this.game.sceneManager.removeObject(text);
         damageTextsToRemove.push(damageText);
       }
     }
-
     this.damageTexts = this.damageTexts.filter(
       t => !damageTextsToRemove.includes(t),
     );
@@ -242,58 +271,53 @@ export class HUD {
       }
     }
 
-    for (const [unit, container] of this.nameplates) {
+    for (const [unit, nameplate] of this.nameplates) {
       if (!units.includes(unit)) {
-        container.off('mouseupoutside');
-        container.off('rightupoutside');
-        container.destroy(true);
-        this.pixiScene.removeChild(container);
+        this.game.sceneManager.removeObject(nameplate);
         this.nameplates.delete(unit);
         this.labels.delete(unit);
-        this.healthBars.delete(unit);
+        this.healthbars.delete(unit);
       }
     }
   }
 
-  render() {
-    this.pixiRenderer.resetState();
-    this.pixiRenderer.render({ container: this.pixiScene });
-  }
-
   spawnDamageText(target: Unit, damage: number) {
-    const text = new PIXI.Text({
-      text: damage.toString(),
-      style: {
-        fontFamily: 'Arial',
-        fontSize: 24,
-        fill: 0xffffff,
-        align: 'center',
-        fontWeight: 'bold',
-      },
-    });
+    const font = gAssetManager.getFont('helvetiker_bold');
+    if (!font) return;
 
     const anchor = target.position.clone();
     anchor.y += target.getHeight() + 0.75;
 
-    const screenPosition = anchor
-      .clone()
-      .project(this.game.sceneManager.camera);
+    const geometry = new TextGeometry(damage.toString(), {
+      font: font,
+      size: 24,
+      depth: 0,
+      curveSegments: 12,
+    });
+    geometry.computeBoundingBox();
+    const bbox = geometry.boundingBox!;
+    const width = bbox.max.x - bbox.min.x;
+    const height = bbox.max.y - bbox.min.y;
+    geometry.translate(-width / 2, height / 2 + height * 1.5, 0);
+    const text = new THREE.Mesh(geometry, whiteMaterial);
+    this.game.sceneManager.addObject(text);
 
-    const x = ((screenPosition.x + 1) * window.innerWidth) / 2;
-    const y = ((-screenPosition.y + 1) * window.innerHeight) / 2;
-
-    text.position.set(
-      x - text.width / 2,
-      y - text.height / 2 - text.height * 1.5,
-    );
-
-    this.pixiScene.addChild(text);
+    text.position.copy(anchor);
+    text.rotation.setFromRotationMatrix(this.game.sceneManager.camera.matrix);
 
     this.damageTexts.push({
       time: performance.now(),
       text,
       anchor,
       lifetime: 1000,
+      speed: 2, // units per second
     });
+  }
+
+  getNameplateHitboxes() {
+    return this.nameplates
+      .values()
+      .filter(nameplate => nameplate.visible)
+      .map(nameplate => nameplate.children[0] as THREE.Mesh);
   }
 }

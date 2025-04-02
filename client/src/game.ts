@@ -8,7 +8,7 @@ import { UI } from './ui';
 import { Player } from './player';
 
 export class Game {
-  sceneManager = new SceneManager();
+  sceneManager = new SceneManager(this);
   entityManager = new EntityManager(this.sceneManager);
   socket = new Socket(config.host, config.port);
   hud: HUD;
@@ -58,21 +58,12 @@ export class Game {
     for (const inputEvent of eventsToHandle) {
       if (inputEvent.type === 'deselectUnit') {
         this.player.clearTarget();
+
         if (this.player.isAttacking) {
           this.player.stopAttack();
         }
       } else if (inputEvent.type === 'selectUnit') {
         if (!inputEvent.data.unit) continue;
-
-        // Clear other selected units if origin is hud
-        if (inputEvent.data.origin === 'hud') {
-          inputEvents.filter(
-            event =>
-              event.type === 'selectUnit' &&
-              event.data.origin !== 'hud' &&
-              event.data.unit !== inputEvent.data.unit,
-          );
-        }
 
         this.player.setTarget(inputEvent.data.unit);
         if (inputEvent.data.button === 'right') {
@@ -82,6 +73,5 @@ export class Game {
     }
 
     this.sceneManager.render();
-    this.hud.render();
   }
 }

@@ -3,31 +3,28 @@ import EventEmitter from 'eventemitter3';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import type { Unit } from './unit';
+import type { Game } from './game';
 
 export class SceneManager extends EventEmitter {
   renderer: THREE.WebGLRenderer;
   camera: THREE.PerspectiveCamera;
   directionalLight!: THREE.DirectionalLight;
   audioListener = new THREE.AudioListener();
+  controls: OrbitControls;
 
   private scene: THREE.Scene;
   private clock: THREE.Clock;
-  private controls: OrbitControls;
   private trackballControls: TrackballControls;
   private cameraTarget: Unit | null = null;
   private raycaster = new THREE.Raycaster();
   private shadowFloor!: THREE.Mesh;
 
-  constructor() {
+  constructor(private game: Game) {
     super();
 
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      stencil: true, // so masks work in pixijs
-    });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.toneMapping = THREE.ReinhardToneMapping;
     document.body.appendChild(this.renderer.domElement);
     this.renderer.setClearColor(0x3e3e3e);
     this.renderer.shadowMap.enabled = true;
@@ -253,7 +250,6 @@ export class SceneManager extends EventEmitter {
     this.directionalLight.position.y = this.controls.target.y + 100;
     this.directionalLight.position.z = this.controls.target.z + 20;
 
-    this.renderer.resetState();
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -287,10 +283,14 @@ export class SceneManager extends EventEmitter {
   getTargetEntityFromMouse(x: number, y: number) {
     this.raycaster.setFromCamera(new THREE.Vector2(x, y), this.camera);
 
-    const intersects = this.raycaster.intersectObjects(
-      this.scene.children,
-      true,
-    );
+    const entityHitboxes = this.game.entityManager
+      .getUnits()
+      .map(entity => entity.modelHitbox);
+    const nameplateHitboxes = this.game.hud.getNameplateHitboxes();
+
+    const hitboxes = [...entityHitboxes, ...nameplateHitboxes];
+
+    const intersects = this.raycaster.intersectObjects(hitboxes, false);
     if (!intersects.length) return;
 
     const entities = intersects.filter(

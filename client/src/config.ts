@@ -8,6 +8,11 @@ export const assets = [
     src: 'helvetiker_regular.typeface.json',
   },
   {
+    type: 'font',
+    name: 'helvetiker_bold',
+    src: 'helvetiker_bold.typeface.json',
+  },
+  {
     type: 'sound',
     name: 'background',
     src: 'background.ogg',
