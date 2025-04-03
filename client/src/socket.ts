@@ -178,10 +178,13 @@ export class Socket {
 
     target.health.current = targetHealth;
 
-    const attackerName =
-      attacker.id === game.player.unit?.id ? 'Your' : `${attacker.name}'s`;
+    const isCurrentPlayer = attacker.id === game.player.unit?.id;
 
-    game.hud.spawnDamageText(target, damage);
+    if (isCurrentPlayer) {
+      game.hud.spawnDamageText(target, damage);
+    }
+
+    const attackerName = isCurrentPlayer ? 'Your' : `${attacker.name}'s`;
 
     log.info(
       `${attackerName} melee swing hits ${target.name} for ${damage} damage`,
