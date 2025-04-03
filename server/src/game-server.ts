@@ -51,6 +51,8 @@ export class GameServer {
             player.color,
             player.health.max,
             player.health.current,
+            player.level,
+            player.xp,
           ),
         );
 
@@ -67,6 +69,7 @@ export class GameServer {
             player.color,
             player.health.max,
             player.health.current,
+            player.level,
           ),
           player.id,
         );
@@ -156,6 +159,10 @@ export class GameServer {
     eventBus.on(
       'unitDamage',
       (attacker: Unit, victim: Unit, amount: number) => {
+        if (!victim.isAlive()) {
+          attacker.gainXp(victim.xpPerKill);
+        }
+
         this.world.broadcast(
           Packet.AttackSwing.serialize(
             attacker.id,
@@ -184,7 +191,14 @@ export class GameServer {
           unit.color,
           unit.health.max,
           unit.health.current,
+          unit.level,
         ),
+      );
+    });
+
+    eventBus.on('unitGainXp', (unit: Unit, amount: number) => {
+      this.world.broadcast(
+        Packet.GainXp.serialize(unit.id, unit.level, unit.xp, amount),
       );
     });
   }

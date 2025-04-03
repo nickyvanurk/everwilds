@@ -9,6 +9,7 @@ export enum Opcode {
   AttackStart,
   AttackSwing,
   AttackStop,
+  GainXp,
 }
 
 export type Serialized = (string | number)[];
@@ -39,6 +40,8 @@ export const Welcome = {
     color: number,
     maxHealth: number,
     currentHealth: number,
+    level: number,
+    xp: number,
   ) {
     return [
       Opcode.Welcome,
@@ -52,6 +55,8 @@ export const Welcome = {
       color,
       maxHealth,
       currentHealth,
+      level,
+      xp,
     ];
   },
 
@@ -69,6 +74,8 @@ export const Welcome = {
       color: data[i++] as number,
       maxHealth: data[i++] as number,
       currentHealth: data[i++] as number,
+      level: data[i++] as number,
+      xp: data[i++] as number,
     };
   },
 };
@@ -85,6 +92,7 @@ export const Spawn = {
     color: number,
     maxHealth: number,
     currentHealth: number,
+    level: number,
   ) {
     return [
       Opcode.Spawn,
@@ -98,6 +106,7 @@ export const Spawn = {
       color,
       maxHealth,
       currentHealth,
+      level,
     ];
   },
 
@@ -115,6 +124,8 @@ export const Spawn = {
       color: data[i++] as number,
       maxHealth: data[i++] as number,
       currentHealth: data[i++] as number,
+      level: data[i++] as number,
+      xp: data[i++] as number,
     };
   },
 };
@@ -243,6 +254,23 @@ export const AttackStop = {
     let i = 0;
     return {
       opcode: data[i++] as number,
+    };
+  },
+};
+
+export const GainXp = {
+  serialize(id: number, level: number, xp: number, amount: number) {
+    return [Opcode.GainXp, id, level, xp, amount];
+  },
+
+  deserialize(data: Serialized) {
+    let i = 0;
+    return {
+      opcode: data[i++] as number,
+      id: data[i++] as number,
+      level: data[i++] as number,
+      xp: data[i++] as number,
+      amount: data[i++] as number,
     };
   },
 };

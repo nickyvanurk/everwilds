@@ -97,6 +97,8 @@ export class Socket {
       color,
       maxHealth,
       currentHealth,
+      level,
+      xp,
     } = data;
 
     log.debug(`Received player ID from server: ${id}`);
@@ -110,6 +112,8 @@ export class Socket {
     playerUnit.setOrientation(orientation);
     playerUnit.health.max = maxHealth;
     playerUnit.health.current = currentHealth;
+    playerUnit.level = level;
+    playerUnit.xp = xp;
 
     game.entityManager.addEntity(playerUnit);
 
@@ -224,5 +228,30 @@ export class Socket {
     log.info(
       `${attackerName} melee swing hits ${target.name} for ${damage} damage`,
     );
+  }
+
+  handleGainXp(data: ReturnType<typeof Packet.GainXp.deserialize>) {
+    const { id, level, xp } = data;
+
+    const entity = game.entityManager.getEntity(id);
+    if (!entity) return;
+
+    const isLevelUp = level >= entity.level;
+    if (isLevelUp) {
+      log.info(`Level up! ${entity.name} is now level ${level}`);
+    }
+
+    entity.level = level;
+    entity.xp = xp;
+
+    const isCurrentPlayer = entity.id === game.player.unit?.id;
+    if (isCurrentPlayer) {
+      game.hud.setXpBar(
+        entity.xp,
+        entity.xpToLevelUp,
+        entity.level,
+        entity.maxLevel,
+      );
+    }
   }
 }

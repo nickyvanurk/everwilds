@@ -9,6 +9,9 @@ export class Unit extends Entity {
   spawnOrientation = 0;
   respawnTime = 1000;
   isRespawning = false;
+  level = 1;
+  maxLevel = 10;
+  xp = 0;
 
   constructor(
     public name: string,
@@ -75,5 +78,31 @@ export class Unit extends Entity {
     this.health.current = this.health.max;
     this.vy = 0;
     eventBus.emit('unitRespawn', this);
+  }
+
+  get xpToLevelUp() {
+    return 12.5 * this.level * this.xpPerKill; // 8 is used for wow classic
+  }
+
+  get xpPerKill() {
+    return 15 + 5 * this.level; // 45 + 5 * this.level is used for wow classic
+  }
+
+  gainXp(amount: number) {
+    this.xp += amount;
+    if (this.xp >= this.xpToLevelUp) {
+      this.levelUp();
+    }
+
+    eventBus.emit('unitGainXp', this, amount);
+  }
+
+  levelUp() {
+    this.xp -= this.xpToLevelUp;
+    this.level++;
+    if (this.level > this.maxLevel) {
+      this.level = this.maxLevel;
+      this.xp = this.xpToLevelUp;
+    }
   }
 }

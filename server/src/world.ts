@@ -86,6 +86,7 @@ export class World {
           unit.color,
           unit.health.max,
           unit.health.current,
+          unit.level,
         ),
       );
     }

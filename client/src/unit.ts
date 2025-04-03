@@ -350,6 +350,10 @@ export class Unit {
     return this.velocity.x !== 0 || this.velocity.z !== 0;
   }
 
+  isAlive() {
+    return this.health.current > 0;
+  }
+
   get xpToLevelUp() {
     return 12.5 * this.level * this.xpPerKill; // 8 is used for wow classic
   }
