@@ -86,7 +86,18 @@ export class Socket {
   }
 
   handleWelcome(data: ReturnType<typeof Packet.Welcome.deserialize>) {
-    const { id, flags, name, x, y, z, orientation, color } = data;
+    const {
+      id,
+      flags,
+      name,
+      x,
+      y,
+      z,
+      orientation,
+      color,
+      maxHealth,
+      currentHealth,
+    } = data;
 
     log.debug(`Received player ID from server: ${id}`);
 
@@ -97,6 +108,8 @@ export class Socket {
     playerUnit.setFlags(flags);
     playerUnit.setPosition(x, y, z, true);
     playerUnit.setOrientation(orientation);
+    playerUnit.health.max = maxHealth;
+    playerUnit.health.current = currentHealth;
 
     game.entityManager.addEntity(playerUnit);
 
@@ -108,7 +121,18 @@ export class Socket {
   }
 
   handleSpawn(data: ReturnType<typeof Packet.Spawn.deserialize>) {
-    const { id, flags, name, x, y, z, orientation, color } = data;
+    const {
+      id,
+      flags,
+      name,
+      x,
+      y,
+      z,
+      orientation,
+      color,
+      maxHealth,
+      currentHealth,
+    } = data;
 
     log.debug(`Received spawn entity: ${id} ${x} ${y} ${z}`);
 
@@ -119,6 +143,8 @@ export class Socket {
     unit.setFlags(flags);
     unit.setPosition(x, y, z, true);
     unit.setOrientation(orientation);
+    unit.health.max = maxHealth;
+    unit.health.current = currentHealth;
 
     game.entityManager.addEntity(unit);
 

@@ -84,6 +84,8 @@ export class World {
           unit.z,
           unit.orientation,
           unit.color,
+          unit.health.max,
+          unit.health.current,
         ),
       );
     }

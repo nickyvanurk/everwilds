@@ -49,22 +49,26 @@ export class GameServer {
             player.z,
             player.orientation,
             player.color,
+            player.health.max,
+            player.health.current,
           ),
         );
 
         this.world.pushUnitsToPlayer(player!);
         this.world.broadcast(
           Packet.Spawn.serialize(
-            player!.id,
-            player!.flags,
-            player!.name,
-            player!.x,
-            player!.y,
-            player!.z,
-            player!.orientation,
+            player.id,
+            player.flags,
+            player.name,
+            player.x,
+            player.y,
+            player.z,
+            player.orientation,
             player.color,
+            player.health.max,
+            player.health.current,
           ),
-          player!.id,
+          player.id,
         );
 
         log.info(`Player ${player.name} joined the game`);
@@ -178,6 +182,8 @@ export class GameServer {
           unit.z,
           unit.orientation,
           unit.color,
+          unit.health.max,
+          unit.health.current,
         ),
       );
     });

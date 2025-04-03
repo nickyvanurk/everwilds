@@ -37,8 +37,22 @@ export const Welcome = {
     z: number,
     orientation: number,
     color: number,
+    maxHealth: number,
+    currentHealth: number,
   ) {
-    return [Opcode.Welcome, id, flags, name, x, y, z, orientation, color];
+    return [
+      Opcode.Welcome,
+      id,
+      flags,
+      name,
+      x,
+      y,
+      z,
+      orientation,
+      color,
+      maxHealth,
+      currentHealth,
+    ];
   },
 
   deserialize(data: Serialized) {
@@ -53,6 +67,8 @@ export const Welcome = {
       z: data[i++] as number,
       orientation: data[i++] as number,
       color: data[i++] as number,
+      maxHealth: data[i++] as number,
+      currentHealth: data[i++] as number,
     };
   },
 };
@@ -67,8 +83,22 @@ export const Spawn = {
     z: number,
     orientation: number,
     color: number,
+    maxHealth: number,
+    currentHealth: number,
   ) {
-    return [Opcode.Spawn, id, flags, name, x, y, z, orientation, color];
+    return [
+      Opcode.Spawn,
+      id,
+      flags,
+      name,
+      x,
+      y,
+      z,
+      orientation,
+      color,
+      maxHealth,
+      currentHealth,
+    ];
   },
 
   deserialize(data: Serialized) {
@@ -83,6 +113,8 @@ export const Spawn = {
       z: data[i++] as number,
       orientation: data[i++] as number,
       color: data[i++] as number,
+      maxHealth: data[i++] as number,
+      currentHealth: data[i++] as number,
     };
   },
 };
