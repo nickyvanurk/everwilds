@@ -20,6 +20,7 @@ export class World {
         (Math.random() - 0.5) * 100,
         Math.random() * 360,
       );
+      mob.respawnTime = 10000; // 10 seconds
       this.entities[mob.id] = mob;
       this.units[mob.id] = mob;
     }
