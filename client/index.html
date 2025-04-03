@@ -30,8 +30,8 @@
         color: white;
         display: flex;
         flex-direction: column;
-        margin-left: 20px;
-        margin-bottom: 20px;
+        margin-left: 15px;
+        margin-bottom: 35px;
         width: 500px;
         font-size: 18px;
         height: 236px;
@@ -76,8 +76,27 @@
     </style>
   </head>
   <body>
+    <!-- Add experience bar at the bottom of the screen -->
+    <div id="current-level" style="position: absolute; bottom: 0; left: 0; color: white; font-family: 'Gill Sans'; font-size: 16px; background-color: black; width: 50px; text-align: center; height: 20px;">1</div>
+    <div id="next-level" style="position: absolute; bottom: 0; right: 0; color: white; font-family: 'Gill Sans'; font-size: 16px; background-color: black; width: 50px; text-align: center; height: 20px;">2</div>
+    <div id="experience-bar" style="position: absolute; bottom: 0; left: 50px; right: 50px; height: 20px; background-color: rgba(0, 0, 0, 0.5);"></div>
+    <div id="experience-bar-fill" style="position: absolute; bottom: 0; left: 50px; width: 0px; height: 20px; background-color: #FFB800;"></div>
+    <div id="experience-bar"
+      style="position: absolute; bottom: 0; left: 50px; right: 50px; height: 20px;">
+      <!-- Add vertical bars for every 10% -->
+      <div style="position: absolute; left: 10%; top: 0; width: 2px; height: 100%; background-color: rgba(0, 0, 0, 1);"></div>
+      <div style="position: absolute; left: 20%; top: 0; width: 2px; height: 100%; background-color: rgba(0, 0, 0, 1);"></div>
+      <div style="position: absolute; left: 30%; top: 0; width: 2px; height: 100%; background-color: rgba(0, 0, 0, 1);"></div>
+      <div style="position: absolute; left: 40%; top: 0; width: 2px; height: 100%; background-color: rgba(0, 0, 0, 1);"></div>
+      <div style="position: absolute; left: 50%; top: 0; width: 2px; height: 100%; background-color: rgba(0, 0, 0, 1);"></div>
+      <div style="position: absolute; left: 60%; top: 0; width: 2px; height: 100%; background-color: rgba(0, 0, 0, 1);"></div>
+      <div style="position: absolute; left: 70%; top: 0; width: 2px; height: 100%; background-color: rgba(0, 0, 0, 1);"></div>
+      <div style="position: absolute; left: 80%; top: 0; width: 2px; height: 100%; background-color: rgba(0, 0, 0, 1);"></div>
+      <div style="position: absolute; left: 90%; top: 0; width: 2px; height: 100%; background-color: rgba(0, 0, 0, 1);"></div>
+    </div>
+    <div id="experience-bar-text" style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); color: white; font-family: 'Gill Sans'; font-size: 16px;">0 / 250</div>
 
-    <a id="discord" href="https://discord.gg/b3REbeavaT" target="_blank" style="position: absolute; bottom: 20px; right: 20px; color: white; font-family: 'Gill Sans'; font-size: 18px;">Join our Discord</a>
+    <a id="discord" href="https://discord.gg/b3REbeavaT" target="_blank" style="position: absolute; bottom: 35px; right: 15px; color: white; font-family: 'Gill Sans'; font-size: 18px;">Join our Discord</a>
 
     <div id="chatbox">
       <div id="chatlog">

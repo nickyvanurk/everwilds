@@ -320,4 +320,19 @@ export class HUD {
       .filter(nameplate => nameplate.visible)
       .map(nameplate => nameplate.children[0] as THREE.Mesh);
   }
+
+  setXpBar(currentXp, xpToLevelUp, level, maxLevel) {
+    const experienceBarFill = document.getElementById('experience-bar-fill');
+    const fillPercentage = (currentXp / xpToLevelUp) * 100;
+    experienceBarFill.style.width = `calc((100% - 100px) / 100 * ${fillPercentage})`;
+
+    const experienceBarText = document.getElementById('experience-bar-text');
+    experienceBarText.innerText = `${currentXp} / ${xpToLevelUp}`;
+
+    const currentLevel = document.getElementById('current-level');
+    currentLevel.innerText = `${level}`;
+
+    const nextLevel = document.getElementById('next-level');
+    nextLevel.innerText = `${level + 1 <= maxLevel ? level + 1 : ''}`;
+  }
 }

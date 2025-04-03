@@ -194,7 +194,6 @@ export class SceneManager extends EventEmitter {
       new THREE.ShadowMaterial({ opacity: 0.2 }),
     );
     floor.receiveShadow = true;
-    floor.visible = false;
     this.shadowFloor = floor;
     this.scene.add(floor);
   }

@@ -118,6 +118,15 @@ export class Socket {
 
     game.sceneManager.setCameraTarget(playerUnit);
     game.sceneManager.setCameraYaw(orientation);
+
+    // TODO: Add loading screen and render game when welcome packet is received
+    // to avoid UI flickering
+    game.hud.setXpBar(
+      playerUnit.xp,
+      playerUnit.xpToLevelUp,
+      playerUnit.level,
+      playerUnit.maxLevel,
+    );
   }
 
   handleSpawn(data: ReturnType<typeof Packet.Spawn.deserialize>) {

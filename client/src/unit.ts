@@ -5,11 +5,6 @@ const boxSize = 1.5;
 const modelHitboxGeometry = new THREE.BoxGeometry(boxSize, 2, boxSize);
 modelHitboxGeometry.translate(0, 1, 0);
 modelHitboxGeometry.computeBoundingBox();
-const modelHitboxMaterial = new THREE.MeshBasicMaterial({
-  color: 0xffffff,
-  opacity: 0,
-  transparent: true,
-});
 
 export class Unit {
   id = -1;
@@ -23,6 +18,9 @@ export class Unit {
   targeted = false;
   health = { current: 100, max: 100, min: 0 };
   hasGravity = true;
+  level = 1;
+  maxLevel = 10;
+  xp = 0;
 
   modelHitbox: THREE.Mesh;
 
@@ -60,11 +58,9 @@ export class Unit {
     const root = new THREE.Object3D();
 
     // Create bounding box for raycast collision detection
-    const modelHitbox = new THREE.Mesh(
-      modelHitboxGeometry,
-      modelHitboxMaterial,
-    );
+    const modelHitbox = new THREE.Mesh(modelHitboxGeometry);
     this.modelHitbox = modelHitbox;
+    this.modelHitbox.visible = false;
     root.add(modelHitbox);
 
     // Body
@@ -352,5 +348,13 @@ export class Unit {
 
   isWalking() {
     return this.velocity.x !== 0 || this.velocity.z !== 0;
+  }
+
+  get xpToLevelUp() {
+    return 12.5 * this.level * this.xpPerKill; // 8 is used for wow classic
+  }
+
+  get xpPerKill() {
+    return 15 + 5 * this.level; // 45 + 5 * this.level is used for wow classic
   }
 }
