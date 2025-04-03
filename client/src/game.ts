@@ -22,7 +22,7 @@ export class Game {
 
     this.hud = new HUD(this);
     this.ui = new UI(this);
-    this.player = new Player(this.sceneManager);
+    this.player = new Player(this);
   }
 
   async init() {

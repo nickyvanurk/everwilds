@@ -41,6 +41,9 @@ function handleKeyEvent(ev: KeyboardEvent) {
   if (action) {
     const isKeyDown = ev.type === 'keydown';
 
+    ev.preventDefault();
+    ev.stopPropagation();
+
     if (isKeyDown) {
       const isKeyReleased =
         releasedActions[action] || releasedActions[action] === undefined;

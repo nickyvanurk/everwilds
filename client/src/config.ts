@@ -36,6 +36,7 @@ export const keyBindings = [
   { action: 'right', key: ['KeyD', 'ArrowRight'] },
   { action: 'jump', key: 'Space' },
   { action: 'toggleNameplates', key: 'KeyV' },
+  { action: 'targetNearestEnemy', key: 'Tab' },
 ];
 
 export const nameplatesVisibleByDefault = false;

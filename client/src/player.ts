@@ -4,7 +4,7 @@ import { actions, input, mouseState } from './input';
 import type { Unit } from './unit';
 import type { Socket } from './socket';
 import * as Packet from '../../shared/src/packets';
-import type { SceneManager } from './scene-manager';
+import type { Game } from './game';
 
 export class Player {
   socket: Socket | null = null;
@@ -16,13 +16,21 @@ export class Player {
   private timeSinceLastMovePacket = 0;
   private prejump?: THREE.Audio;
 
-  constructor(sceneManager: SceneManager) {
+  constructor(game: Game) {
     input.on('forward', this.sendMovementPacket.bind(this));
     input.on('backward', this.sendMovementPacket.bind(this));
     input.on('left', this.sendMovementPacket.bind(this));
     input.on('right', this.sendMovementPacket.bind(this));
+    input.on('targetNearestEnemy', (isKeyDown: boolean) => {
+      if (!this.unit || !isKeyDown) return;
 
-    sceneManager.on('cameraYawChanged', (yaw: number) => {
+      const unit = game.entityManager.getNearestUnit(this.unit.position);
+      if (!unit) return;
+
+      this.setTarget(unit);
+    });
+
+    game.sceneManager.on('cameraYawChanged', (yaw: number) => {
       if (mouseState.rmb && this.unit) {
         this.unit.setOrientation(yaw);
         this.sendMovementPacket();
@@ -30,7 +38,7 @@ export class Player {
     });
 
     gAssetManager.getSound('prejump', (buffer: AudioBuffer) => {
-      const prejump = new THREE.Audio(sceneManager.audioListener);
+      const prejump = new THREE.Audio(game.sceneManager.audioListener);
       prejump.setBuffer(buffer);
       prejump.setVolume(0.1);
       this.prejump = prejump;
@@ -50,10 +58,7 @@ export class Player {
     const input = new THREE.Vector3();
     input.x = actions.left ? -1 : actions.right ? 1 : 0;
     input.z = isForward ? -1 : actions.backward ? 1 : 0;
-    input.applyAxisAngle(
-      new THREE.Vector3(0, 1, 0),
-      this.unit.orientation,
-    );
+    input.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.unit.orientation);
     input.normalize();
 
     if (input.x || input.z) {
