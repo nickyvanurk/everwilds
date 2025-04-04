@@ -22,10 +22,10 @@ export class SceneManager extends EventEmitter {
   constructor(private game: Game) {
     super();
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    const canvas = document.getElementById('game-canvas');
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(this.renderer.domElement);
     this.renderer.setClearColor(0x3e3e3e);
     this.renderer.shadowMap.enabled = true;
 

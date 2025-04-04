@@ -8,9 +8,6 @@ export class UI {
   private maxChatMessages = 100;
 
   constructor(private game: Game) {
-    const discord = document.getElementById('discord')!;
-    this.stopElementPropagation(discord);
-
     const chatbox = document.getElementById('chatbox')!;
     this.stopElementPropagation(chatbox);
 
@@ -90,6 +87,30 @@ export class UI {
           networkFolder.refresh();
         });
     }
+
+    const controlsPanel = document.getElementById('controls-panel')!;
+
+    const infoBtn = document.getElementById('info-button')!;
+    this.stopElementPropagation(infoBtn);
+    infoBtn.addEventListener('click', () => {
+      controlsPanel.style.display =
+        controlsPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    const closeControls = document.getElementById('close-controls');
+    this.stopElementPropagation(closeControls);
+    closeControls.addEventListener('click', () => {
+      controlsPanel.style.display = 'none';
+    });
+
+    const discordBtn = document.getElementById('discord-button')!;
+    this.stopElementPropagation(discordBtn);
+
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Escape') {
+        controlsPanel.style.display = 'none';
+      }
+    });
   }
 
   addChatMessage(playerName: string, message: string) {
