@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import * as Utils from './utils';
 
 const boxSize = 1.5;
-const modelHitboxGeometry = new THREE.BoxGeometry(boxSize, 2, boxSize);
+const modelHitboxGeometry = new THREE.BoxGeometry(boxSize, 1.5, boxSize);
 modelHitboxGeometry.translate(0, 1, 0);
 modelHitboxGeometry.computeBoundingBox();
 
