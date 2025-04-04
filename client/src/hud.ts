@@ -6,14 +6,6 @@ import type { Unit } from './unit';
 import { input } from './input';
 import * as config from './config';
 
-const nameplateHitboxMaterial = new THREE.MeshBasicMaterial({
-  color: 0x000000,
-  opacity: 0,
-  transparent: true,
-});
-const nameplateHitboxGeometry = new THREE.PlaneGeometry(110, 38);
-nameplateHitboxGeometry.translate(0, 23, 0);
-
 const healthBarGeometry = new THREE.PlaneGeometry(100, 10);
 healthBarGeometry.translate(0, 10, 0);
 
@@ -109,15 +101,6 @@ export class HUD {
         const nameplate = new THREE.Group();
         this.game.sceneManager.addObject(nameplate);
         this.nameplates.set(unit, nameplate);
-
-        // Background
-        const hitbox = new THREE.Mesh(
-          nameplateHitboxGeometry,
-          nameplateHitboxMaterial,
-        );
-        hitbox.userData.id = unit.id;
-        hitbox.renderOrder = 2;
-        nameplate.add(hitbox);
 
         // Name
         {

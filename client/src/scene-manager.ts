@@ -285,11 +285,8 @@ export class SceneManager extends EventEmitter {
     const entityHitboxes = this.game.entityManager
       .getUnits()
       .map(entity => entity.modelHitbox);
-    const nameplateHitboxes = this.game.hud.getNameplateHitboxes();
 
-    const hitboxes = [...entityHitboxes, ...nameplateHitboxes];
-
-    const intersects = this.raycaster.intersectObjects(hitboxes, false);
+    const intersects = this.raycaster.intersectObjects(entityHitboxes, false);
     if (!intersects.length) return;
 
     const entities = intersects.filter(
