@@ -103,6 +103,9 @@ export class UI {
       controlsPanel.style.display = 'none';
     });
 
+    const githubBtn = document.getElementById("github-button")!;
+    this.stopElementPropagation(githubBtn);
+
     const discordBtn = document.getElementById('discord-button')!;
     this.stopElementPropagation(discordBtn);
 
