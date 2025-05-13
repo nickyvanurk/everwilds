@@ -27,6 +27,7 @@ While this is not a full MMORPG, it includes:
 - Character movement with walk animation
 - A basic combat system
 - A simple leveling system (up to level 10)
+- Ability to toggle character nameplates (by pressing v)
 - A chat system
 
 The highlight of this project is its approach to player movement synchronization
