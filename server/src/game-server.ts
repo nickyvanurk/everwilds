@@ -131,7 +131,7 @@ export class GameServer {
           }
 
           if (targetUnit.isAlive()) {
-            const damage = 20;
+            const damage = 17 + (3 * player.level);
             targetUnit.damage(damage, player);
 
             if (!targetUnit.isAlive()) {
